@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings, DuplicateRecordFields, RecordWildCards #-}
-{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns, NamedFieldPuns #-}
 {-# LANGUAGE ScopedTypeVariables, ConstraintKinds, TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances, FlexibleInstances, FlexibleContexts #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 
 -- To add docs for every type or function defined in the module.
 {-# OPTIONS_HADDOCK ignore-exports #-}
@@ -13,6 +14,7 @@ module Carma.EraGlonass.VinSynchronizer
      ( runVinSynchronizer
      ) where
 
+import           Data.Typeable
 import           Data.Function (fix)
 import           Data.Time.Clock (utctDay)
 import           Data.Time.LocalTime (TimeZone, utcToZonedTime)
@@ -24,6 +26,7 @@ import           Data.Maybe (catMaybes)
 import           Data.List (intersect)
 import           Data.List.NonEmpty (NonEmpty (..), toList)
 import qualified Data.Vector as Vec
+import           Data.Aeson
 
 import           Control.Arrow
 import           Control.Monad
@@ -31,7 +34,6 @@ import           Control.Monad.Reader (MonadReader, ReaderT, asks)
 import           Control.Monad.Catch
 import           Control.Monad.Trans.Class (lift)
 import           Control.Monad.Random.Class (MonadRandom)
-import           Control.Exception (SomeException, fromException)
 
 import           Database.Persist ((==.), (!=.), (>=.), (<-.), (/<-.), (||.))
 import           Database.Persist.Sql (SqlBackend, fromSqlKey)
@@ -44,7 +46,9 @@ import           Carma.Model.Contract.Persistent
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Instance.Persistent (TimeoutException (..))
 import           Carma.EraGlonass.Types
+import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
 import           Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persistent
+import           Carma.EraGlonass.Client
 
 
 -- | VIN synchronizer monad constraint.
@@ -57,6 +61,7 @@ type VinSynchronizerMonad m =
    , MonadThrow m
    , MonadRandom m -- For creating new @RequestId@
    , MonadConcurrently m
+   , MonadServantClient m
    )
 
 
@@ -101,6 +106,8 @@ runVinSynchronizer tz = do
     -- | Returned @Bool@ indicates successfulness status.
     --
     -- @True@ means it is done, @False@ means it is failed.
+    --
+    -- TODO Report about failures to @CaseEraGlonassFailure@ model.
     synchronizationResolve
       :: ( MonadReader AppContext m
          , MonadLoggerBus m
@@ -301,6 +308,11 @@ synchronizeVins = do
       -> ReaderT SqlBackend m ()
 
     unmarkAsHandled lists = do
+      -- Obtaining only those which is really handled by us at the moment
+      -- reported by Era Glonass side. And later all of them, these and others
+      -- will be /unmarked/ on our side (all of them supposed to be, on our
+      -- side, those which just /unmarked/ on Era Glonass side, and those which
+      -- just not /unmarked/ by us yet by some circumstances).
       (contracts, ephemerals) <- lift $ runConcurrently $ (,)
         <$> Concurrently ( maybe (pure []) (toList ? checkContracts)
                          $ getFirstNonEmptyList lists
@@ -309,7 +321,7 @@ synchronizeVins = do
                          $ getSecondNonEmptyList lists
                          )
 
-      logDebug [qm| CHECKPOINT! |]
+      logDebug [qm| CHECKPOINT! |] -- TODO
       contracts `seq` ephemerals `seq` pure ()
 
       where
@@ -328,7 +340,8 @@ synchronizeVins = do
             so we have to "unmark" them as handled by us)...
           |]
 
-          let requests :: Either String [EGCheckVinRequestRequests]
+          let -- | @Left@ if some VIN is incorrect.
+              requests :: Either String [EGCheckVinRequestRequests]
               requests = Vec.toList <$> foldM reduceFn Vec.empty entities where
                 reduceFn acc Entity {..} =
                   case contractVin entityVal of
@@ -354,8 +367,186 @@ synchronizeVins = do
             Right x -> pure x
             Left  e ->
               logError [qms|
-                Failed to construct request to check status of
+                {CrmEg02} is failed on constructing request to check status of
                 CaRMa outdated/deactivated "Contract"s.
+                Error: {e}
+              |] >> fail e
+
+          -- Checking for data correctness
+          uncurry when $
+            let
+              lenContracts = length entities
+              lenRequests  = length requestsList
+
+              failMsg = [qmb|
+                Constructing request to check status of \
+                CaRMa outdated/deactivated "Contract"s is failed.
+                Unexpectedly count of "Contract"s is not equal \
+                to count of requests (VINs to check).
+                \  Count of "Contract"s is {lenContracts}.
+                \  Count of requests (VINs to check) is {lenRequests}.
+              |]
+
+              m = do
+                logError [qm| {CrmEg02} is failed due to: {failMsg} |]
+                fail failMsg
+            in
+              (lenContracts /= lenRequests, m)
+
+          reqId <- newRequestId
+
+          let egRequestData =
+                EGCheckVinRequest
+                  { requestId = reqId
+                  , requests  = requestsList
+                  }
+
+          let requestResolver (Right x) = pure x
+              requestResolver (Left  e) = do
+                logError [qms|
+                  {CrmEg02} is failed on POST request to Era Glonass
+                  to check status of CaRMa outdated/deactivated "Contract"s.
+                  Error: {e}
+                |]
+
+                throwM $ EGCheckVinRequestIsFailed e egRequestData
+
+          let responseResolver EGCheckVinResponseIncorrect {..} = do
+                logError [qmb|
+                  {CrmEg02} is failed on parsing response data \
+                  from Era Glonass to check status \
+                  of CaRMa outdated/deactivated "Contract"s.
+                  \  Error message: {errorMessage}
+                  \  Incorrect response body: {incorrectResponseBody}
+                |]
+
+                throwM $
+                  EGCheckVinResponseIsFailed errorMessage incorrectResponseBody
+
+              responseResolver EGCheckVinResponse {..} = do
+                ourCode <- asks carmaEgServiceCode
+
+                -- Checking for data correctness
+                uncurry when $
+                  let
+                    lenRequests  = length requestsList
+                    lenResponses = length responses
+
+                    failMsg = [qmb|
+                      Incorrect response to a request to check status of \
+                      CaRMa outdated/deactivated "Contract"s.
+                      Unexpectedly count of responses (checked VINs) \
+                      is not equal to count of requests (VINs to check).
+                      \  Count of responses (checked VINs) is {lenResponses}.
+                      \  Count of requests (VINs to check) is {lenRequests}.
+                    |]
+
+                    m = do
+                      logError [qm| {CrmEg02} is failed due to: {failMsg} |]
+                      fail failMsg
+                  in
+                    (lenRequests /= lenResponses, m)
+
+                let vinsAreNotEqualFailMsg contractId reqVin resVin = [qmb|
+                      Incorrect response to a request to check status of \
+                      CaRMa outdated/deactivated "Contract"s.
+                      Unexpectedly a VIN from response is not equal to one
+                      from request (at the same position in order).
+                      \  Contract id is {fromSqlKey contractId}.
+                      \  VIN from request is {reqVin}.
+                      \  VIN from response is {resVin}.
+                    |]
+
+                let -- | Reducer which extracts
+                    reduceFn
+                      :: Vec.Vector ContractId
+                      -> ( ContractId
+                         , EGCheckVinRequestRequests
+                         , EGCheckVinResponseResponses
+                         )
+                      -> Either String (Vec.Vector ContractId)
+
+                    reduceFn acc ( contractId
+                                 , EGCheckVinRequestRequests { vin = reqVin }
+                                 , EGCheckVinResponseResponsesVinExists
+                                     { vin = resVin, vinProviders }
+                                 ) = do
+
+                      -- Checking for data correctness
+                      when (reqVin /= resVin) $
+                        Left $ vinsAreNotEqualFailMsg contractId reqVin resVin
+
+                      Right $ if any f vinProviders
+                                 then Vec.snoc acc contractId
+                                 else acc -- Already /unmarked/
+                      where
+                        -- | A predicate which checks that VIN is handled by us
+                        f EGCheckVinResponseVinProviders {..} = code == ourCode
+
+                    reduceFn acc ( contractId
+                                 , EGCheckVinRequestRequests { vin = reqVin }
+                                 , EGCheckVinResponseResponsesVinNotExists
+                                     { vin = resVin }
+                                 ) =
+                      if reqVin == resVin -- Checking for data correctness
+                         then Right acc -- Already /unmarked/
+                         else Left
+                            $ vinsAreNotEqualFailMsg contractId reqVin resVin
+
+                let result
+                      = fmap Vec.toList
+                      $ foldM reduceFn Vec.empty
+                      $ zip3 (entityKey <$> entities) requestsList responses
+
+                case result of
+                     Right x  -> pure x
+                     Left msg -> do
+                       logError [qm| {CrmEg02} is failed due to: {msg} |]
+                       fail msg
+
+          (asks egClientEnv >>= runClientM (crmEG02Post egRequestData))
+            >>= requestResolver
+            >>= responseResolver
+
+        checkEphemeral
+          :: VinSynchronizerMonad m
+          => [Entity EraGlonassSynchronizedContract]
+          -> m [EraGlonassSynchronizedContractId]
+          -- ^ Returns a list of "EraGlonassSynchronizedContract"s
+          --   which are handled by us, so these we're supposed to /unmark/
+          --   (filtered only those who match our own provider).
+
+        checkEphemeral entities = do
+          logDebug [qns|
+            Checking status of CaRMa "ephemeral VINs"
+            on Era Glonass side (checking whether they're handled by us
+            so we have to "unmark" them as handled by us)...
+          |]
+
+          let -- | @Left@ if some VIN is incorrect.
+              requests :: Either String [EGCheckVinRequestRequests]
+              requests = Vec.toList <$> foldM reduceFn Vec.empty entities where
+                appendReq acc x =
+                  Vec.snoc acc EGCheckVinRequestRequests { vin = x }
+                reduceFn acc Entity {..} =
+                  case ( eraGlonassSynchronizedContractVin entityVal
+                       & textToProofedEGVin
+                       ) <&> appendReq acc
+                    of x@(Right _) -> x
+                       Left msg -> Left [qms|
+                         VIN of a "EraGlonassSynchronizedContract" with id
+                         {fromSqlKey entityKey} is incorrect
+                         (which is really strange,
+                         it supposed to be validated earlier).
+                         Error message: {msg}
+                       |]
+
+          requestsList <- case requests of
+            Right x -> pure x
+            Left  e ->
+              logError [qms|
+                Failed to construct request
+                to check status of CaRMa "ephemeral VINs".
                 Error: {e}
               |] >> fail e
 
@@ -369,25 +560,6 @@ synchronizeVins = do
 
           -- TODO commit request
           egRequestData `seq` pure []
-
-        checkEphemeral
-          :: VinSynchronizerMonad m
-          => [Entity EraGlonassSynchronizedContract]
-          -> m [EraGlonassSynchronizedContractId]
-          -- ^ Returns a list of "EraGlonassSynchronizedContract"s which are
-          --   handled by us, so these we're supposed to /unmark/ (filtered only
-          --   those who match our own provider).
-
-        checkEphemeral entities = do
-          logDebug [qns|
-            Checking status of CaRMa "ephemeral VINs"
-            on Era Glonass side (checking whether they're handled by us
-            so we have to "unmark" them as handled by us)...
-          |]
-
-          reqId <- newRequestId
-          -- TODO commit request
-          reqId `seq` entities `seq` pure []
 
     foo :: VinSynchronizerMonad m => ReaderT SqlBackend m ()
     foo = fail "TODO implement"
@@ -421,6 +593,16 @@ getTimeToWait tz = getCurrentTime <&> utcToZonedTime tz ? f
                  ? (* 60) -- Back to real minutes
                  ? round
                  )
+
+
+data EGRequestException
+   = EGCheckVinRequestIsFailed ServantError EGCheckVinRequest
+     -- ^ When request to EG is failed
+   | EGCheckVinResponseIsFailed String Value
+     -- ^ When for instance parsing response from EG is failed
+     deriving (Show, Eq, Typeable)
+
+instance Exception EGRequestException
 
 
 -- | Helper type for VINs unmarking.
