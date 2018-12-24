@@ -6,15 +6,14 @@
 {-| Bulk import handlers. -}
 
 module AppHandlers.Bulk
-    ( vinImport
-    , vinImportDirectory
-    )
+     ( vinImport
+     , vinImportDirectory
+     )
 
 where
 
 import           BasicPrelude
 
-import           Control.Monad.State.Class
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Char8 as B
 import           Data.Char (toLower)
@@ -24,12 +23,15 @@ import qualified Data.Map as Map
 import           Data.Pool (withResource)
 import           Data.Text (pack, unpack)
 import qualified Data.Vector as V
-import           Database.Persist
-import           Database.Persist.Sql (SqlBackend, fromSqlKey)
+
+import           Control.Monad.State.Class
 
 import           System.Directory
 import           System.FilePath (pathSeparators, takeExtension, (</>))
 import           System.IO
+
+import           Database.Persist
+import           Database.Persist.Sql (SqlBackend, fromSqlKey)
 
 
 import           Carma.VIN
@@ -143,9 +145,27 @@ errorDirectory = "ERR"
 vinImportDirectory :: AppHandler ()
 vinImportDirectory = do
   cfg <- getSnapletUserConfig
-  (importDir :: String) <- liftIO $ Cfg.require cfg "contracts-import-dir"
+  (importDir :: FilePath) <- liftIO $
+    Cfg.require cfg "contracts.importing.from-directory.import-dir"
+  (lockFile :: FilePath) <- liftIO $ (importDir </>) <$>
+    Cfg.require cfg "contracts.importing.from-directory.lock-file"
   (extension :: String) <- liftIO $ toLowerCase <$>
-    Cfg.lookupDefault contractExtension cfg "contracts-extension"
+    Cfg.lookupDefault contractExtension cfg
+      "contracts.importing.from-directory.extension"
+
+  -- If directory doesn't exists it is defenitely not mounted.
+  -- Creating new empty directory to mount remote one later,
+  -- also creating lock file there to prevent it from touching by default.
+  liftIO $ (\m -> doesDirectoryExist importDir >>= flip unless m) $ do
+    createDirectoryIfMissing True importDir
+    System.IO.writeFile lockFile mempty
+
+  -- Blocking access to plug directory, it is probably not mounted yet
+  -- or connection is lost.
+  (\m -> liftIO (doesFileExist lockFile) >>= flip when m)
+    $  fail
+    $  "Lock-file blocked importing from directory "
+    ++ "(remote directory is not mounted?)"
 
   pgs <- with db getPostgresState
 
