@@ -117,9 +117,7 @@ runVinSynchronizer tz = do
       -> m Bool
 
     synchronizationResolve (Right ()) = True <$
-      logInfo [qn|
-        VINs synchronization iteration is finished successfully.
-      |]
+      logInfo [qn| VINs synchronization iteration is finished successfully.  |]
 
     synchronizationResolve ( Left (fromException -> Just (TimeoutExceeded n))
                            ) = False <$ do
@@ -175,7 +173,10 @@ synchronizeVins = do
       selectList [ EraGlonassSynchronizedContractIsHandledByCarma ==. True ] []
 
     egSubPrograms <- do
-      logDebug [qn| Getting list of active EG participants "SubProgram"s... |]
+      logDebug [qms|
+        Getting list of active EG participants
+        "{typeRep (Proxy :: Proxy SubProgram)}"s...
+      |]
       selectKeysList [ SubProgramActive                ==. True
                      , SubProgramEraGlonassParticipant ==. True
                      ] []
@@ -187,10 +188,10 @@ synchronizeVins = do
           handledContracts <&> eraGlonassSynchronizedContractVin . entityVal
 
     contractsToUnmarkAsHandled <- do
-      logDebug [qns|
-        Getting list of "Contract"s (VINs actually) which are used to be handled
-        (now we need to notify EG service that they aren't handled by CaRMa
-        anymore)...
+      logDebug [qms|
+        Getting list of "{contractTypeRep}"s (VINs actually) which are used to
+        be handled (now we need to notify EG service that they aren't handled by
+        CaRMa anymore)...
       |]
 
       flip selectList []
@@ -211,13 +212,13 @@ synchronizeVins = do
           )
 
     ephemeralVINsToUnmarkAsHandled <- do
-      logDebug [qns|
+      logDebug [qms|
         Searching for incorrect data ("ephemeral VINs"), when some VIN is
-        handled by CaRMa but no longer represented in "Contract"s list
+        handled by CaRMa but no longer represented in "{contractTypeRep}"s list
         (usually it doesn't happen but if for instance you change "vin" field
-        value of a "Contract" and previous "vin" have been marked as handled
-        by CaRMa for EG service we supposed to notify EG that we don't handle
-        these anymore)...
+        value of a "{contractTypeRep}" and previous "vin" have been marked as
+        handled by CaRMa for EG service we supposed to notify EG that we don't
+        handle these anymore)...
       |]
 
       selectList [ ContractVin <-. fmap Just handledVINs ] []
@@ -275,7 +276,8 @@ synchronizeVins = do
                          SecondNonEmptyList _   -> 0
                          BothNonEmptyLists  y _ -> length y
                   }
-             \  Ephemeral VINs (not represented in "Contract"s anymore) count: \
+             \  Ephemeral VINs (not represented in "{contractTypeRep}"s anymore) \
+                count: \
                   { case x of
                          FirstNonEmptyList  _   -> 0
                          SecondNonEmptyList y   -> length y
@@ -334,8 +336,8 @@ synchronizeVins = do
           --   provider).
 
         checkContracts entities = do
-          logDebug [qns|
-            Checking status of CaRMa outdated/deactivated "Contract"s
+          logDebug [qms|
+            Checking status of CaRMa outdated/deactivated "{contractTypeRep}"s
             on Era Glonass side (checking whether they're handled by us
             so we have to "unmark" them as handled by us)...
           |]
@@ -352,15 +354,15 @@ synchronizeVins = do
                                   EGCheckVinRequestRequests { vin = proofedVin }
 
                               Left msg -> Left [qms|
-                                VIN of a "Contract" with id
+                                VIN of a "{contractTypeRep}" with id
                                 {fromSqlKey entityKey} is incorrect.
                                 Error message: {msg}
                               |]
 
                        Nothing -> Left [qms|
-                         VIN of a "Contract" with id {fromSqlKey entityKey}
-                         could not be "Nothing", it supposed to be checked
-                         earlier.
+                         VIN of a "{contractTypeRep}" with id
+                         {fromSqlKey entityKey} could not be "Nothing",
+                         it supposed to be checked earlier.
                        |]
 
           requestsList <- case requests of
@@ -368,7 +370,7 @@ synchronizeVins = do
             Left  e ->
               logError [qms|
                 {CrmEg02} is failed on constructing request to check status of
-                CaRMa outdated/deactivated "Contract"s.
+                CaRMa outdated/deactivated "{contractTypeRep}"s.
                 Error: {e}
               |] >> fail e
 
@@ -380,10 +382,10 @@ synchronizeVins = do
 
               failMsg = [qmb|
                 Constructing request to check status of \
-                CaRMa outdated/deactivated "Contract"s is failed.
-                Unexpectedly count of "Contract"s is not equal \
+                CaRMa outdated/deactivated "{contractTypeRep}"s is failed.
+                Unexpectedly count of "{contractTypeRep}"s is not equal \
                 to count of requests (VINs to check).
-                \  Count of "Contract"s is {lenContracts}.
+                \  Count of "{contractTypeRep}"s is {lenContracts}.
                 \  Count of requests (VINs to check) is {lenRequests}.
               |]
 
@@ -404,8 +406,8 @@ synchronizeVins = do
           let requestResolver (Right x) = pure x
               requestResolver (Left  e) = do
                 logError [qms|
-                  {CrmEg02} is failed on POST request to Era Glonass
-                  to check status of CaRMa outdated/deactivated "Contract"s.
+                  {CrmEg02} is failed on POST request to Era Glonass to check
+                  status of CaRMa outdated/deactivated "{contractTypeRep}"s.
                   Error: {e}
                 |]
 
@@ -415,7 +417,7 @@ synchronizeVins = do
                 logError [qmb|
                   {CrmEg02} is failed on parsing response data \
                   from Era Glonass to check status \
-                  of CaRMa outdated/deactivated "Contract"s.
+                  of CaRMa outdated/deactivated "{contractTypeRep}"s.
                   \  Error message: {errorMessage}
                   \  Incorrect response body: {incorrectResponseBody}
                 |]
@@ -434,7 +436,7 @@ synchronizeVins = do
 
                     failMsg = [qmb|
                       Incorrect response to a request to check status of \
-                      CaRMa outdated/deactivated "Contract"s.
+                      CaRMa outdated/deactivated "{contractTypeRep}"s.
                       Unexpectedly count of responses (checked VINs) \
                       is not equal to count of requests (VINs to check).
                       \  Count of responses (checked VINs) is {lenResponses}.
@@ -449,10 +451,10 @@ synchronizeVins = do
 
                 let vinsAreNotEqualFailMsg contractId reqVin resVin = [qmb|
                       Incorrect response to a request to check status of \
-                      CaRMa outdated/deactivated "Contract"s.
+                      CaRMa outdated/deactivated "{contractTypeRep}"s.
                       Unexpectedly a VIN from response is not equal to one
                       from request (at the same position in order).
-                      \  Contract id is {fromSqlKey contractId}.
+                      \  {contractTypeRep} id is {fromSqlKey contractId}.
                       \  VIN from request is {reqVin}.
                       \  VIN from response is {resVin}.
                     |]
@@ -534,8 +536,8 @@ synchronizeVins = do
                        ) <&> appendReq acc
                     of x@(Right _) -> x
                        Left msg -> Left [qms|
-                         VIN of a "EraGlonassSynchronizedContract" with id
-                         {fromSqlKey entityKey} is incorrect
+                         VIN of a "{eraGlonassSynchronizedContractTypeRep}"
+                         with id {fromSqlKey entityKey} is incorrect
                          (which is really strange,
                          it supposed to be validated earlier).
                          Error message: {msg}
@@ -593,6 +595,12 @@ getTimeToWait tz = getCurrentTime <&> utcToZonedTime tz ? f
                  ? (* 60) -- Back to real minutes
                  ? round
                  )
+
+
+contractTypeRep, eraGlonassSynchronizedContractTypeRep :: TypeRep
+contractTypeRep = typeRep (Proxy :: Proxy Contract)
+eraGlonassSynchronizedContractTypeRep =
+  typeRep (Proxy :: Proxy EraGlonassSynchronizedContract)
 
 
 data EGRequestException
