@@ -2,7 +2,6 @@
 {-# LANGUAGE QuasiQuotes, ViewPatterns, NamedFieldPuns #-}
 {-# LANGUAGE ScopedTypeVariables, ConstraintKinds, TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances, FlexibleInstances, FlexibleContexts #-}
-{-# LANGUAGE DeriveDataTypeable #-}
 
 -- To add docs for every type or function defined in the module.
 {-# OPTIONS_HADDOCK ignore-exports #-}
@@ -17,8 +16,7 @@ module Carma.EraGlonass.VinSynchronizer
 import           Data.Typeable
 import           Data.Function (fix)
 import           Data.Time.Clock (utctDay)
-import           Data.Time.LocalTime (TimeZone, utcToZonedTime)
-import           Data.Time.Format
+import           Data.Time.LocalTime (TimeZone)
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 import           Text.Printf (printf)
@@ -26,9 +24,7 @@ import           Data.Maybe (catMaybes)
 import           Data.List (intersect)
 import           Data.List.NonEmpty (NonEmpty (..), toList)
 import qualified Data.Vector as Vec
-import           Data.Aeson
 
-import           Control.Arrow
 import           Control.Monad
 import           Control.Monad.Reader (MonadReader, ReaderT, asks)
 import           Control.Monad.Catch
@@ -49,6 +45,8 @@ import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
 import           Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persistent
 import           Carma.EraGlonass.Client
+import           Carma.EraGlonass.VinSynchronizer.Types
+import           Carma.EraGlonass.VinSynchronizer.Helpers
 
 
 -- | VIN synchronizer monad constraint.
@@ -567,66 +565,7 @@ synchronizeVins = do
     foo = fail "TODO implement"
 
 
-{-|
-Returns hours and minutes to wait before triggering next VIN synchronization.
-
-Minutes already included into hours as fractional part.
--}
-getTimeToWait :: MonadClock m => TimeZone -> m (Float, Word)
-getTimeToWait tz = getCurrentTime <&> utcToZonedTime tz ? f
-  where
-    format = formatTime defaultTimeLocale
-    readFloat = read :: String -> Float
-    split = id &&& id
-
-    f =
-      format "%H" &&& format "%M" -- Getting hours and minutes
-      >>> readFloat *** readFloat
-      >>> second (/ 60) -- Minutes to fractional part of an hour
-
-      >>> -- Sum hours and fractional part of an hour (minutes),
-          -- getting hours left to 00:00 (with fractional part),
-          -- then split united result.
-          arr (uncurry (+) ? (`subtract` 24) ? split)
-
-      >>> -- Getting minutes left (as a remainder apart from hours).
-          second ( (properFraction :: Float -> (Int, Float))
-                 ? snd    -- Only remainder
-                 ? (* 60) -- Back to real minutes
-                 ? round
-                 )
-
-
 contractTypeRep, eraGlonassSynchronizedContractTypeRep :: TypeRep
 contractTypeRep = typeRep (Proxy :: Proxy Contract)
 eraGlonassSynchronizedContractTypeRep =
   typeRep (Proxy :: Proxy EraGlonassSynchronizedContract)
-
-
-data EGRequestException
-   = EGCheckVinRequestIsFailed ServantError EGCheckVinRequest
-     -- ^ When request to EG is failed
-   | EGCheckVinResponseIsFailed String Value
-     -- ^ When for instance parsing response from EG is failed
-     deriving (Show, Eq, Typeable)
-
-instance Exception EGRequestException
-
-
--- | Helper type for VINs unmarking.
-data OneOrTwoNonEmptyLists first second
-   = FirstNonEmptyList  (NonEmpty first)
-   | SecondNonEmptyList (NonEmpty second)
-   | BothNonEmptyLists  (NonEmpty first) (NonEmpty second)
-     deriving (Show, Eq)
-
-
-getFirstNonEmptyList :: OneOrTwoNonEmptyLists a b -> Maybe (NonEmpty a)
-getFirstNonEmptyList (FirstNonEmptyList  x  ) = Just x
-getFirstNonEmptyList (SecondNonEmptyList _  ) = Nothing
-getFirstNonEmptyList (BothNonEmptyLists  x _) = Just x
-
-getSecondNonEmptyList :: OneOrTwoNonEmptyLists a b -> Maybe (NonEmpty b)
-getSecondNonEmptyList (FirstNonEmptyList  _  ) = Nothing
-getSecondNonEmptyList (SecondNonEmptyList x  ) = Just x
-getSecondNonEmptyList (BothNonEmptyLists  _ x) = Just x
