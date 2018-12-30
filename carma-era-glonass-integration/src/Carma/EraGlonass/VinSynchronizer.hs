@@ -401,7 +401,8 @@ synchronizeVins = do
                   , requests  = requestsList
                   }
 
-          let requestResolver (Right x) = pure x
+          let -- | Resolver for possible failure of HTTP-request.
+              requestResolver (Right x) = pure x
               requestResolver (Left  e) = do
                 logError [qms|
                   {CrmEg02} is failed on POST request to Era Glonass to check
@@ -545,8 +546,9 @@ synchronizeVins = do
             Right x -> pure x
             Left  e ->
               logError [qms|
-                Failed to construct request
-                to check status of CaRMa "ephemeral VINs".
+                {CrmEg02} is failed on constructing request to check status of
+                CaRMa "ephemeral VINs"
+                ("{eraGlonassSynchronizedContractTypeRep}"s).
                 Error: {e}
               |] >> fail e
 
@@ -558,8 +560,118 @@ synchronizeVins = do
                   , requests  = requestsList
                   }
 
-          -- TODO commit request
-          egRequestData `seq` pure []
+          let -- | Resolver for possible failure of HTTP-request.
+              requestResolver (Right x) = pure x
+              requestResolver (Left  e) = do
+                logError [qms|
+                  {CrmEg02} is failed on POST request to Era Glonass to check
+                  status of CaRMa "ephemeral VINs"
+                  ("{eraGlonassSynchronizedContractTypeRep}"s).
+                  Error: {e}
+                |]
+
+                throwM $ EGCheckVinRequestIsFailed e egRequestData
+
+          let responseResolver EGCheckVinResponseIncorrect {..} = do
+                logError [qmb|
+                  {CrmEg02} is failed on parsing response data \
+                  from Era Glonass to check status \
+                  of CaRMa "ephemeral VINs" \
+                  ("{eraGlonassSynchronizedContractTypeRep}"s).
+                  \  Error message: {errorMessage}
+                  \  Incorrect response body: {incorrectResponseBody}
+                |]
+
+                throwM $
+                  EGCheckVinResponseIsFailed errorMessage incorrectResponseBody
+
+              responseResolver EGCheckVinResponse {..} = do
+                ourCode <- asks carmaEgServiceCode
+
+                -- Checking for data correctness
+                uncurry when $
+                  let
+                    lenRequests  = length requestsList
+                    lenResponses = length responses
+
+                    failMsg = [qmb|
+                      Incorrect response to a request to check status of \
+                      CaRMa "ephemeral VINs" \
+                      ("{eraGlonassSynchronizedContractTypeRep}"s).
+                      Unexpectedly count of responses (checked VINs) \
+                      is not equal to count of requests (VINs to check).
+                      \  Count of responses (checked VINs) is {lenResponses}.
+                      \  Count of requests (VINs to check) is {lenRequests}.
+                    |]
+
+                    m = do
+                      logError [qm| {CrmEg02} is failed due to: {failMsg} |]
+                      fail failMsg
+                  in
+                    (lenRequests /= lenResponses, m)
+
+                let vinsAreNotEqualFailMsg contractId reqVin resVin = [qmb|
+                      Incorrect response to a request to check status of \
+                      CaRMa "ephemeral VINs" \
+                      ("{eraGlonassSynchronizedContractTypeRep}"s).
+                      Unexpectedly a VIN from response is not equal to one
+                      from request (at the same position in order).
+                      \  {contractTypeRep} id is {fromSqlKey contractId}.
+                      \  VIN from request is {reqVin}.
+                      \  VIN from response is {resVin}.
+                    |]
+
+                let -- | Reducer which extracts
+                    reduceFn
+                      :: Vec.Vector EraGlonassSynchronizedContractId
+                      -> ( EraGlonassSynchronizedContractId
+                         , EGCheckVinRequestRequests
+                         , EGCheckVinResponseResponses
+                         )
+                      -> Either String
+                                (Vec.Vector EraGlonassSynchronizedContractId)
+
+                    reduceFn acc ( contractId
+                                 , EGCheckVinRequestRequests { vin = reqVin }
+                                 , EGCheckVinResponseResponsesVinExists
+                                     { vin = resVin, vinProviders }
+                                 ) = do
+
+                      -- Checking for data correctness
+                      when (reqVin /= resVin) $
+                        Left $ vinsAreNotEqualFailMsg contractId reqVin resVin
+
+                      Right $ if any f vinProviders
+                                 then Vec.snoc acc contractId
+                                 else acc -- Already /unmarked/
+                      where
+                        -- | A predicate which checks that VIN is handled by us
+                        f EGCheckVinResponseVinProviders {..} = code == ourCode
+
+                    reduceFn acc ( contractId
+                                 , EGCheckVinRequestRequests { vin = reqVin }
+                                 , EGCheckVinResponseResponsesVinNotExists
+                                     { vin = resVin }
+                                 ) =
+                      if reqVin == resVin -- Checking for data correctness
+                         then Right acc -- Already /unmarked/
+                         else Left
+                            $ vinsAreNotEqualFailMsg contractId reqVin resVin
+
+                let result
+                      = fmap Vec.toList
+                      $ foldM reduceFn Vec.empty
+                      $ zip3 (entityKey <$> entities) requestsList responses
+
+                case result of
+                     Right x  -> pure x
+                     Left msg -> do
+                       logError [qm| {CrmEg02} is failed due to: {msg} |]
+                       fail msg
+
+          (asks egClientEnv >>= runClientM (crmEG02Post egRequestData))
+            >>= requestResolver
+            >>= responseResolver
 
     foo :: VinSynchronizerMonad m => ReaderT SqlBackend m ()
     foo = fail "TODO implement"
