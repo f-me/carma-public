@@ -1,11 +1,13 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE ConstraintKinds, FlexibleContexts, DeriveDataTypeable #-}
 
 -- To add docs for every type or function defined in the module.
 {-# OPTIONS_HADDOCK ignore-exports #-}
 
 -- | Additional types for VIN synchronizer.
 module Carma.EraGlonass.VinSynchronizer.Types
-     ( EGRequestException (..)
+     ( VinSynchronizerMonad
+
+     , EGRequestException (..)
 
      , OneOrTwoNonEmptyLists (..)
      , getFirstNonEmptyList
@@ -17,10 +19,29 @@ import           Data.List.NonEmpty (NonEmpty)
 import           Data.Aeson
 
 import           Control.Exception
+import           Control.Monad.Reader (MonadReader)
+import           Control.Monad.Random.Class (MonadRandom)
+import           Control.Monad.Catch (MonadThrow)
 
 import           Servant.Client (ServantError)
 
+import           Carma.Monad
+import           Carma.EraGlonass.Types (AppContext)
 import           Carma.EraGlonass.Types.EGCheckVinRequest (EGCheckVinRequest)
+
+
+-- | VIN synchronizer monad constraint.
+type VinSynchronizerMonad m =
+   ( MonadReader AppContext m
+   , MonadLoggerBus m
+   , MonadClock m
+   , MonadDelay m
+   , MonadPersistentSql m
+   , MonadThrow m
+   , MonadRandom m -- For creating new @RequestId@
+   , MonadConcurrently m
+   , MonadServantClient m
+   )
 
 
 data EGRequestException

@@ -29,7 +29,6 @@ import           Control.Monad
 import           Control.Monad.Reader (MonadReader, ReaderT, asks)
 import           Control.Monad.Catch
 import           Control.Monad.Trans.Class (lift)
-import           Control.Monad.Random.Class (MonadRandom)
 
 import           Database.Persist ((==.), (!=.), (>=.), (<-.), (/<-.), (||.))
 import           Database.Persist.Sql (SqlBackend, fromSqlKey)
@@ -47,20 +46,6 @@ import           Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persisten
 import           Carma.EraGlonass.Client
 import           Carma.EraGlonass.VinSynchronizer.Types
 import           Carma.EraGlonass.VinSynchronizer.Helpers
-
-
--- | VIN synchronizer monad constraint.
-type VinSynchronizerMonad m =
-   ( MonadReader AppContext m
-   , MonadLoggerBus m
-   , MonadClock m
-   , MonadDelay m
-   , MonadPersistentSql m
-   , MonadThrow m
-   , MonadRandom m -- For creating new @RequestId@
-   , MonadConcurrently m
-   , MonadServantClient m
-   )
 
 
 -- | VIN synchronizer worker starter.
