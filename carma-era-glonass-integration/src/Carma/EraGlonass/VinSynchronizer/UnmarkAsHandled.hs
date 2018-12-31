@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, RecordWildCards, NamedFieldPuns #-}
+{-# LANGUAGE QuasiQuotes, OverloadedStrings, RecordWildCards, NamedFieldPuns #-}
 {-# LANGUAGE TypeFamilies, FlexibleContexts, ScopedTypeVariables #-}
 
 -- To add docs for every type or function defined in the module.
@@ -9,6 +9,7 @@ module Carma.EraGlonass.VinSynchronizer.UnmarkAsHandled
      ) where
 
 import           Data.Proxy
+import           Data.Monoid
 import           Data.Typeable
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
@@ -55,21 +56,50 @@ unmarkAsHandled lists = do
                      $ getSecondNonEmptyList lists
                      )
 
-  logDebug [qm| CHECKPOINT! |] -- TODO
-  contracts `seq` ephemerals `seq` pure ()
+  let totalCount = length contracts + length ephemerals
+  let isEverythingAlreadyUnmarked = totalCount == 0
+
+  logDebug [qmb|
+    {CrmEg02}: Done with checking VINs for which of them supposed to be \
+    "unmarked" as handled by us.
+    Counts of VINs which are supposed to be "unmarked":
+    \  outdated/deactivated "{typeRep (Proxy :: Proxy Contract)}"s: \
+         {length contracts}
+    \  "ephemeral VINs" \
+         ("{typeRep (Proxy :: Proxy EraGlonassSynchronizedContract)}"s): \
+         {length ephemerals}
+    { if isEverythingAlreadyUnmarked
+         then "Every of those VINs is already \"unmarked\"."
+         else "Building request to \"unmark\" those VINs..." :: Text
+    }
+  |]
+
+  unless isEverythingAlreadyUnmarked $ do
+    let requests'
+          =  fmap (\(_, x) -> EGDeleteVinRequestRequests { vin = x }) contracts
+          <> fmap (\(_, x) -> EGDeleteVinRequestRequests { vin = x }) ephemerals
+
+    reqId <- lift newRequestId
+
+    let egRequestData =
+          EGDeleteVinRequest
+            { requestId = reqId
+            , requests  = requests'
+            }
+
+    -- TODO commit DELETE request and parse its response
+    egRequestData `seq` pure ()
+
+  -- TODO deactivate those VINs on our side
 
 
 checkContracts
-  :: forall m model
-  .  (VinSynchronizerMonad m, model ~ Contract)
-  => [Entity model]
-  -> m [Key model]
+  :: VinSynchronizerMonad m => [Entity Contract] -> m [(ContractId, EGVin)]
   -- ^ Returns a list of "Contract"s which are handled by us, so these
   --   we're supposed to /unmark/ (filtered only those who match our own
   --   provider).
 
 checkContracts = go where
-  go :: [Entity model] -> m [Key model]
   go = checkVINs modelTypeRep logSuffix vinGetter
 
   modelTypeRep = typeRep (Proxy :: Proxy Contract)
@@ -91,16 +121,14 @@ checkContracts = go where
 
 
 checkEphemeral
-  :: forall m model
-  .  (VinSynchronizerMonad m, model ~ EraGlonassSynchronizedContract)
-  => [Entity model]
-  -> m [Key model]
+  :: VinSynchronizerMonad m
+  => [Entity EraGlonassSynchronizedContract]
+  -> m [(EraGlonassSynchronizedContractId, EGVin)]
   -- ^ Returns a list of "EraGlonassSynchronizedContract"s
   --   which are handled by us, so these we're supposed to /unmark/
   --   (filtered only those who match our own provider).
 
 checkEphemeral = go where
-  go :: [Entity model] -> m [Key model]
   go = checkVINs modelTypeRep logSuffix vinGetter
 
   modelTypeRep = typeRep (Proxy :: Proxy EraGlonassSynchronizedContract)
@@ -127,7 +155,7 @@ checkVINs
   -> (Entity model -> Either String EGVin)
   -- ^ Helper to obtain validated VIN from a model
   -> [Entity model]
-  -> m [Key model]
+  -> m [(Key model, EGVin)]
   -- ^ Returns a list of Model items linked with VINs which are handled by us,
   --   so these we're supposed to /unmark/
   --   (filtered only those who match our own service provider).
@@ -236,12 +264,12 @@ checkVINs modelTypeRep modelLogInfix getVinFromModel entities = do
             |]
 
         let reduceFn
-              :: Vec.Vector (Key model)
+              :: Vec.Vector (Key model, EGVin)
               -> ( Key model
                  , EGCheckVinRequestRequests
                  , EGCheckVinResponseResponses
                  )
-              -> Either String (Vec.Vector (Key model))
+              -> Either String (Vec.Vector (Key model, EGVin))
 
             reduceFn acc ( modelId
                          , EGCheckVinRequestRequests { vin = reqVin }
@@ -254,7 +282,7 @@ checkVINs modelTypeRep modelLogInfix getVinFromModel entities = do
                 Left $ vinsAreNotEqualFailMsg modelId reqVin resVin
 
               Right $ if any f vinProviders
-                         then Vec.snoc acc modelId
+                         then Vec.snoc acc (modelId, resVin)
                          else acc -- Already /unmarked/
               where
                 -- | A predicate which checks that VIN is handled by us
