@@ -45,10 +45,12 @@ instance (Monad m, MonadBaseControl IO m) => MonadConcurrently m where
   -- logic (produced by using "Applicative" and "Alternative" instances).
   runConcurrently (Concurrently m) = m
 
+  -- | "<*>" stands for \"parallel"
   concurrentlyApplicate (Concurrently a) (Concurrently b) =
     case C.Concurrently a <*> C.Concurrently b of
          C.Concurrently m -> Concurrently m
 
+  -- | "<|>" stands for \"race" with the same type of result of both actions
   concurrentlyAlternate (Concurrently a) (Concurrently b) =
     case C.Concurrently a <|> C.Concurrently b of
          C.Concurrently m -> Concurrently m

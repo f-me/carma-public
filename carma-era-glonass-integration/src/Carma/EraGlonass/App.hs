@@ -16,13 +16,14 @@ import           Data.String (fromString)
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 
+import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.Reader
 import           Control.Monad.Logger (runStdoutLoggingT)
 import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad.Trans.Control (MonadBaseControl)
-import           Control.Monad.Catch (MonadCatch (catch), MonadThrow, finally)
 import           Control.Monad.Random.Class (MonadRandom)
+import           Control.Monad.Catch
 import           Control.Concurrent.MVar (tryReadMVar)
 import           Control.Concurrent.STM.TQueue
 import           Control.Concurrent.STM.TVar
@@ -34,6 +35,7 @@ import           Control.Exception
 
 import           Foreign.C.Types (CInt (..))
 import           System.IO (hPutStrLn, stderr)
+import           System.Exit (exitFailure)
 import           System.Posix.Signals
                    ( installHandler
                    , Handler (Catch)
@@ -55,6 +57,7 @@ import           Carma.Monad.LoggerBus
 import           Carma.Monad.Thread
 import           Carma.Monad.Delay
 import           Carma.Monad.STM
+import           Carma.Monad.Concurrently
 import           Carma.EraGlonass.Types
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Server (serverApplicaton)
@@ -82,9 +85,10 @@ data AppConfig
 app
   :: ( MonadIO m
      , MonadBaseControl IO m
-     , MonadCatch m
      , MonadRandom m
      , MonadThrow m
+     , MonadCatch m
+     , MonadMask m
      )
   => AppMode
   -> ( AppConfig
@@ -138,17 +142,21 @@ app appMode' withDbConnection = do
           {displayException e}
         |] `finally` exit 1
 
-  backgroundTasksCounter' <- atomically $ newTVar 0
-
   let appConfig
         = AppConfig
         { pgConf           = pgConf'
         , dbRequestTimeout = dbRequestTimeout'
         }
 
+  (backgroundTasksCounter', workersThreadFailureSem) <-
+    atomically $ (,) <$> newTVar 0 <*> newTSem 0
+
   (workersThreadId, workersThreadSem) <-
     flip runReaderT loggerBus'
       $ forkWithSem
+      $ handle (\e@(SomeException _) -> logError [qm|
+          Workers thread is unexpectedly failed with exception: {e}
+        |] `finally` atomically (signalTSem workersThreadFailureSem))
       $ withDbConnection appConfig
       $ \dbConnection' -> do
 
@@ -171,9 +179,16 @@ app appMode' withDbConnection = do
                     round $ vinSynchronizerRetryInterval' * 60 * (10 ** 6)
                 }
 
+          -- Semaphore for case when some worker is unexpectedly failed
+          failureSem <- atomically $ newTSem 0
+
           -- Running server thread
           (serverThreadId, serverThreadSem) <-
-            forkWithSem $ do
+            forkWithSem $ handle (\e@(SomeException _) -> logError [qms|
+              Incoming HTTP-server thread is unexpectedly failed
+              with exception: {e}
+            |] `finally` atomically (signalTSem failureSem)) $ do
+
               when (appMode' == TestingAppMode) $
                 logWarn
                   "Starting testing server with in-memory SQLite database..."
@@ -188,16 +203,36 @@ app appMode' withDbConnection = do
                                      testing mode. |]
                        pure Nothing
 
-               else fmap Just $ forkWithSem $ do
+               else fmap Just $ forkWithSem
+                              $ handle (\e@(SomeException _) -> logError [qms|
+                                  VIN synchronizer worker thread is unexpectedly
+                                  failed with exception: {e}
+                                |] `finally` atomically (signalTSem failureSem))
+                              $ do
+
                       logInfo [qn| Running VIN synchronizer worker thread... |]
                       runVinSynchronizer timeZone `runReaderT` appContext
 
-          let waitForWorkers = do
-                -- Wait for server thread
-                atomically $ waitTSem serverThreadSem
+          let waitForWorkers = runConcurrently x where
+                waitFor = atomically . waitTSem
+                x = failure <|> workers
 
-                -- Wait for VIN synchronizer thread
-                maybe (pure ()) (snd ? waitTSem ? atomically) vinSynchronizer
+                failure
+                  = Concurrently
+                  $ waitFor failureSem
+                    >> fail [qm|
+                         Some of threads of workers is unexpectedly failed!
+                       |]
+
+                workers = void $ (,)
+                 <$> Concurrently
+                     ( -- Wait for server thread
+                       waitFor serverThreadSem
+                     )
+                 <*> Concurrently
+                     ( -- Wait for VIN synchronizer thread
+                       maybe (pure ()) (snd ? waitFor) vinSynchronizer
+                     )
 
           waitForWorkers `catch` \e@KillWorkersException -> do
 
@@ -219,7 +254,10 @@ app appMode' withDbConnection = do
     in installHandler sig (Catch terminateHook) Nothing
 
   -- Wait for workers thread
-  atomically $ waitTSem workersThreadSem
+  runConcurrently $
+    let waitFor = atomically . waitTSem
+    in  Concurrently (waitFor workersThreadFailureSem >> liftIO exitFailure)
+    <|> Concurrently (waitFor workersThreadSem)
 
   let waitForLogger =
         atomically (tryPeekTQueue loggerBus') >>= \case
