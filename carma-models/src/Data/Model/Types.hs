@@ -11,6 +11,8 @@ import Data.HashMap.Strict (HashMap)
 import Data.Aeson.Types as Aeson
 import Data.Map (Map)
 import Data.Int (Int64)
+import Data.String (IsString)
+import Data.Proxy
 
 import qualified Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.FromRow   (RowParser)
@@ -59,6 +61,12 @@ data FieldKindSingleton (k :: FieldKind) where
 class FieldKindSing k where fieldKindSing :: FieldKindSingleton k
 instance FieldKindSing 'DefaultField   where fieldKindSing = FKSDefault
 instance FieldKindSing 'EphemeralField where fieldKindSing = FKSEphemeral
+
+fieldKindStr
+  :: forall fk str. (FieldKindSing fk, IsString str) => Proxy fk -> str
+fieldKindStr Proxy = case fieldKindSing :: FieldKindSingleton fk of
+  FKSDefault   -> "default"
+  FKSEphemeral -> "ephemeral"
 
 
 data FOpt (name :: Symbol) (desc :: Symbol) (app :: FieldKind) = FOpt

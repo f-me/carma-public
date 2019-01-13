@@ -61,15 +61,17 @@ vinImport = logExceptions "Bulk/vinImport" $ do
       -- Allow users with partner role to upload files only to their
       -- assigned subprograms.
       Just user <- currentUserMeta
-      let Just (Ident uid) = Patch.get user Usermeta.ident
-      let Just roles       = Patch.get user Usermeta.roles
-      let Just subPrograms = Patch.get user Usermeta.subPrograms
+      let Just (Ident uid)  = Patch.get user Usermeta.ident
+      let Just isUserActive = Patch.get user Usermeta.isActive
+      let Just roles        = Patch.get user Usermeta.roles
+      let Just subPrograms  = Patch.get user Usermeta.subPrograms
 
-      unless (
-              (V.elem Role.partner roles && V.elem (Ident sid) subPrograms)
-            || V.elem Role.vinAdmin roles
-            || V.elem Role.psaanalyst roles) $
-            handleError 403
+      unless isUserActive $ handleError 403
+
+      unless (  (V.elem Role.partner roles && V.elem (Ident sid) subPrograms)
+             ||  V.elem Role.vinAdmin roles
+             ||  V.elem Role.psaanalyst roles
+             ) $ handleError 403
 
       (inName, inPath) <- with fileUpload $ oneUpload =<< doUploadTmp
 

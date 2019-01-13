@@ -8,13 +8,11 @@ collisions.
 -}
 
 module Carma.Model.SubProgram.Type
-    ( SubProgram(..)
-    , SubProgramContact(..)
-    , SubProgramContractPermission(..)
-    , SubProgramService(..)
-    )
-
-where
+     ( SubProgram(..)
+     , SubProgramContact(..)
+     , SubProgramContractPermission(..)
+     , SubProgramService(..)
+     ) where
 
 import Data.Text
 import Data.Typeable
