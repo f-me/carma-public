@@ -175,11 +175,14 @@ vinImportDirectory = do
   pgs <- with db getPostgresState
 
   (programs, subPrograms, vinFormats) <- with db2 $ runPersist $ do
-    (programEntities :: [Entity Program]) <- selectList [] []
+    (programEntities :: [Entity Program]) <- selectList [ProgramActive ==. True]
+                                                        []
     let programs = for programEntities $ \e ->
                      (cleanPath $ programLabel $ entityVal e, entityKey e)
 
-    (subProgramEntities :: [Entity SubProgram]) <- selectList [] []
+    (subProgramEntities :: [Entity SubProgram]) <- selectList
+                                                   [SubProgramActive ==. True]
+                                                   []
     let subPrograms = for subProgramEntities $ \e ->
                       let val = entityVal e
                       in ( cleanPath $ subProgramLabel val
