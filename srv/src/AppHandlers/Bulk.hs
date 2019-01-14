@@ -59,15 +59,20 @@ import           Util as U
 -- Check user permissions
 -- Allow users with partner role to upload files only to their
 -- assigned subprograms.
-checkUserPermissions :: Handler App App Int
-checkUserPermissions = do
+checkUserPermissions :: Maybe Int -> Handler App App Int
+checkUserPermissions subProgramId = do
   Just user <- currentUserMeta
   let Just (Ident uid) = Patch.get user Usermeta.ident
   let Just roles       = Patch.get user Usermeta.roles
+  let Just subPrograms = Patch.get user Usermeta.subPrograms
 
-  unless ( V.elem Role.partner roles
-         || V.elem Role.vinAdmin roles
-         || V.elem Role.psaanalyst roles) $
+  let validSubProgram  = case subProgramId of
+                           Just sid -> V.elem (Ident sid) subPrograms
+                           Nothing  -> True
+
+  unless ((V.elem Role.partner roles && validSubProgram) ||
+           V.elem Role.vinAdmin roles ||
+           V.elem Role.psaanalyst roles) $
          handleError 403
 
   return uid
@@ -89,7 +94,7 @@ vinImport = logExceptions "Bulk/vinImport" $ do
     (Just (sid, _), Just (fid, _)) -> do
       syslogJSON Info "Bulk/vinImport" ["subprogram" .= sid, "format" .= fid]
 
-      uid <- checkUserPermissions
+      uid <- checkUserPermissions $ Just sid
 
       (inName, inPath) <- with fileUpload $ oneUpload =<< doUploadTmp
 
@@ -189,7 +194,7 @@ vinImportDirectory = do
 
     pure (programs, subPrograms, vinFormats)
 
-  uid <- checkUserPermissions
+  uid <- checkUserPermissions Nothing
 
   with taskMgr $ TM.create $ do
     let paths = concat $
