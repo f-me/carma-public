@@ -195,8 +195,8 @@ createCSVTables inames cnames =
 -- | Delete temporary pristine and proto tables for CSV data.
 deleteCSVTables :: Import ()
 deleteCSVTables =
-    execute_ "DROP TABLE vinnie_pristine CASCADE;" >>
-    execute_ "DROP TABLE vinnie_proto CASCADE;" >>
+    execute_ "DROP TABLE IF EXISTS vinnie_pristine CASCADE;" >>
+    execute_ "DROP TABLE IF EXISTS vinnie_proto CASCADE;" >>
     return ()
 
 -- | Read CSV into pristine table.
@@ -628,7 +628,7 @@ createQueueTable =
 -- Contract model table.
 deleteQueueTable :: Import ()
 deleteQueueTable =
-    execute_ "DROP TABLE vinnie_queue CASCADE;" >>
+    execute_ "DROP TABLE IF EXISTS vinnie_queue CASCADE;" >>
     return ()
 
 -- | Set committer and subprogram (if not previously set) for
