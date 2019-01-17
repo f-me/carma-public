@@ -359,6 +359,9 @@ process psid enc mapping = do
                          CopyOutRow s ->
                              BS.appendFile output s >> next
                          CopyOutDone n -> return n
+
+  deleteQueueTable
+  deleteCSVTables
   return $ ImportResult (total, loaded, errors)
 
 

@@ -192,6 +192,12 @@ createCSVTables inames cnames =
                             , ");"
                             ]
 
+-- | Delete temporary pristine and proto tables for CSV data.
+deleteCSVTables :: Import ()
+deleteCSVTables =
+    execute_ "DROP TABLE vinnie_pristine CASCADE;" >>
+    execute_ "DROP TABLE vinnie_proto CASCADE;" >>
+    return ()
 
 -- | Read CSV into pristine table.
 copyPristineStart :: String -> [InternalName] -> Import ()
@@ -618,6 +624,12 @@ createQueueTable =
          :* cfn C.subprogram :* cfn C.checkPeriod
          :* cfn C.subprogram :* cfn C.checkPeriod)
 
+-- | Create a purgatory for new contracts with schema identical to
+-- Contract model table.
+deleteQueueTable :: Import ()
+deleteQueueTable =
+    execute_ "DROP TABLE vinnie_queue CASCADE;" >>
+    return ()
 
 -- | Set committer and subprogram (if not previously set) for
 -- contracts in queue.
