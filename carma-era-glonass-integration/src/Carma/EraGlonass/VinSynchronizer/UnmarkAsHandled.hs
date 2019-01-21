@@ -1,5 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, RecordWildCards, NamedFieldPuns #-}
 {-# LANGUAGE TypeFamilies, FlexibleContexts, ScopedTypeVariables #-}
+{-# LANGUAGE MultiWayIf #-}
 
 -- To add docs for every type or function defined in the module.
 {-# OPTIONS_HADDOCK ignore-exports #-}
@@ -63,34 +64,79 @@ unmarkAsHandled lists = do
     {CrmEg02}: Done with checking VINs for which of them supposed to be \
     "unmarked" as handled by us.
     Counts of VINs which are supposed to be "unmarked":
-    \  outdated/deactivated "{typeRep (Proxy :: Proxy Contract)}"s: \
-         {length contracts}
-    \  "ephemeral VINs" \
-         ("{typeRep (Proxy :: Proxy EraGlonassSynchronizedContract)}"s): \
-         {length ephemerals}
+    \  {contractsLogInfix}: {length contracts}
+    \  {ephemeralLogInfix}: {length ephemerals}
     { if isEverythingAlreadyUnmarked
          then "Every of those VINs is already \"unmarked\"."
          else "Building request to \"unmark\" those VINs..." :: Text
     }
   |]
 
-  unless isEverythingAlreadyUnmarked $ do
-    let requests'
-          =  fmap (\(_, x) -> EGDeleteVinRequestRequests { vin = x }) contracts
-          <> fmap (\(_, x) -> EGDeleteVinRequestRequests { vin = x }) ephemerals
-
-    reqId <- lift newRequestId
-
-    let egRequestData =
-          EGDeleteVinRequest
-            { requestId = reqId
-            , requests  = requests'
-            }
-
-    -- TODO commit DELETE request and parse its response
-    egRequestData `seq` pure ()
+  unless isEverythingAlreadyUnmarked $
+    lift $ askEGToUnmarkAsHandled contracts ephemerals
 
   -- TODO deactivate those VINs on our side
+
+
+askEGToUnmarkAsHandled
+  :: VinSynchronizerMonad m
+  => [(ContractId, EGVin)]
+  -> [(EraGlonassSynchronizedContractId, EGVin)]
+  -> m ()
+
+askEGToUnmarkAsHandled contracts ephemerals = do
+  reqId <- newRequestId
+
+  let egRequestData =
+        EGDeleteVinRequest
+          { requestId = reqId
+          , requests  = requests'
+          }
+
+  let -- | Resolver for possible failure of HTTP-request.
+      requestResolver (Right x) = pure x
+      requestResolver (Left  e) = do
+        logError [qmb|
+          {CrmEg02} is failed on DELETE request to Era Glonass to "unmark" \
+          {targetLog}.
+          \  {contractsLogInfix}: {contracts}
+          \  {ephemeralLogInfix}: {ephemerals}
+          Error: {e}
+        |]
+
+        throwM $ EGDeleteVinRequestIsFailed e egRequestData
+
+  let responseResolver EGDeleteVinResponseIncorrect {..} = do
+        logError [qmb|
+          {CrmEg02} is failed on parsing response data from Era Glonass \
+          to Era Glonass to "unmark" {targetLog}.
+          \  Error message: {errorMessage}
+          \  Incorrect response body: {incorrectResponseBody}
+        |]
+
+        throwM $
+          EGDeleteVinResponseIsFailed errorMessage incorrectResponseBody
+
+      responseResolver EGDeleteVinResponse {..} =
+        -- ourCode <- asks carmaEgServiceCode
+        -- TODO
+        undefined
+
+  (asks egClientEnv >>= runClientM (crmEG02Delete egRequestData))
+    >>= requestResolver
+    >>= responseResolver
+
+  where
+    requests'
+      =  fmap (\(_, x) -> EGDeleteVinRequestRequests { vin = x }) contracts
+      <> fmap (\(_, x) -> EGDeleteVinRequestRequests { vin = x }) ephemerals
+
+    targetLog
+      = if
+      | null contracts  -> ephemeralLogInfix
+      | null ephemerals -> contractsLogInfix
+      | otherwise ->
+          [qm| both {contractsLogInfix} and {ephemeralLogInfix} |]
 
 
 checkContracts
@@ -103,7 +149,7 @@ checkContracts = go where
   go = checkVINs modelTypeRep logSuffix vinGetter
 
   modelTypeRep = typeRep (Proxy :: Proxy Contract)
-  logSuffix = [qm| outdated/deactivated "{modelTypeRep}"s |]
+  logSuffix = [qm| {contractsLogInfix} |]
 
   vinGetter Entity {..} =
     case contractVin entityVal <&> textToProofedEGVin of
@@ -132,7 +178,7 @@ checkEphemeral = go where
   go = checkVINs modelTypeRep logSuffix vinGetter
 
   modelTypeRep = typeRep (Proxy :: Proxy EraGlonassSynchronizedContract)
-  logSuffix = [qm| "ephemeral VINs" ("{modelTypeRep}"s) |]
+  logSuffix = [qm| {ephemeralLogInfix} |]
 
   vinGetter Entity {..} =
     case eraGlonassSynchronizedContractVin entityVal & textToProofedEGVin of
@@ -140,8 +186,8 @@ checkEphemeral = go where
          Left msg -> Left [qms|
            VIN of a "{modelTypeRep}" with id {fromSqlKey entityKey} is incorrect
            (which is really strange, it supposed to be validated earlier, when
-           VIN have been synchronized, retrieved as proofed "EGVin" as stored to
-           the database being valid). Error message: {msg}
+           VIN have been synchronized, retrieved as proofed "EGVin" and stored
+           to the database while being valid). Error message: {msg}
          |]
 
 
@@ -312,3 +358,13 @@ checkVINs modelTypeRep modelLogInfix getVinFromModel entities = do
   (asks egClientEnv >>= runClientM (crmEG02Post egRequestData))
     >>= requestResolver
     >>= responseResolver
+
+
+contractsLogInfix :: Text
+contractsLogInfix =
+  [qm| outdated/deactivated "{typeRep (Proxy :: Proxy Contract)}"s |]
+
+ephemeralLogInfix :: Text
+ephemeralLogInfix =
+  [qms| "ephemeral VINs"
+        ("{typeRep (Proxy :: Proxy EraGlonassSynchronizedContract)}"s) |]

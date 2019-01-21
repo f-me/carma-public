@@ -26,7 +26,7 @@ import           Control.Monad.Catch (MonadThrow)
 import           Servant.Client (ServantError)
 
 import           Carma.Monad
-import           Carma.EraGlonass.Types (AppContext)
+import           Carma.EraGlonass.Types (AppContext, EGDeleteVinRequest)
 import           Carma.EraGlonass.Types.EGCheckVinRequest (EGCheckVinRequest)
 
 
@@ -48,6 +48,10 @@ data EGRequestException
    = EGCheckVinRequestIsFailed ServantError EGCheckVinRequest
      -- ^ When request to EG is failed
    | EGCheckVinResponseIsFailed String Value
+     -- ^ When for instance parsing response from EG is failed
+   | EGDeleteVinRequestIsFailed ServantError EGDeleteVinRequest
+     -- ^ When request to EG is failed
+   | EGDeleteVinResponseIsFailed String Value
      -- ^ When for instance parsing response from EG is failed
      deriving (Show, Eq, Typeable)
 
