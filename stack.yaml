@@ -31,17 +31,17 @@ extra-deps:
 - stm-lifted-0.1.1.0
 - syb-0.6
 - xmlhtml-0.2.4
-- git: git@github.com:ruamk/dmcc.git
+- git: https://github.com/ruamk/dmcc.git
   commit: 7c2e6fafb2d37c1b16a71b1fe6b3c8f97967d257
-- git: git@github.com:ruamk/hs-weather-api.git
+- git: https://github.com/ruamk/hs-weather-api.git
   commit: 6256f3925bdf324b696559bb75b900c544599784
-- git: git@github.com:ruamk/pg-simple-alt-qq.git
+- git: https://github.com/ruamk/pg-simple-alt-qq.git
   commit: 15fd5b959f0d88a50d2c460938bdb0cd2cd7322d
-- git: git@github.com:ruamk/websockets-snap.git
+- git: https://github.com/ruamk/websockets-snap.git
   commit: 8316c620bf4ffae8e6777e0b368edd0ce32a4324
-- git: git@github.com:Soostone/snaplet-persistent.git
+- git: https://github.com/Soostone/snaplet-persistent.git
   commit: 100291ada8c71d817d6758062dd98bbf2e60a040
-- git: git@github.com:ruamk/snap-extras.git
+- git: https://github.com/ruamk/snap-extras.git
   commit: 02a85d18fb4c7ea2a3ed43e6c5aa0e62ed521917
 image:
   containers:
