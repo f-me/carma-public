@@ -1,18 +1,27 @@
+{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
+{-# LANGUAGE ScopedTypeVariables, FlexibleContexts #-}
+
 -- To add docs for every type or function defined in the module.
 {-# OPTIONS_HADDOCK ignore-exports #-}
 
 -- | Helpers for VIN synchronizer.
 module Carma.EraGlonass.VinSynchronizer.Helpers
      ( getTimeToWait
+     , checkForRequestVinAndResponseVinEquality
      ) where
 
+import           Data.Monoid
 import           Data.Time.LocalTime (TimeZone, utcToZonedTime)
 import           Data.Time.Format
+import           Data.String
+import           Text.InterpolatedString.QM
 
 import           Control.Arrow
+import           Control.Monad.Except
 
 import           Carma.Utils.Operators
 import           Carma.Monad.Clock
+import           Carma.EraGlonass.Types
 
 
 {-|
@@ -43,3 +52,36 @@ getTimeToWait tz = getCurrentTime <&> utcToZonedTime tz ? f
                  ? (* 60) -- Back to real minutes
                  ? round
                  )
+
+
+-- | A helper to check data correctness between requests and responses.
+checkForRequestVinAndResponseVinEquality
+  :: ( MonadError errorMsg m
+
+     , IsString errorMsg
+     , Monoid errorMsg
+
+     , Monoid actionLog
+     , Show actionLog
+
+     , Foldable logInsertions
+     , IsString logInsertion
+     , Monoid logInsertion
+     , Show logInsertion
+     )
+  => actionLog
+  -> logInsertions logInsertion -- ^ Additional log lines about some values
+  -> EGVin -- ^ VIN from request
+  -> EGVin -- ^ VIN from response
+  -> m ()
+
+checkForRequestVinAndResponseVinEquality actionLog logInsertions reqVin resVin
+  | reqVin == resVin = pure ()
+  | otherwise = throwError [qmb|
+      Incorrect response to a request {actionLog}.
+      Unexpectedly a VIN from response is not equal to one \
+      from request (at the same position in order).
+      \  VIN from request is {reqVin}.
+      \  VIN from response is {resVin}.\
+      {foldMap (\x -> "\n  " <> x <> ".") logInsertions}
+    |]

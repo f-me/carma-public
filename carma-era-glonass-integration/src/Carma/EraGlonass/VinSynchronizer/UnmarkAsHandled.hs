@@ -34,6 +34,8 @@ import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
 import           Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persistent
 import           Carma.EraGlonass.Client
 import           Carma.EraGlonass.VinSynchronizer.Types
+import           Carma.EraGlonass.VinSynchronizer.Helpers
+import           Carma.EraGlonass.Helpers
 
 
 unmarkAsHandled
@@ -119,8 +121,14 @@ askEGToUnmarkAsHandled contracts ephemerals = do
 
       responseResolver EGDeleteVinResponse {..} =
         -- ourCode <- asks carmaEgServiceCode
-        -- TODO
-        undefined
+
+        -- Checking for data correctness
+        checkRequestsAndResponsesCountsEquality
+          CrmEg02 (t [qm| to "unmark" {targetLog} |])
+          (length requests', t [qn| checked VINs |])
+          (length responses, t [qn| checked VINs |])
+
+        -- TODO check for errors
 
   (asks egClientEnv >>= runClientM (crmEG02Delete egRequestData))
     >>= requestResolver
@@ -139,16 +147,18 @@ askEGToUnmarkAsHandled contracts ephemerals = do
           [qm| both {contractsLogInfix} and {ephemeralLogInfix} |]
 
 
+-- | Returns a list of "Contract"s which are handled by us, so these
+--   we're supposed to /unmark/ (filtered only those who match our own
+--   provider).
 checkContracts
-  :: VinSynchronizerMonad m => [Entity Contract] -> m [(ContractId, EGVin)]
-  -- ^ Returns a list of "Contract"s which are handled by us, so these
-  --   we're supposed to /unmark/ (filtered only those who match our own
-  --   provider).
+  :: forall m model
+  .  (VinSynchronizerMonad m, model ~ Contract)
+  => [Entity model]
+  -> m [(Key model, EGVin)]
 
 checkContracts = go where
-  go = checkVINs modelTypeRep logSuffix vinGetter
-
-  modelTypeRep = typeRep (Proxy :: Proxy Contract)
+  go = checkVINs logSuffix vinGetter
+  modelTypeRep = typeRep (Proxy :: Proxy model)
   logSuffix = [qm| {contractsLogInfix} |]
 
   vinGetter Entity {..} =
@@ -166,18 +176,18 @@ checkContracts = go where
          |]
 
 
+-- | Returns a list of "EraGlonassSynchronizedContract"s
+--   which are handled by us, so these we're supposed to /unmark/
+--   (filtered only those who match our own provider).
 checkEphemeral
-  :: VinSynchronizerMonad m
-  => [Entity EraGlonassSynchronizedContract]
-  -> m [(EraGlonassSynchronizedContractId, EGVin)]
-  -- ^ Returns a list of "EraGlonassSynchronizedContract"s
-  --   which are handled by us, so these we're supposed to /unmark/
-  --   (filtered only those who match our own provider).
+  :: forall m model
+  .  (VinSynchronizerMonad m, model ~ EraGlonassSynchronizedContract)
+  => [Entity model]
+  -> m [(Key model, EGVin)]
 
 checkEphemeral = go where
-  go = checkVINs modelTypeRep logSuffix vinGetter
-
-  modelTypeRep = typeRep (Proxy :: Proxy EraGlonassSynchronizedContract)
+  go = checkVINs logSuffix vinGetter
+  modelTypeRep = typeRep (Proxy :: Proxy model)
   logSuffix = [qm| {ephemeralLogInfix} |]
 
   vinGetter Entity {..} =
@@ -195,9 +205,11 @@ checkEphemeral = go where
 -- handled by us.
 checkVINs
   :: forall m model
-  .  (VinSynchronizerMonad m, ToBackendKey SqlBackend model)
-  => TypeRep -- ^ "TypeRep" of a model to obtain its name for log for example
-  -> Text -- ^ Log infix of what kind of VINs we're checking
+  .  ( VinSynchronizerMonad m
+     , ToBackendKey SqlBackend model
+     , Typeable model
+     )
+  => Text -- ^ Log infix of what kind of VINs we're checking
   -> (Entity model -> Either String EGVin)
   -- ^ Helper to obtain validated VIN from a model
   -> [Entity model]
@@ -206,7 +218,7 @@ checkVINs
   --   so these we're supposed to /unmark/
   --   (filtered only those who match our own service provider).
 
-checkVINs modelTypeRep modelLogInfix getVinFromModel entities = do
+checkVINs modelLogInfix getVinFromModel entities = do
   logDebug [qms|
     Checking status of CaRMa {modelLogInfix}
     on Era Glonass side (checking whether they're handled by us
@@ -229,22 +241,10 @@ checkVINs modelTypeRep modelLogInfix getVinFromModel entities = do
       |] >> fail e
 
   -- Checking for data correctness
-  uncurry when $
-    let
-      lenContracts = length entities
-      lenRequests  = length requestsList
-
-      failMsg = [qmb|
-        Constructing request to check status of CaRMa {modelLogInfix} is failed.
-        Unexpectedly count of "{modelTypeRep}"s is not equal \
-        to count of requests (VINs to check).
-        \  Count of "{modelTypeRep}"s is {lenContracts}.
-        \  Count of requests (VINs to check) is {lenRequests}.
-      |]
-
-      m = logError [qm| {CrmEg02} is failed due to: {failMsg} |] >> fail failMsg
-    in
-      (lenContracts /= lenRequests, m)
+  checkConstructredRequestsAndEntitiesCountsEquality
+    CrmEg02 actionLog
+    (length requestsList, t [qn| VINs to check |])
+    (length entities,     typeRep (Proxy :: Proxy model))
 
   reqId <- newRequestId
 
@@ -267,7 +267,7 @@ checkVINs modelTypeRep modelLogInfix getVinFromModel entities = do
   let responseResolver EGCheckVinResponseIncorrect {..} = do
         logError [qmb|
           {CrmEg02} is failed on parsing response data from Era Glonass \
-          to check status of CaRMa {modelLogInfix}.
+          {actionLog}.
           \  Error message: {errorMessage}
           \  Incorrect response body: {incorrectResponseBody}
         |]
@@ -279,35 +279,10 @@ checkVINs modelTypeRep modelLogInfix getVinFromModel entities = do
         ourCode <- asks carmaEgServiceCode
 
         -- Checking for data correctness
-        uncurry when $
-          let
-            lenRequests  = length requestsList
-            lenResponses = length responses
-
-            failMsg = [qmb|
-              Incorrect response to a request to check status of \
-              CaRMa {modelLogInfix}.
-              Unexpectedly count of responses (checked VINs) \
-              is not equal to count of requests (VINs to check).
-              \  Count of responses (checked VINs) is {lenResponses}.
-              \  Count of requests (VINs to check) is {lenRequests}.
-            |]
-
-            m = do
-              logError [qm| {CrmEg02} is failed due to: {failMsg} |]
-              fail failMsg
-          in
-            (lenRequests /= lenResponses, m)
-
-        let vinsAreNotEqualFailMsg modelId reqVin resVin = [qmb|
-              Incorrect response to a request to check status of \
-              CaRMa {modelLogInfix}.
-              Unexpectedly a VIN from response is not equal to one \
-              from request (at the same position in order).
-              \  {modelTypeRep} id is {fromSqlKey modelId}.
-              \  VIN from request is {reqVin}.
-              \  VIN from response is {resVin}.
-            |]
+        checkRequestsAndResponsesCountsEquality
+          CrmEg02 actionLog
+          (length requestsList, t [qn| VINs to check |])
+          (length responses,    t [qn| checked VINs |])
 
         let reduceFn
               :: Vec.Vector (Key model, EGVin)
@@ -324,8 +299,8 @@ checkVINs modelTypeRep modelLogInfix getVinFromModel entities = do
                          ) = do
 
               -- Checking for data correctness
-              when (reqVin /= resVin) $
-                Left $ vinsAreNotEqualFailMsg modelId reqVin resVin
+              checkForRequestVinAndResponseVinEquality
+                actionLog [modelLog modelId] reqVin resVin
 
               Right $ if any f vinProviders
                          then Vec.snoc acc (modelId, resVin)
@@ -338,11 +313,13 @@ checkVINs modelTypeRep modelLogInfix getVinFromModel entities = do
                          , EGCheckVinRequestRequests { vin = reqVin }
                          , EGCheckVinResponseResponsesVinNotExists
                              { vin = resVin }
-                         ) =
-              if reqVin == resVin -- Checking for data correctness
-                 then Right acc -- Already /unmarked/
-                 else Left
-                    $ vinsAreNotEqualFailMsg modelId reqVin resVin
+                         ) = do
+
+              -- Checking for data correctness
+              checkForRequestVinAndResponseVinEquality
+                actionLog [modelLog modelId] reqVin resVin
+
+              Right acc -- Already /unmarked/
 
         let result
               = fmap Vec.toList
@@ -359,6 +336,12 @@ checkVINs modelTypeRep modelLogInfix getVinFromModel entities = do
     >>= requestResolver
     >>= responseResolver
 
+  where
+    actionLog = t [qm| to check status of CaRMa {modelLogInfix} |]
+
+    modelLog modelId =
+      t [qm| {typeRep (Proxy :: Proxy model)} id is {fromSqlKey modelId} |]
+
 
 contractsLogInfix :: Text
 contractsLogInfix =
@@ -368,3 +351,7 @@ ephemeralLogInfix :: Text
 ephemeralLogInfix =
   [qms| "ephemeral VINs"
         ("{typeRep (Proxy :: Proxy EraGlonassSynchronizedContract)}"s) |]
+
+-- | Just a shorthand for type infering
+t :: Text -> Text
+t = id

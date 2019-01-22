@@ -1,4 +1,4 @@
-# port for incoming requests
+# Port for incoming requests
 port = 8166
 
 # [OPTIONAL]
