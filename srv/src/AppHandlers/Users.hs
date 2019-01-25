@@ -30,6 +30,7 @@ module AppHandlers.Users
 where
 
 import           Data.Maybe
+import           Data.Bool
 import           Data.Text (Text)
 import qualified Data.Text           as T
 import           Data.String (fromString)
@@ -130,9 +131,8 @@ chkAuthRoles roleCheck handler = do
   req <- getRequest
   if rqClientAddr req == rqServerAddr req
      then handler -- No checks for requests from @localhost@
-     else currentUserRoles >>= \case
-            Nothing    -> handleError 401
-            Just roles -> if roleCheck roles then handler else handleError 401
+     else maybe False roleCheck <$> currentUserRoles >>=
+            handleError 401 `bool` handler
 
 
 -- | Deny requests from deactivated users.
