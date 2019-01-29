@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, RecordWildCards, NamedFieldPuns #-}
 {-# LANGUAGE TypeFamilies, FlexibleContexts, ScopedTypeVariables #-}
-{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE MultiWayIf, LambdaCase #-}
 
 -- To add docs for every type or function defined in the module.
 {-# OPTIONS_HADDOCK ignore-exports #-}
@@ -12,7 +12,7 @@ module Carma.EraGlonass.VinSynchronizer.UnmarkAsHandled
 import           Data.Proxy
 import           Data.Monoid
 import           Data.Typeable
-import           Data.Text (Text)
+import           Data.Text (Text, unpack)
 import           Text.InterpolatedString.QM
 import qualified Data.Vector as Vec
 import           Data.List.NonEmpty (toList)
@@ -67,7 +67,7 @@ unmarkAsHandled lists = do
     "unmarked" as handled by us.
     Counts of VINs which are supposed to be "unmarked":
     \  {contractsLogInfix}: {length contracts}
-    \  {ephemeralLogInfix}: {length ephemerals}
+    \  {ephemeralsLogInfix}: {length ephemerals}
     { if isEverythingAlreadyUnmarked
          then "Every of those VINs is already \"unmarked\"."
          else "Building request to \"unmark\" those VINs..." :: Text
@@ -102,7 +102,7 @@ askEGToUnmarkAsHandled contracts ephemerals = do
           {CrmEg02} is failed on DELETE request to Era Glonass to "unmark" \
           {targetLog}.
           \  {contractsLogInfix}: {contracts}
-          \  {ephemeralLogInfix}: {ephemerals}
+          \  {ephemeralsLogInfix}: {ephemerals}
           Error: {e}
         |]
 
@@ -111,7 +111,7 @@ askEGToUnmarkAsHandled contracts ephemerals = do
   let responseResolver EGDeleteVinResponseIncorrect {..} = do
         logError [qmb|
           {CrmEg02} is failed on parsing response data from Era Glonass \
-          to Era Glonass to "unmark" {targetLog}.
+          to "unmark" {targetLog}.
           \  Error message: {errorMessage}
           \  Incorrect response body: {incorrectResponseBody}
         |]
@@ -119,32 +119,85 @@ askEGToUnmarkAsHandled contracts ephemerals = do
         throwM $
           EGDeleteVinResponseIsFailed errorMessage incorrectResponseBody
 
-      responseResolver EGDeleteVinResponse {..} =
-        -- ourCode <- asks carmaEgServiceCode
+      responseResolver EGDeleteVinResponse {..} = do
+        let -- | Checking for data correctness
+            checkCounts logInfix (a, aLog) (b, bLog) =
+              checkRequestsAndResponsesCountsEquality
+                CrmEg02 (actionLog logInfix)
+                (length a, t aLog)
+                (length b, t bLog)
 
-        -- Checking for data correctness
-        checkRequestsAndResponsesCountsEquality
-          CrmEg02 (t [qm| to "unmark" {targetLog} |])
-          (length requests', t [qn| checked VINs |])
-          (length responses, t [qn| checked VINs |])
+        checkCounts targetLog
+          (requests', [qn| checked VINs |])
+          (responses, [qn| checked VINs |])
 
-        -- TODO check for errors
+        let (contractsResponses, ephemeralsResponses) =
+              splitAt (length contracts) responses
+
+        checkCounts contractsLogInfix
+          (contracts,          [qn| VINs to "unmark" |])
+          (contractsResponses, [qn| "unmarked" VINs |])
+
+        checkCounts ephemeralsLogInfix
+          (ephemerals,          [qn| VINs to "unmark" |])
+          (ephemeralsResponses, [qn| "unmarked" VINs |])
+
+        let checks
+              :: (VinSynchronizerMonad m, Functor f)
+              => UnmarkingVinType
+              -> f (EGVin, EGDeleteVinResponseResponses)
+              -> f (m ())
+
+            checks vinType = fmap $ \case
+
+              (reqVin, EGDeleteVinResponseResponsesSuccess { vin = resVin }) ->
+                case checkForRequestVinAndResponseVinEquality
+                       log' ([] :: [Text]) reqVin resVin
+                  of Right x -> pure x
+                     Left msg -> do
+                       logError [qm| {CrmEg02} is failed due to: {msg} |]
+                       fail msg
+
+              (reqVin, EGDeleteVinResponseResponsesIncorrectFormat {..}) -> do
+                logError [qms|
+                  {CrmEg02} is failed on checking response data from
+                  Era Glonass {log'}. Era Glonass service responded
+                  that {reqVin} has incorrect format.
+                |]
+
+                throwM
+                  $ EGDeleteVinIncorrectFormat vinType reqVin
+                  $ Data.Text.unpack <$> statusDescription
+
+              where
+                log' = case vinType of
+                  UnmarkingContractVinType  -> actionLog contractsLogInfix
+                  UnmarkingEphemeralVinType -> actionLog ephemeralsLogInfix
+
+        sequence_ $ checks UnmarkingContractVinType
+                  $ fmap snd contracts `zip` contractsResponses
+
+        sequence_ $ checks UnmarkingEphemeralVinType
+                  $ fmap snd ephemerals `zip` ephemeralsResponses
 
   (asks egClientEnv >>= runClientM (crmEG02Delete egRequestData))
     >>= requestResolver
     >>= responseResolver
 
   where
+    actionLog :: Text -> Text
+    actionLog logInfix = [qm| to "unmark" {logInfix} |]
+
     requests'
       =  fmap (\(_, x) -> EGDeleteVinRequestRequests { vin = x }) contracts
       <> fmap (\(_, x) -> EGDeleteVinRequestRequests { vin = x }) ephemerals
 
     targetLog
       = if
-      | null contracts  -> ephemeralLogInfix
-      | null ephemerals -> contractsLogInfix
+      | null contracts  -> contractsLogInfix
+      | null ephemerals -> ephemeralsLogInfix
       | otherwise ->
-          [qm| both {contractsLogInfix} and {ephemeralLogInfix} |]
+          [qm| both {contractsLogInfix} and {ephemeralsLogInfix} |]
 
 
 -- | Returns a list of "Contract"s which are handled by us, so these
@@ -188,7 +241,7 @@ checkEphemeral
 checkEphemeral = go where
   go = checkVINs logSuffix vinGetter
   modelTypeRep = typeRep (Proxy :: Proxy model)
-  logSuffix = [qm| {ephemeralLogInfix} |]
+  logSuffix = [qm| {ephemeralsLogInfix} |]
 
   vinGetter Entity {..} =
     case eraGlonassSynchronizedContractVin entityVal & textToProofedEGVin of
@@ -347,8 +400,8 @@ contractsLogInfix :: Text
 contractsLogInfix =
   [qm| outdated/deactivated "{typeRep (Proxy :: Proxy Contract)}"s |]
 
-ephemeralLogInfix :: Text
-ephemeralLogInfix =
+ephemeralsLogInfix :: Text
+ephemeralsLogInfix =
   [qms| "ephemeral VINs"
         ("{typeRep (Proxy :: Proxy EraGlonassSynchronizedContract)}"s) |]
 

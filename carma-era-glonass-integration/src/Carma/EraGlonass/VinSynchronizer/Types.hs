@@ -7,6 +7,7 @@
 module Carma.EraGlonass.VinSynchronizer.Types
      ( VinSynchronizerMonad
 
+     , UnmarkingVinType (..)
      , EGRequestException (..)
 
      , OneOrTwoNonEmptyLists (..)
@@ -28,6 +29,7 @@ import           Servant.Client (ServantError)
 import           Carma.Monad
 import           Carma.EraGlonass.Types (AppContext, EGDeleteVinRequest)
 import           Carma.EraGlonass.Types.EGCheckVinRequest (EGCheckVinRequest)
+import           Carma.EraGlonass.Types.EGVin (EGVin)
 
 
 -- | VIN synchronizer monad constraint.
@@ -44,6 +46,11 @@ type VinSynchronizerMonad m =
    )
 
 
+data UnmarkingVinType
+   = UnmarkingContractVinType
+   | UnmarkingEphemeralVinType
+     deriving (Show, Eq, Typeable)
+
 data EGRequestException
    = EGCheckVinRequestIsFailed ServantError EGCheckVinRequest
      -- ^ When request to EG is failed
@@ -53,6 +60,8 @@ data EGRequestException
      -- ^ When request to EG is failed
    | EGDeleteVinResponseIsFailed String Value
      -- ^ When for instance parsing response from EG is failed
+   | EGDeleteVinIncorrectFormat UnmarkingVinType EGVin (Maybe String)
+     -- ^ When some of VINs in response resolved to @INCORRECT_FORMAT@
      deriving (Show, Eq, Typeable)
 
 instance Exception EGRequestException
