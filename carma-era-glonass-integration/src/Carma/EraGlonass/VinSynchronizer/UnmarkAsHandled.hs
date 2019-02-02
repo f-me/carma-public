@@ -22,10 +22,12 @@ import           Control.Monad.Trans.Class (lift)
 import           Control.Monad.Reader (ReaderT, asks)
 import           Control.Monad.Catch
 
-import           Database.Persist.Sql (ToBackendKey, SqlBackend, fromSqlKey)
 import           Database.Persist.Types (Entity (..))
+import           Database.Persist.Sql ( ToBackendKey, SqlBackend, fromSqlKey
+                                      , (=.)
+                                      )
 
-import           Carma.Utils.Operators
+import           Carma.Utils
 import           Carma.Monad
 import           Carma.Model.Contract.Persistent
 import           Carma.EraGlonass.Instances ()
@@ -77,7 +79,54 @@ unmarkAsHandled lists = do
   unless isEverythingAlreadyUnmarked $
     lift $ askEGToUnmarkAsHandled contracts ephemerals
 
-  -- TODO deactivate those VINs on our side
+  logDebug [qms|
+    {CrmEg02}: Done with "unmarking" VINs as handled by us on Era Glonass side.
+    Now "unmarking" them on our side in the database...
+  |]
+
+  utcTime <- lift getCurrentTime
+
+  possibly (toList <$> getFirstNonEmptyList lists) $ \list -> do
+    let modelRep = typeRep $ listToTypeProxy list
+    let egSyncModelRep = typeRep (Proxy :: Proxy EraGlonassSynchronizedContract)
+
+    logDebug [qms|
+      {CrmEg02}: "Unmarking" "{modelRep}"s as handled by us
+      (on our side, in "{egSyncModelRep}" model)...
+    |]
+
+    forM_ list $ \Entity { entityKey = contractKey } ->
+      getBy (UniqueContract contractKey) >>= \case
+
+        Nothing ->
+          let msg = [qms|
+            "{egSyncModelRep}" not found by
+            {fromSqlKey contractKey} "{modelRep}" id.
+          |] in logError [qms| {CrmEg02} is failed due to: {msg} |] >> fail msg
+
+        Just Entity { entityKey = egSynchronizedContractKey } ->
+          update egSynchronizedContractKey
+            [ EraGlonassSynchronizedContractLastStatusChangeTime =. Just utcTime
+            , EraGlonassSynchronizedContractIsHandledByCarma =. False
+            ]
+
+  possibly (toList <$> getSecondNonEmptyList lists) $ \list -> do
+    let modelRep = typeRep $ listToTypeProxy list
+
+    logDebug [qms|
+      {CrmEg02}: "Unmarking" ephemeral VINs as handled by us
+      (on our side, in "{modelRep}" model)...
+    |]
+
+    forM_ list $ \Entity { entityKey } ->
+      update entityKey
+        [ EraGlonassSynchronizedContractLastStatusChangeTime =. Just utcTime
+        , EraGlonassSynchronizedContractIsHandledByCarma =. False
+        ]
+
+  where
+    listToTypeProxy :: [a] -> Proxy a
+    listToTypeProxy _ = Proxy
 
 
 askEGToUnmarkAsHandled

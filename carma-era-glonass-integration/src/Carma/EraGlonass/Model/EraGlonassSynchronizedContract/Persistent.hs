@@ -33,5 +33,6 @@ EraGlonassSynchronizedContract json sql=EraGlonassSynchronizedContract
 
   lastStatusChangeTime UTCTime Maybe sql=laststatuschangetime
 
+  UniqueContract contract
   deriving Typeable Show
 |]
