@@ -44,6 +44,7 @@ import           Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persisten
 import           Carma.EraGlonass.VinSynchronizer.Types
 import           Carma.EraGlonass.VinSynchronizer.Helpers
 import           Carma.EraGlonass.VinSynchronizer.UnmarkAsHandled
+import           Carma.EraGlonass.VinSynchronizer.SynchronizeContracts
 
 
 -- | VIN synchronizer worker starter.
@@ -158,6 +159,7 @@ synchronizeVins = do
         Getting list of active EG participants
         "{typeRep (Proxy :: Proxy SubProgram)}"s...
       |]
+
       selectKeysList [ SubProgramActive                ==. True
                      , SubProgramEraGlonassParticipant ==. True
                      ] []
@@ -280,10 +282,7 @@ synchronizeVins = do
              There's no VINs to unmark as handled by CaRMa, so, continuing...
            |]
 
-           foo
-  where
-    foo :: VinSynchronizerMonad m => ReaderT SqlBackend m ()
-    foo = fail "TODO implement"
+           synchronizeContracts nowDay handledContracts egSubPrograms
 
 
 contractTypeRep :: TypeRep

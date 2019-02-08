@@ -27,8 +27,10 @@ import           Control.Monad.Catch (MonadThrow)
 import           Servant.Client (ServantError)
 
 import           Carma.Monad
-import           Carma.EraGlonass.Types (AppContext, EGDeleteVinRequest)
+import           Carma.EraGlonass.Types (AppContext)
+import           Carma.EraGlonass.Types.EGDeleteVinRequest (EGDeleteVinRequest)
 import           Carma.EraGlonass.Types.EGCheckVinRequest (EGCheckVinRequest)
+import           Carma.EraGlonass.Types.EGAddVinRequest (EGAddVinRequest)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
 
 
@@ -62,6 +64,8 @@ data EGRequestException
      -- ^ When for instance parsing response from EG is failed
    | EGDeleteVinIncorrectFormat UnmarkingVinType EGVin (Maybe String)
      -- ^ When some of VINs in response resolved to @INCORRECT_FORMAT@
+   | EGAddVinRequestIsFailed ServantError EGAddVinRequest
+     -- ^ When request to EG is failed
      deriving (Show, Eq, Typeable)
 
 instance Exception EGRequestException
