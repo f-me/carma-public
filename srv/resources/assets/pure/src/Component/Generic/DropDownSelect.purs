@@ -2,19 +2,18 @@ module Component.Generic.DropDownSelect
      ( dropDownSelect
      ) where
 
-import Prelude
+import Prelude hiding (div)
 
 import Control.Alt ((<|>))
 
+import Data.Monoid (mempty)
 import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust, isNothing)
 import Data.Tuple (Tuple (Tuple), snd)
 import Data.Foldable (class Foldable, foldl)
 import Data.Array (snoc)
 
-import React.DOM (div, li) as R
-import React.Spaces ((!), (!.), renderIn, text, empty, elements)
-import React.Spaces.DOM (span, button, li, a)
-import React.Spaces.DOM.Dynamic (ul)
+import React.DOM (div, li, span, button, a, a', text)
+import React.DOM.Dynamic (ul)
 
 import React.DOM.Props
      ( className, _type, href, role, disabled
@@ -30,8 +29,8 @@ import React
      )
 
 import Utils ((<.>), callEventHandler)
-import App.Store (AppContext)
 import Utils.React.OutsideClick (subscribeOutsideClick, unsubscribeOutsideClick)
+import App.Store (AppContext)
 
 
 type Props f a eff =
@@ -60,46 +59,53 @@ dropDownSelectRender = createClass $ spec $
           , notSelectedTitle
           }
 
-    state@{ isOpened, onToggle, onSelect } -> do
+    state@{ isOpened, onToggle, onSelect } ->
 
-  button !. "btn btn-default dropdown-toggle"
-         ! _type "button"
-         ! onClick onToggle
-         ! disabled isDisabled
-         $ do
+  [ button
+      [ className "btn btn-default dropdown-toggle"
+      , _type "button"
+      , onClick onToggle
+      , disabled isDisabled
+      ]
 
-    let variantTitle = variantView <$> selected
-
-        btnLabelClassy =
-          maybe (_ !. classSfx "not-selected-label") (const id) variantTitle
+      let
+        variantTitle = variantView <$> selected
 
         btnLabelText = fromMaybe "…" $
           variantTitle <|> placeholder <|> notSelectedTitle
+      in
+        [ span ( if isNothing variantTitle
+                    then [className $ classSfx "not-selected-label"]
+                    else mempty
+               ) [text $ btnLabelText <> " "]
 
-    btnLabelClassy span $ text $ btnLabelText <> " "
-    span !. "caret" $ empty
+        , span [className "caret"] mempty
+        ]
 
-  ul !. "dropdown-menu" $ do
+  , ul [className "dropdown-menu"] $ let
 
-    case notSelectedTitle of
-         Nothing -> empty
-         Just x  -> do
-           let markSelected el =
-                 if isJust selected
-                    then el ! onClick (onSelect Nothing)
-                    else el !. classSfx "selected"
+      unselectItem = fromMaybe mempty $ notSelectedTitle <#> \title ->
+        [ let
+            item = li attrs [link] where
+              attrs = [key "-1"] `snoc`
+                      if isJust selected
+                         then onClick $ onSelect Nothing
+                         else className $ classSfx "selected"
 
-               markSelectedLink el =
-                 if isJust selected
-                    then el ! href "#"
-                    else el
+            link = a attrs [child] where
+              attrs = if isJust selected then [href "#"] else mempty
+              child = span [className $ classSfx "not-selected-label"]
+                           [text title]
 
-           markSelected li ! key "-1" $
-             markSelectedLink a $ span !. classSfx "not-selected-label" $ text x
+          in item
 
-           li !. "divider" ! role "separator" ! key "0" $ empty
+        , li [className "divider", role "separator", key "0"] mempty
+        ]
 
-    elements $ snd $ foldl (itemReducer props state) (Tuple 1 []) variants
+      items = snd $ foldl (itemReducer props state) (Tuple 1 mempty) variants
+
+      in unselectItem <> items
+  ]
 
   where
     name = "DropDownSelect"
@@ -114,11 +120,11 @@ dropDownSelectRender = createClass $ spec $
 
          in if isSelected == Nothing || isSelected == Just false
 
-               then renderIn (R.li [keyProp, onClick $ onSelect $ Just item]) $
-                      a ! href "#" $ text $ variantView item
+               then li [keyProp, onClick $ onSelect $ Just item]
+                       [a [href "#"] [text $ variantView item]]
 
-               else renderIn (R.li [keyProp, classNameSfx "selected"]) $
-                      a $ text $ variantView item
+               else li [keyProp, classNameSfx "selected"]
+                       [a' [text $ variantView item]]
 
     selectHandler this item event = do
       preventDefault event
@@ -141,10 +147,7 @@ dropDownSelectRender = createClass $ spec $
     rootRefName = "componentRoot"
 
     hookOutsideClick this outsideSubscription = do
-      case outsideSubscription of
-           Nothing -> pure unit
-           Just x  -> unsubscribeOutsideClick x
-
+      maybe (pure unit) unsubscribeOutsideClick outsideSubscription
       rootRef <- readRef this rootRefName
 
       case rootRef of
@@ -195,24 +198,21 @@ dropDownSelectRender = createClass $ spec $
 
         , componentWillUnmount = \this -> do
             { outsideSubscription } <- readState this
-
-            case outsideSubscription of
-                 Nothing -> pure unit
-                 Just x  -> unsubscribeOutsideClick x
+            maybe (pure unit) unsubscribeOutsideClick outsideSubscription
         }
 
       where
         renderHandler this = do
-          props@{ isDisabled } <- getProps  this
+          props@{ isDisabled } <- getProps this
           state@{ refSetter, isOpened } <- readState this
           let w = wrapper refSetter $ isOpened && not isDisabled
-          pure $ renderIn w $ renderFn props state
+          pure $ w $ renderFn props state
 
-        wrapper refSetter isOpened = R.div
-          [ className $ addOpenClass "dropdown" <.> name
-          , withRef refSetter
-          ]
-          where addOpenClass x = if isOpened then x <.> "open" else x
+        wrapper refSetter isOpened = go where
+          addOpenClass x = if isOpened then x <.> "open" else x
+          go = div [ className $ addOpenClass "dropdown" <.> name
+                   , withRef refSetter
+                   ]
 
 
 dropDownSelect
