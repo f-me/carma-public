@@ -4,13 +4,12 @@ module Component.Generic.Spinner
 
 import Prelude hiding (div)
 
+import Data.Monoid (mempty)
 import Data.Either (Either (..))
 
 import React (ReactClass, getProps)
-import React.DOM (div) as R
+import React.DOM (div, div', text)
 import React.DOM.Props (className)
-import React.Spaces.DOM (div)
-import React.Spaces ((!.), renderIn, text, empty)
 
 import Utils (createClassStatelessWithSpec)
 import App.Store (AppContext)
@@ -26,24 +25,26 @@ type Props =
 
 
 spinnerRender :: ReactClass Props
-spinnerRender = createClassStatelessWithSpec specMiddleware $ \props ->
-  if props.withLabel /= Left false
+spinnerRender
+  = createClassStatelessWithSpec specMiddleware
+  $ \props -> wrapper $ pure
+  $ if props.withLabel /= Left false
 
-     then renderIn wrapper $
-            div !. classSfx "with-label" $ do
-              div $ text $ case props.withLabel of
-                                Left  _ -> "Загрузка…"
-                                Right x -> x
+       then div
+              [ className $ classSfx "with-label" ]
+              [ div' $ pure $ text $ case props.withLabel of
+                                          Left  _ -> "Загрузка…"
+                                          Right x -> x
 
-              div !. classSfx "icon" $ empty
+              , div [className $ classSfx "icon"] mempty
+              ]
 
-     else renderIn wrapper $
-            div !. classSfx "icon" $ empty
+       else div [className $ classSfx "icon"] mempty
 
   where
     name = "CircleSpinner"
     classSfx s = name <> "--" <> s
-    wrapper = R.div [className name]
+    wrapper = div [className name]
 
     specMiddleware = _
       { displayName = name

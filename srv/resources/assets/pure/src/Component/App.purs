@@ -4,14 +4,13 @@ module Component.App
 
 import Prelude hiding (div)
 
-import Data.Record.Builder (merge)
+import Data.Monoid (mempty)
 import Data.Either (Either (..))
+import Data.Record.Builder (merge)
 
 import React (ReactClass, getProps, createElement)
-import React.DOM (div)
+import React.DOM (div, h1, text)
 import React.DOM.Props (className)
-import React.Spaces.DOM (h1)
-import React.Spaces (renderIn, element, text)
 
 import Utils (storeConnect, createClassStatelessWithSpec)
 import Router (Location (..))
@@ -25,18 +24,18 @@ appRender
                 , appContext :: AppContext
                 }
 
-appRender = f $ \ { appContext, location } -> renderIn wrapper $
+appRender = f $ \ { appContext, location } -> wrapper $ pure $
 
   case location of
 
     DiagTreeEditPartial ->
-      element $ editorEl { appContext } []
+      editorEl { appContext } mempty
 
     NotFound ->
-      h1 $ text "Страница не найдена"
+      h1 mempty $ pure $ text "Страница не найдена"
 
     Empty ->
-      element $ spinnerEl { withLabel: Left true, appContext } []
+      spinnerEl { withLabel: Left true, appContext } mempty
 
   where
     name = "CarmaApp"
@@ -48,7 +47,7 @@ appRender = f $ \ { appContext, location } -> renderIn wrapper $
     specMiddleware = _
       { displayName = name
       , shouldComponentUpdate = \this nextProps _ ->
-          getProps this <#> _.location <#> (_ /= nextProps.location)
+          getProps this <#> _.location >>> (_ /= nextProps.location)
       }
 
 
