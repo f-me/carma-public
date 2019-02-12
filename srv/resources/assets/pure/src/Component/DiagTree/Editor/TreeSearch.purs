@@ -4,6 +4,7 @@ module Component.DiagTree.Editor.TreeSearch
 
 import Prelude hiding (div)
 
+import Data.Monoid (mempty)
 import Data.Maybe (Maybe (..), maybe)
 import Data.Record.Builder (merge)
 import Data.String (trim, null)
@@ -19,9 +20,7 @@ import React
      , preventDefault
      )
 
-import React.Spaces ((!), (!.), renderIn, empty)
-import React.Spaces.DOM (input, button, i)
-import React.DOM (div)
+import React.DOM (div, input, button, i)
 
 import React.DOM.Props
      ( className, value, _type, placeholder, title, disabled
@@ -57,22 +56,27 @@ diagTreeEditorTreeSearchRender
                 }
 
 diagTreeEditorTreeSearchRender = createClass $ spec $
-  \ { isDisabled } { changeHandler, clearHandler, keyHandler, query } -> do
+  \ { isDisabled } { changeHandler, clearHandler, keyHandler, query } ->
 
-    input !. classSfx "search-input"
-          ! _type "text"
-          ! placeholder "Поиск"
-          ! value query
-          ! disabled isDisabled
-          ! onChange changeHandler
-          ! onKeyUp keyHandler
+  [ input
+      [ className $ classSfx "search-input"
+      , _type "text"
+      , placeholder "Поиск"
+      , value query
+      , disabled isDisabled
+      , onChange changeHandler
+      , onKeyUp keyHandler
+      ]
+      mempty
 
-    button !. classSfx "clear"
-           ! disabled (isDisabled || null query)
-           ! onClick clearHandler
-           ! title "Очистить строку поиска" $
-
-      i !. "glyphicon" <.> "glyphicon-remove" $ empty
+  , button
+      [ className $ classSfx "clear"
+      , disabled $ isDisabled || null query
+      , onClick clearHandler
+      , title "Очистить строку поиска"
+      ]
+      [ i [className $ "glyphicon" <.> "glyphicon-remove"] mempty ]
+  ]
 
   where
     name = "DiagTreeEditorTreeSearch"
@@ -120,42 +124,39 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
            , search             : searchHandler appContext
            }
 
-    spec renderFn =
-      let
-        renderHandler this = do
-          props <- getProps  this
-          state <- readState this
-          pure $ renderIn wrapper $ renderFn props state
-      in
-        spec' getInitialState renderHandler # _
-          { displayName = name
+    spec renderFn = go where
+      renderHandler this =
+        wrapper <$> (renderFn <$> getProps this <*> readState this)
 
-          , componentWillMount = \this -> do
-              { changeDebouncer, search } <- readState this
-              subscription <- subscribeToDebouncer changeDebouncer search
-              transformState this _ { changeSubscription = Just subscription }
-              pure unit
+      go
+        = spec' getInitialState renderHandler # _
+        { displayName = name
 
-          , componentWillReceiveProps = \this { searchQuery: newQuery } -> do
-              { searchQuery: oldQuery } <- getProps this
+        , componentWillMount = \this -> do
+            { changeDebouncer, search } <- readState this
+            subscription <- subscribeToDebouncer changeDebouncer search
+            transformState this _ { changeSubscription = Just subscription }
 
-              if newQuery == oldQuery
-                 then pure unit
-                 else case newQuery <#> toString of
-                           Nothing -> transformState this _ { query = "" }
-                           Just x  -> do
-                             { query } <- readState this
-                             if trim query /= x
-                                then transformState this _ { query = x }
-                                else pure unit
+        , componentWillReceiveProps = \this { searchQuery: newQuery } -> do
+            { searchQuery: oldQuery } <- getProps this
 
-          , componentWillUnmount = \this -> do
-              { changeDebouncer, changeSubscription } <- readState this
+            if newQuery == oldQuery
+               then pure unit
+               else case newQuery <#> toString of
+                         Nothing -> transformState this _ { query = "" }
+                         Just x  -> do
+                           { query } <- readState this
+                           if trim query /= x
+                              then transformState this _ { query = x }
+                              else pure unit
 
-              case changeSubscription of
-                   Nothing -> pure unit
-                   Just x  -> unsubscribeFromDebouncer changeDebouncer x
-          }
+        , componentWillUnmount = \this -> do
+            { changeDebouncer, changeSubscription } <- readState this
+
+            case changeSubscription of
+                 Nothing -> pure unit
+                 Just x  -> unsubscribeFromDebouncer changeDebouncer x
+        }
 
 
 diagTreeEditorTreeSearch

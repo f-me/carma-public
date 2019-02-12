@@ -4,32 +4,36 @@ module Component.DiagTree.Editor.Tree.Item
 
 import Prelude hiding (div)
 
+import Data.Monoid (mempty)
+import Data.Array ((:), elemIndex, snoc, last, null, unsnoc)
+import Data.Foldable (foldl)
+import Data.Map (Map)
+import Data.Map as Map
+import Data.Maybe (Maybe (..), isJust, fromMaybe, maybe)
+import Data.Set (Set)
+import Data.Set as Set
+import Data.String (length, splitAt)
+import Data.Tuple (Tuple (Tuple), fst)
+
+import Control.Lazy (fix)
+
+import React (ReactClass, EventHandler, preventDefault, stopPropagation)
+import React.DOM (text, div, button, i, span)
+import React.DOM.Dynamic (div) as RDyn
+import React.DOM.Props (className, key, onClick, title, disabled)
+
+import Utils ( callEventHandler
+             , createClassStatelessWithName
+             , (<.>)
+             )
+
+import Utils.CopyPasteBuffer (CopyPasteBufferState (..), CopyPasteBuffer)
+
 import App.Store (AppContext)
 import App.Store.DiagTree.Editor.Types ( DiagTreeSlideId
                                        , DiagTreeSlide(DiagTreeSlide)
                                        , fromIndexedAnswers
                                        )
-import Control.Lazy (fix)
-import Data.Array (elemIndex, snoc, last, null, unsnoc)
-import Data.Foldable (foldl)
-import Data.Map (Map)
-import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust, fromMaybe, maybe)
-import Data.Set (Set)
-import Data.Set as Set
-import Data.String (length, splitAt)
-import Data.Tuple (Tuple(Tuple), fst)
-import React (ReactClass, EventHandler, preventDefault, stopPropagation)
-import React.DOM (div) as R
-import React.DOM.Props (className, key, onClick, title, disabled)
-import React.Spaces ((!), (!.), renderIn, text, elements, empty)
-import React.Spaces.DOM (div) as SDyn
-import React.Spaces.DOM (div, button, i, span)
-import Utils ( callEventHandler
-             , createClassStatelessWithName
-             , (<.>)
-             )
-import Utils.CopyPasteBuffer (CopyPasteBufferState (..), CopyPasteBuffer)
 
 type Props =
   { appContext     :: AppContext
@@ -63,8 +67,10 @@ type Props =
 
 diagTreeEditorTreeItemRender :: ReactClass Props
 diagTreeEditorTreeItemRender = f $
-  \props@{ selectedSlide, unfoldedSlides, search, select, delete, copy, cut
-         , paste, copyPasteState, copyPasteBuffer } ->
+  \props@{ selectedSlide, unfoldedSlides
+         , search, select, delete
+         , copy, cut, paste, copyPasteState, copyPasteBuffer
+         } ->
   (\r -> r props.answerHeader props.parents props.slide) $ -- first level call
   fix $ \again answerHeader parents (DiagTreeSlide slide) ->
 
@@ -146,38 +152,49 @@ diagTreeEditorTreeItemRender = f $
             Nothing -> true
         Nothing -> true
   in
-    renderIn (R.div [className wClass, key $ show slide.id]) $ do
-      div !. classSfx "header" <.> classSfx headerClasses
-          ! onClick onHeaderClick $ do
+    div
+      [ className wClass
+      , key $ show slide.id
+      ]
+      $
+      [ div
+          [ className $ classSfx "header" <.> classSfx headerClasses
+          , onClick onHeaderClick
+          ]
+          $
+          [ button
+              [ className $ "btn" <.> "btn-danger" <.> classSfx "delete"
+              , onClick onDeleteClick
+              , title "Удалить ветвь"
+              ]
+              [ i [className $ "glyphicon" <.> "glyphicon-trash"] mempty ]
 
-        button !. "btn" <.> "btn-danger" <.> classSfx "delete"
-               ! onClick onDeleteClick
-               ! title "Удалить ветвь" $
+          , button
+              [ className $ "btn" <.> classSfx "copy"
+              , onClick onCopyClick
+              , title "Скопировать ветвь"
+              ]
+              [ i [className $ "glyphicon" <.> "glyphicon-copy"] mempty ]
 
-          i !. "glyphicon" <.> "glyphicon-trash" $ empty
+          , button
+              [ className $ "btn" <.> classSfx "cut"
+              , onClick onCutClick
+              , title "Переместить ветвь"
+              ]
+              [ i [className $ "glyphicon" <.> "glyphicon-scissors"] mempty ]
 
-        button !. "btn" <.> classSfx "copy"
-               ! onClick onCopyClick
-               ! title "Скопировать ветвь" $
-
-          i !. "glyphicon" <.> "glyphicon-copy" $ empty
-
-        button !. "btn" <.> classSfx "cut"
-               ! onClick onCutClick
-               ! title "Переместить ветвь" $
-
-          i !. "glyphicon" <.> "glyphicon-scissors" $ empty
-
-        button !. "btn" <.> classSfx "paste"
-               ! onClick onPasteClick
-               ! disabled isPasteDisabled
-               ! title "Вставить ветвь" $
-
-          i !. "glyphicon" <.> "glyphicon-paste" $ empty
-
-
-        let searchPatterns = do
-              { query, patterns }  <- search
+          , button
+              [ className $ "btn" <.> classSfx "paste"
+              , onClick onPasteClick
+              , disabled isPasteDisabled
+              , title "Вставить ветвь"
+              ]
+              [ i [className $ "glyphicon" <.> "glyphicon-paste"] mempty ]
+          ]
+          <>
+          let
+            searchPatterns = do
+              { query,  patterns } <- search
               { answer, question } <- Map.lookup slide.id patterns
               pure { len: length query, answer, question }
 
@@ -191,19 +208,24 @@ diagTreeEditorTreeItemRender = f $
               y <- x.question
               pure $ Tuple y x.len
 
-        case answerHeader of
-             Nothing -> empty
-             Just x  ->
-               div !. classSfx "answer" $
-                 case searchAnswer of
-                      Nothing -> text x
-                      Just s  -> hlSearch x s
+            answerEls =
+              case answerHeader of
+                   Nothing -> mempty
+                   Just x  -> pure $
+                     div [className $ classSfx "answer"] $
+                       case searchAnswer of
+                            Nothing -> pure $ text x
+                            Just s  -> hlSearch x s
 
-        div !. classSfx "question" $
-          case searchQuestion of
-               Nothing -> text slide.header
-               Just s  -> hlSearch slide.header s
-
+            questionEls =
+              div [className $ classSfx "question"] $
+                case searchQuestion of
+                     Nothing -> pure $ text slide.header
+                     Just s  -> hlSearch slide.header s
+          in
+            answerEls `snoc` questionEls
+      ]
+      <>
       childrenRenderer children
 
   where
@@ -216,13 +238,13 @@ diagTreeEditorTreeItemRender = f $
     addParentSelectedClass = (_ <.> classSfx "parent-selected")
 
     childrenRenderer =
-      maybe empty $ elements >>> (SDyn.div !. classSfx "children")
+      maybe mempty $ pure <<< RDyn.div [className $ classSfx "children"]
 
     f renderFn =
       createClassStatelessWithName name renderFn
 
     -- Highlighting matched search patterns
-    hlSearch x (Tuple start len) = fromMaybe (text x) $ do
+    hlSearch x (Tuple start len) = fromMaybe [text x] $ do
       { before: pfx, after } <- splitAt start x
 
       { before: hl, after: sfx } <-
@@ -230,12 +252,12 @@ diagTreeEditorTreeItemRender = f $
         -- that's why we checking it here.
         if length after > len
            then splitAt len after
-           else pure $ { before: after, after: "" }
+           else pure { before: after, after: "" }
 
-      pure $ do
-        if pfx /= "" then text pfx else empty
-        span !. classSfx "search-match" $ text hl
-        if sfx /= "" then text sfx else empty
+      pure
+        $ (if pfx /= "" then [text pfx] else mempty)
+        <> span [className $ classSfx "search-match"] [text hl]
+        : (if sfx /= "" then [text sfx] else mempty)
 
 
 diagTreeEditorTreeItem :: ReactClass Props
