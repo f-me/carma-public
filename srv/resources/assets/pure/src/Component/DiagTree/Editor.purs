@@ -25,11 +25,13 @@ import React.DOM (div, div', p', span, button, i, i', ul', li', h5', text)
 import React.DOM.Props (className, onClick, disabled, title)
 
 import Utils ((<.>), storeConnect)
+
 import Utils.CopyPasteBuffer
      ( CopyPasteBufferState (..)
      , CopyPasteBuffer
      , getCopyPasteState
      )
+
 import Utils.DiagTree.Editor (getSlideByBranch)
 import Component.Generic.Spinner (spinner)
 import Component.DiagTree.Editor.Tree (diagTreeEditorTree)
@@ -38,10 +40,12 @@ import Component.DiagTree.Editor.SlideEditor (diagTreeEditorSlideEditor)
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
+
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
      , DiagTreeSlides
      )
+
 import App.Store.DiagTree.Editor.Actions
      ( DiagTreeEditorAction ( LoadSlidesRequest
                             , NewSlideRequest
@@ -256,26 +260,23 @@ diagTreeEditorRender = createClass $ spec $
                { withLabel: Right "Обработка…", appContext }
            }
 
-    spec mainRender =
-      let
-        renderWrap = renderFn mainRender
-        renderHandler this = do
-          props <- getProps  this
-          state <- readState this
-          pure $ renderWrap props state
-      in
-        spec' getInitialState renderHandler # _
-          { displayName = name
+    spec mainRender = go where
+      renderWrap = renderFn mainRender
+      renderHandler this = renderWrap <$> getProps this <*> readState this
 
-          , componentDidMount = \this -> do
-              props <- getProps this
+      go
+        = spec' getInitialState renderHandler # _
+        { displayName = name
 
-              if props.isSlidesLoaded || props.isSlidesLoading
-                 then pure unit
-                 else launchAff_
-                    $ dispatch props.appContext
-                    $ DiagTree $ Editor LoadSlidesRequest
-          }
+        , componentDidMount = \this -> do
+            props <- getProps this
+
+            if props.isSlidesLoaded || props.isSlidesLoading
+               then pure unit
+               else launchAff_
+                  $ dispatch props.appContext
+                  $ DiagTree $ Editor LoadSlidesRequest
+        }
 
 
 diagTreeEditor :: ReactClass { appContext :: AppContext }

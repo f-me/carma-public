@@ -4,57 +4,67 @@ module Component.DiagTree.Editor.Tree
 
 import Prelude hiding (div)
 
-import App.Store (AppContext, dispatch)
-import App.Store.Actions (AppAction(..))
-import App.Store.DiagTree.Actions (DiagTreeAction(Editor))
-import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction(..))
-import App.Store.DiagTree.Editor.Types
-       ( DiagTreeSlides
-       , DiagTreeSlideId
-       , DiagTreeSlide (DiagTreeSlide)
-       , fromIndexedAnswers
-       )
-import Component.DiagTree.Editor.Tree.Item (diagTreeEditorTreeItem)
-import Control.Monad.Aff (launchAff_)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Maybe.Trans (runMaybeT)
-import Control.MonadZero (guard)
-import DOM.HTML (window) as DOM
-import DOM.HTML.Window (confirm) as DOM
-import Data.Array ((!!), index, last, head, take, init, length)
+import Data.Monoid (mempty)
 import Data.Foldable (foldr)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust, fromMaybe, maybe, fromJust)
+import Data.Maybe (Maybe (..), isJust, fromMaybe, maybe)
 import Data.Record.Builder (merge, build)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String.NonEmpty (toString)
-import Data.Tuple (Tuple(Tuple))
-import Partial.Unsafe (unsafePartial)
+import Data.Tuple (Tuple (Tuple))
+
+import Data.Array
+     ( (!!), index, last, head, take, init, length, snoc, fromFoldable
+     )
+
+import Control.Monad.Aff (launchAff_)
+import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Maybe.Trans (runMaybeT)
+import Control.MonadZero (guard)
+
+import DOM.HTML (window) as DOM
+import DOM.HTML.Window (confirm) as DOM
+
 import React
-       ( ReactClass
-       , getProps
-       , readState
-       , transformState
-       , createClass
-       , spec'
-       , preventDefault
-       , createElement
-       , handle
-       )
-import React.DOM (div) as R
+     ( ReactClass
+     , getProps
+     , readState
+     , transformState
+     , createClass
+     , spec'
+     , preventDefault
+     , createElement
+     , handle
+     )
+
+import React.DOM (text, div, button, i', label', input)
+import React.DOM.Dynamic (div) as RDyn
 import React.DOM.Props (className, onClick, onChange, _type, checked)
-import React.Spaces ((!), (!.), renderIn, text, elements, empty)
-import React.Spaces.DOM (div, button, i, label, input)
-import React.Spaces.DOM.Dynamic (div) as SDyn
+
 import Utils (eventIsChecked, storeConnect, toMaybeT, (<.>))
-import Utils.CopyPasteBuffer
-       ( CopyPasteBuffer
-       , CopyPasteBufferState
-       , getCopyPasteState
-       )
 import Utils.DiagTree.Editor (getSlideByBranch)
+
+import Utils.CopyPasteBuffer
+     ( CopyPasteBuffer
+     , CopyPasteBufferState
+     , getCopyPasteState
+     )
+
+import App.Store (AppContext, dispatch)
+import App.Store.Actions (AppAction (..))
+import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
+import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction (..))
+
+import App.Store.DiagTree.Editor.Types
+     ( DiagTreeSlides
+     , DiagTreeSlideId
+     , DiagTreeSlide (DiagTreeSlide)
+     , fromIndexedAnswers
+     )
+
+import Component.DiagTree.Editor.Tree.Item (diagTreeEditorTreeItem)
 
 -- If selected slides has more parents they will be hidden.
 -- Two button also will be shown:
@@ -82,93 +92,114 @@ diagTreeEditorTreeRender
                                       , question :: Maybe Int
                                       }
                     }
+
        , copyPasteState      :: CopyPasteBufferState
        , copyPasteBuffer     :: CopyPasteBuffer
        }
 
 diagTreeEditorTreeRender = createClass $ spec $
-  \ { appContext, slides, selectedSlideBranch, search
-    , copyPasteState, copyPasteBuffer }
+  \ -- props
+    { appContext, slides, selectedSlideBranch, search
+    , copyPasteState, copyPasteBuffer
+    }
+    -- state
     { selectSlide, deleteSlide, copySlide, cutSlide, pasteSlide, unfoldedSlides
     , shiftedSlidesMenu, dontShiftLevels, changeDontShiftLevels
-    } -> do
+    } ->
 
-    let shifted = do
-          guard $ not dontShiftLevels
-          branch     <- selectedSlideBranch
-          firstId    <- head branch
-          firstSlide <- firstId `Map.lookup` slides
-          shiftSlideBranch branch 0 Nothing firstSlide
+  [ div [className $ "checkbox" <.> classSfx "dont-shift-levels"] $ pure $
+      label'
+        [ flip input mempty
+            [ _type "checkbox"
+            , checked dontShiftLevels
+            , onChange changeDontShiftLevels
+            ]
 
-    div !. "checkbox" <.> classSfx "dont-shift-levels" $ do
-      label $ do
-        input ! _type "checkbox"
-              ! checked dontShiftLevels
-              ! onChange changeDontShiftLevels
+        , text " Не сокращать вложенность"
+        ]
+  ]
+  <>
+  let
+    shifted = do
+      guard $ not dontShiftLevels
+      branch     <- selectedSlideBranch
+      firstId    <- head branch
+      firstSlide <- firstId `Map.lookup` slides
+      shiftSlideBranch branch 0 Nothing firstSlide
 
-        text " Не сокращать вложенность"
+    shiftedSlidesMenuControlButtons =
+      case shifted <#> _.parents >>> length of
+           Nothing -> mempty
+           Just n  -> shiftedSlidesMenu n
 
-    case shifted <#> _.parents >>> length of
-         Nothing -> empty
-         Just n  -> shiftedSlidesMenu n
+    itemProps =
+      { appContext
+      , selectedSlide: selectedSlideBranch, unfoldedSlides, search
+      , select: selectSlide, delete: deleteSlide
+      , copy: copySlide
+      , cut: cutSlide
+      , paste: pasteSlide
+      , copyPasteState
+      , copyPasteBuffer
+      }
 
-    SDyn.div !. classSfx "list" $ do
+    Tuple slidesList itemPropsBuilder =
+      case shifted of
+           Nothing ->
+             Tuple slides $ \slide@(DiagTreeSlide x) ->
+               merge { answerHeader: Nothing
+                     , parents: []
+                     , key: show x.id
+                     , slide
+                     }
 
-      let itemProps =
-            { appContext
-            , selectedSlide: selectedSlideBranch, unfoldedSlides, search
-            , select: selectSlide, delete: deleteSlide
-            , copy: copySlide
-            , cut: cutSlide
-            , paste: pasteSlide
-            , copyPasteState
-            , copyPasteBuffer
-            }
+           Just x@{ slide: slide@(DiagTreeSlide { id: slideId }) } ->
+             Tuple (Map.singleton slideId slide) $ \slide ->
+               merge { answerHeader: x.answer
+                     , parents: x.parents
+                     , key: show slideId
+                     , slide
+                     }
 
-          Tuple slidesList itemPropsBuilder =
-            case shifted of
-                 Nothing ->
-                   Tuple slides $ \slide@(DiagTreeSlide x) ->
-                     merge { answerHeader: Nothing
-                           , parents: []
-                           , key: show x.id
-                           , slide
-                           }
+    itemRender x = itemEl p mempty where
+      p = itemPropsBuilder x `build` itemProps
 
-                 Just x@{ slide: slide@(DiagTreeSlide { id: slideId }) } ->
-                   Tuple (Map.singleton slideId slide) $ \slide ->
-                     merge { answerHeader: x.answer
-                           , parents: x.parents
-                           , key: show slideId
-                           , slide
-                           }
-
-          itemRender x = itemEl p []
-            where p = build (itemPropsBuilder x) itemProps
-
-      elements $ map itemRender slidesList
+    itemsListEl
+      = RDyn.div [className $ classSfx "list"]
+      $ fromFoldable
+      $ map itemRender slidesList
+  in
+    shiftedSlidesMenuControlButtons `snoc` itemsListEl
 
   where
     name = "DiagTreeEditorTree"
     classSfx s = name <> "--" <> s
-    wrapper = R.div [className name]
+    wrapper = div [className name]
     itemEl = createElement diagTreeEditorTreeItem
 
-    shiftedSlidesMenuFn selectRoot selectOneLevelUp levelsHidden = do
+    shiftedSlidesMenuFn selectRoot selectOneLevelUp levelsHidden =
+      [ div [className $ classSfx "folded-parents-menu"] $ pure $
+          div
+            [ className $ "btn-group" ]
+            [ div [className "btn-group"] $ pure $
+                button
+                  [ className "btn btn-info btn-sm"
+                  , onClick selectOneLevelUp
+                  ]
+                  [ text "На уровень выше" ]
 
-      div !. classSfx "folded-parents-menu" $
-        div !. "btn-group" $ do
+            , div [className "btn-group"] $ pure $
+                button
+                  [ className "btn btn-warning btn-sm"
+                  , onClick selectRoot
+                  ]
+                  [ text "К корню ветви" ]
+            ]
 
-          div !. "btn-group" $
-            button !. "btn btn-info btn-sm" ! onClick selectOneLevelUp $
-              text "На уровень выше"
-
-          div !. "btn-group" $
-            button !. "btn btn-warning btn-sm" ! onClick selectRoot $
-              text "К корню ветви"
-
-      div !. classSfx "more-elems" $
-        i $ text $ "… (скрыто верхних уровней: " <> show levelsHidden <> ") …"
+      , div [className $ classSfx "more-elems"] $ pure $
+          i' $ pure $ text $
+            "… (скрыто верхних уровней: " <> show levelsHidden <> ") …"
+      ]
 
     selectSlideHandler appContext this =
       \toggleSlideFold unfoldSlideBranch slideBranch -> do
@@ -188,18 +219,15 @@ diagTreeEditorTreeRender = createClass $ spec $
       getSlide <- getProps this <#> _.slides <#> getSlideByBranch
 
       create <-
-        let sfx = fromMaybe "" $
-              getSlide slideBranch <#> \(DiagTreeSlide x) ->
-                " #" <> show x.id <> " (\"" <> x.header <> "\")"
-
+        let sfx = fromMaybe "" $ getSlide slideBranch <#> slideSfx
             msg = "Вы уверены, что хотите удалить ветвь" <> sfx <> "?"
-
          in DOM.window >>= DOM.confirm msg
 
       if not create
          then pure unit
-         else launchAff_ $ dispatch appContext $
-                DiagTree $ Editor $ DeleteSlideRequest slideBranch
+         else launchAff_
+            $ dispatch appContext
+            $ DiagTree $ Editor $ DeleteSlideRequest slideBranch
 
     copySlideHandler appContext this slideBranch = do
       getSlide <- getProps this <#> _.slides <#> getSlideByBranch
@@ -213,30 +241,29 @@ diagTreeEditorTreeRender = createClass $ spec $
 
     pasteSlideHandler appContext this slideBranch = do
       getSlide <- getProps this <#> _.slides <#> getSlideByBranch
-
       copyPasteBuffer <- getProps this <#> _.copyPasteBuffer
+
       paste <-
-        let sfx = fromMaybe "" $
-              getSlide slideBranch <#> \(DiagTreeSlide x) ->
-                " #" <> show x.id <> " (\"" <> x.header <> "\")"
+        let source = copyPasteBuffer.branch >>= getSlide <#> slideSfx
+            destination = getSlide slideBranch <#> slideSfx
 
-            source = fromMaybe "" $
-              getSlide (unsafePartial $ fromJust copyPasteBuffer.branch) <#>
-              \(DiagTreeSlide x) ->
-                " #" <> show x.id <.> "(\"" <> x.header <> "\")"
+            operation =
+              if copyPasteBuffer.cutting then "переместить" else "скопировать"
 
-            operation = if copyPasteBuffer.cutting
-                           then "переместить"
-                           else "скопировать"
-            msg = "Вы уверены, что хотите" <.> operation <.> source
-                  <.> "в" <.> sfx <> "?"
+            msg
+              =  "Вы уверены, что хотите "
+              <> operation
+              <> fromMaybe "" source
+              <> fromMaybe "" ((" в" <> _) <$> destination)
+              <> "?"
 
-        in DOM.window >>= DOM.confirm msg
+         in DOM.window >>= DOM.confirm msg
 
       if not paste
          then pure unit
-         else launchAff_ $ dispatch appContext $
-                DiagTree $ Editor $ PasteSlideRequest slideBranch
+         else launchAff_
+            $ dispatch appContext
+            $ DiagTree $ Editor $ PasteSlideRequest slideBranch
 
     toggleSlideFoldHandler this slideId =
       transformState this $ \s@{ unfoldedSlides } ->
@@ -348,10 +375,8 @@ diagTreeEditorTreeRender = createClass $ spec $
         }
 
       where
-        renderHandler this = do
-          props <- getProps  this
-          state <- readState this
-          pure $ renderFn props state # renderIn wrapper
+        renderHandler this =
+          wrapper <$> (renderFn <$> getProps this <*> readState this)
 
 
 diagTreeEditorTree :: ReactClass { appContext :: AppContext }
@@ -366,6 +391,11 @@ diagTreeEditorTree = storeConnect f diagTreeEditorTreeRender
             >>= \ { matchedParents: parents, matchedPatterns: patterns } -> do
                   query <- branch.treeSearch.searchQuery <#> toString
                   pure { query, parents, patterns }
+
       , copyPasteState: getCopyPasteState branch.copyPasteBuffer
       , copyPasteBuffer: branch.copyPasteBuffer
       }
+
+
+slideSfx :: DiagTreeSlide -> String
+slideSfx (DiagTreeSlide x) = " #" <> show x.id <> " (\"" <> x.header <> "\")"
