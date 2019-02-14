@@ -126,7 +126,7 @@ diagTreeEditorTreeSearchRender = createClass $ spec $
 
     spec renderFn = go where
       renderHandler this =
-        wrapper <$> (renderFn <$> getProps this <*> readState this)
+        map wrapper $ renderFn <$> getProps this <*> readState this
 
       go
         = spec' getInitialState renderHandler # _

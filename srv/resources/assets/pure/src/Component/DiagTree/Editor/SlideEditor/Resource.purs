@@ -4,23 +4,22 @@ module Component.DiagTree.Editor.SlideEditor.Resource
 
 import Prelude hiding (div, id)
 
+import Data.Monoid (mempty)
+import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust, isNothing)
+import Data.Either (Either (..))
+import Data.Nullable (Nullable, toNullable)
+import Data.Array (head, snoc)
+
 import Control.Alt ((<|>))
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Aff (launchAff_)
 import Control.MonadZero (guard)
 
-import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust, isNothing)
-import Data.Either (Either (..))
-import Data.Nullable (Nullable, toNullable)
-import Data.Array (head)
-
 import DOM.HTML (window) as DOM
 import DOM.HTML.Window (confirm) as DOM
-import React.DOM (text, li) as R
-import React.Spaces ((!), (!.), renderIn, element, text, empty)
 
-import React.Spaces.DOM
-     ( div, img, span, button, i, input, p
+import React.DOM
+     ( text, div, div', img, span, span', button, i, input, p', li
      , audio, video, source
      )
 
@@ -100,181 +99,238 @@ type Props =
 diagTreeEditorSlideEditorResourceRender :: ReactClass Props
 diagTreeEditorSlideEditorResourceRender = createClass $ spec $
   \ { appContext, resource, isDisabled, onMoveUp, onMoveDown }
-    state@{ file, mediaType, isEditing, isProcessing, isUploadingFailed } -> do
+    state@{ file, mediaType, isEditing, isProcessing, isUploadingFailed } ->
 
   case resource of
-       Nothing ->
-         p $ span !. "label label-primary" $ text $
-           "Нов" <> sexyShow "ый" "ое" "ая" (getSex mediaType) <> " " <>
-           showNominative mediaType
+       Just _  -> mempty
+       Nothing -> pure $
+         p' $ pure $
+           span [className "label label-primary"] $ pure $
+             text $
+               "Нов" <> sexyShow "ый" "ое" "ая" (getSex mediaType) <> " " <>
+               showNominative mediaType
 
-       _ -> empty
+  <>
 
-  if not isUploadingFailed
-     then empty
-     else div $ do
-            span !. "label label-danger" $ text "Ошибка"
-            text $
-              " Произошла ошибка при попытке загрузить " <>
-              showAccusative mediaType <> "."
+  ( if not isUploadingFailed
+       then mempty
+       else pure $
+            div' [ span [className "label label-danger"] [text "Ошибка"]
+                 , text $
+                     " Произошла ошибка при попытке загрузить " <>
+                     showAccusative mediaType <> "."
+                 ]
+  )
 
-  if not isProcessing
-     then empty
-     else element $
-            spinnerEl
+  <>
+
+  ( if not isProcessing
+       then mempty
+       else pure $
+            flip spinnerEl mempty
               { withLabel: Right "Загрузка…"
               , appContext
-              } []
+              }
+  )
 
-  let legacyWarnM =
-        case (Modern <$> file) <|> (resource <#> _.attachment) of
-             Just (Legacy _) -> span !. classSfx "deprecation-warning" $ do
-               span !. "label label-warning" $ text "Внимание"
-               -- It can be only `ImageMediaType` in case of legacy attachment
-               text " Картинка хранится в базе неэффективным образом,\
-                    \ рекомендуется загрузить её заново."
+  <>
 
-             _ -> empty
+  let
+    legacyWarnM =
+      case (Modern <$> file) <|> (resource <#> _.attachment) of
+           Just (Legacy _) -> pure $
+             span
+               [ className $ classSfx "deprecation-warning" ]
+               [ span [className "label label-warning"] [text "Внимание"]
 
-      imgSrc =
-        let
-          modern = file <#> getDiagTreeSlideAttachmentPath
-          legacy = resource <#> _.attachment >>= case _ of
-                                                      Legacy x -> Just x
-                                                      Modern _ -> Nothing
-        in
-          modern <|> legacy
+               , -- It can be only `ImageMediaType` in case of legacy attachment
+                 text " Картинка хранится в базе неэффективным образом,\
+                      \ рекомендуется загрузить её заново."
+               ]
 
-      imgM = do
-        guard $ mediaType == ImageMediaType
-        x <- imgSrc
+           _ -> mempty
 
-        pure $ do
-          legacyWarnM
-          img !. classSfx "image" ! role "presentation" ! src x
+    imgSrc = modern <|> legacy where
+      modern = file <#> getDiagTreeSlideAttachmentPath
 
-      audioM = do
-        guard $ mediaType == AudioMediaType
-        filePath <- file <#> getDiagTreeSlideAttachmentPath
+      legacy =
+        resource <#> _.attachment >>=
+          case _ of
+               Legacy x -> Just x
+               Modern _ -> Nothing
 
-        pure $
-          audio !. classSfx "audio" ! controls true $ do
-            source ! src filePath $ empty
-            text "Ваш браузер не поддерживает отображение аудиофайлов"
+    imgEls = do
+      guard $ mediaType == ImageMediaType
+      x <- imgSrc
 
-      videoM = do
-        guard $ mediaType == VideoMediaType
-        filePath <- file <#> getDiagTreeSlideAttachmentPath
+      pure $
+        legacyWarnM `snoc`
+        flip img mempty
+          [ className $ classSfx "image"
+          , role "presentation"
+          , src x
+          ]
 
-        pure $ do
-          video !. classSfx "video" ! controls true $ do
-            source ! src filePath $ empty
-            text "Ваш браузер не поддерживает отображение видеофайлов"
+    audioEls = do
+      guard $ mediaType == AudioMediaType
+      filePath <- file <#> getDiagTreeSlideAttachmentPath
 
-      previewM = fromMaybe empty $ imgM <|> audioM <|> videoM
-      isBlocked = isDisabled || isProcessing
+      pure $ pure $
+        audio
+          [ className $ classSfx "audio"
+          , controls true
+          ]
+          [ source [src filePath] mempty
+          , text "Ваш браузер не поддерживает отображение аудиофайлов"
+          ]
 
-  if isEditing || isNothing resource
-     then editRender isBlocked appContext resource state previewM
-     else viewRender isBlocked onMoveUp onMoveDown state previewM
+    videoEls = do
+      guard $ mediaType == VideoMediaType
+      filePath <- file <#> getDiagTreeSlideAttachmentPath
+
+      pure $ pure $
+        video
+          [ className $ classSfx "video"
+          , controls true
+          ]
+          [ source [src filePath] mempty
+          , text "Ваш браузер не поддерживает отображение видеофайлов"
+          ]
+
+    previewEls = fromMaybe mempty $ imgEls <|> audioEls <|> videoEls
+    isBlocked = isDisabled || isProcessing
+  in
+    if isEditing || isNothing resource
+       then editRender isBlocked appContext resource state previewEls
+       else viewRender isBlocked onMoveUp onMoveDown state previewEls
 
   where
     name = "DiagTreeEditorSlideEditorResource"
     classSfx s = name <> "--" <> s
-    wrapper = R.li [className $ "list-group-item" <.> name]
+
+    wrapper =
+      li [className $ "list-group-item" <.> name] <<< pure <<<
+        div [className $ "list-group-item" <.> classSfx "wrap"]
 
     spinnerEl        = createElement spinner
     dropDownSelectEl = createElement dropDownSelect
     dropzoneEl       = createElement dropzone
 
-    viewRender isDisabled onMoveUp onMoveDown state previewM = do
-      previewM
-      span $ text state.text
+    viewRender isDisabled onMoveUp onMoveDown state previewEls = go where
+      go = previewEls `snoc` span' [text state.text] `snoc` toolbar
 
-      div !. "btn-toolbar" <.> classSfx "buttons" ! role "toolbar" $ do
+      toolbar =
+        div
+          [ className $ "btn-toolbar" <.> classSfx "buttons"
+          , role "toolbar"
+          ] $
 
-        if isNothing onMoveUp && isNothing onMoveDown
-           then empty
-           else do
-                button !. "btn btn-default"
-                       ! title "Поднять вверх"
-                       ! disabled (isNothing onMoveUp)
-                       ! onClick state.onMoveUp
-                       $ i !. "glyphicon glyphicon-arrow-up" $ empty
+          if isNothing onMoveUp && isNothing onMoveDown
+             then mempty
+             else [ button
+                      [ className "btn btn-default"
+                      , title "Поднять вверх"
+                      , disabled $ isNothing onMoveUp
+                      , onClick state.onMoveUp
+                      ]
+                      [ i [className "glyphicon glyphicon-arrow-up"] mempty ]
 
-                button !. "btn btn-default"
-                       ! title "Опустить вниз"
-                       ! disabled (isNothing onMoveDown)
-                       ! onClick state.onMoveDown
-                       $ i !. "glyphicon glyphicon-arrow-down" $ empty
+                  , button
+                      [ className "btn btn-default"
+                      , title "Опустить вниз"
+                      , disabled $ isNothing onMoveDown
+                      , onClick state.onMoveDown
+                      ]
+                      [ i [className "glyphicon glyphicon-arrow-down"] mempty ]
+                  ]
 
-        button !. "btn btn-success"
-               ! title "Редактировать"
-               ! disabled isDisabled
-               ! onClick state.enterEditing
-               $ i !. "glyphicon glyphicon-pencil" $ empty
+          `snoc`
 
-        button !. "btn btn-danger"
-               ! title "Удалить"
-               ! disabled isDisabled
-               ! onClick state.delete
-               $ i !. "glyphicon glyphicon-trash" $ empty
+          button
+            [ className "btn btn-success"
+            , title "Редактировать"
+            , disabled isDisabled
+            , onClick state.enterEditing
+            ]
+            [ i [className "glyphicon glyphicon-pencil"] mempty ]
 
-    editRender isDisabled appContext resource state previewM = do
-      div !. "form-group" $ do
-        div $ element $
-          dropDownSelectEl
-            { appContext
-            , isDisabled: isDisabled || isJust state.file || isJust resource
-            , variants: (unfoldrBoundedEnum :: Array BackendAttachmentMediaType)
-            , selected: Just state.mediaType
-            , variantView: showNominative >>> capitalize
-            , onSelected: Just state.onMediaTypeSelected
-            , placeholder: Just "Тип прикрепляемого файла"
-            , notSelectedTitle: Nothing
-            } []
+          `snoc`
 
-        element $
-          dropzoneEl (dropzoneDefaultProps state.mediaType)
-            { disabled = isDisabled
+          button
+            [ className "btn btn-danger"
+            , title "Удалить"
+            , disabled isDisabled
+            , onClick state.delete
+            ]
+            [ i [className "glyphicon glyphicon-trash"] mempty ]
 
-            , onDropAccepted = toNullable $ Just $ handle2 $
-                \files _ -> case head files of
-                                 Nothing -> pure unit
-                                 Just x  -> state.onFileDropped x
+    editRender isDisabled appContext resource state previewEls =
+      [ div
+          [ className "form-group" ]
+          [ div' $ pure $
+              flip dropDownSelectEl mempty
+                { appContext
+                , isDisabled: isDisabled || isJust state.file || isJust resource
+                , variants:
+                    (unfoldrBoundedEnum :: Array BackendAttachmentMediaType)
+                , selected: Just state.mediaType
+                , variantView: showNominative >>> capitalize
+                , onSelected: Just state.onMediaTypeSelected
+                , placeholder: Just "Тип прикрепляемого файла"
+                , notSelectedTitle: Nothing
+                }
 
-            , onDropRejected = toNullable $ Just $ handle2 $
-                \files _ -> state.onFilesRejected files
-            } [ R.text $
-                "Нажмите для добавления " <> showGenitive state.mediaType <>
-                " или перетащите " <>
-                sexyShow "его" "файл" "её" (getSex state.mediaType) <> " сюда" ]
+          , dropzoneEl (dropzoneDefaultProps state.mediaType)
+              { disabled = isDisabled
 
-        span !. classSfx "edit-image-wrap" $ previewM
+              , onDropAccepted = toNullable $ Just $ handle2 $
+                  \files _ -> maybe (pure unit) state.onFileDropped $ head files
 
-        input !. "form-control"
-              ! _type "text"
-              ! placeholder ("Подпись к " <> showDative state.mediaType)
-              ! value state.text
-              ! onChange state.onChangeText
-              ! disabled isDisabled
+              , onDropRejected = toNullable $ Just $ handle2 $
+                  \files _ -> state.onFilesRejected files
+              }
+              [ text $
+                  "Нажмите для добавления " <> showGenitive state.mediaType <>
+                  " или перетащите " <>
+                  sexyShow "его" "файл" "её" (getSex state.mediaType) <> " сюда"
+              ]
 
-      div !. "btn-toolbar" $ do
-        button !. "btn btn-default"
-               ! _type "button"
-               ! onClick state.cancelEditing
-               ! disabled isDisabled
-               $ text "Отменить"
+          , span [className $ classSfx "edit-image-wrap"] previewEls
 
-        let isSaveBlocked =
-              isDisabled || not state.isChanged ||
-              (isNothing resource && isNothing state.file)
+          , flip input mempty
+              [ className "form-control"
+              , _type "text"
+              , placeholder $ "Подпись к " <> showDative state.mediaType
+              , value state.text
+              , onChange state.onChangeText
+              , disabled isDisabled
+              ]
+          ]
 
-        button !. "btn btn-success"
-               ! _type "button"
-               ! onClick state.save
-               ! disabled isSaveBlocked
-               $ text "Сохранить"
+      , div
+          [ className "btn-toolbar" ]
+          [ button
+              [ className "btn btn-default"
+              , _type "button"
+              , onClick state.cancelEditing
+              , disabled isDisabled
+              ]
+              [ text "Отменить" ]
+
+          , let
+              isSaveBlocked =
+                isDisabled || not state.isChanged ||
+                (isNothing resource && isNothing state.file)
+            in
+              button
+                [ className "btn btn-success"
+                , _type "button"
+                , onClick state.save
+                , disabled isSaveBlocked
+                ]
+                [ text "Сохранить" ]
+          ]
+      ]
 
     cancelEditingHandler this _ = do
       { resource, onCancel } <- getProps this
@@ -359,31 +415,33 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
 
       fromMaybe (pure unit) $
         itemIndex >>= \x ->
-          map (\f -> callEventHandler f x)
-              (if isUp then onMoveUp else onMoveDown)
+          (if isUp then onMoveUp else onMoveDown) <#>
+            \f -> callEventHandler f x
 
     buildIntervalValues
       :: Maybe DiagTreeSlideResource
       -> { text :: String
+         , mediaType :: BackendAttachmentMediaType
+
          , file :: Maybe { id        :: Int
                          , hash      :: String
                          , filename  :: String
                          , mediaType :: BackendAttachmentMediaType
                          }
-
-         , mediaType :: BackendAttachmentMediaType
          }
 
-    buildIntervalValues resource =
-      { text: fromMaybe "" $ resource <#> _.text
-      , mediaType: fromMaybe ImageMediaType $ file <#> _.mediaType
-      , file
-      }
-      where
-        file =
-          resource <#> _.attachment >>= case _ of
-                                             Modern x -> Just x
-                                             Legacy _ -> Nothing
+    buildIntervalValues resource = go where
+      go =
+         { text: fromMaybe "" $ resource <#> _.text
+         , mediaType: fromMaybe ImageMediaType $ file <#> _.mediaType
+         , file
+         }
+
+      file =
+        resource <#> _.attachment >>=
+          case _ of
+               Modern x -> Just x
+               Legacy _ -> Nothing
 
     getInitialState this = do
       { resource } <- getProps this
@@ -408,8 +466,12 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
            , delete: deleteHandler this
            }
 
-    spec renderFn =
-      spec' getInitialState renderHandler # _
+    spec renderFn = go where
+      renderHandler this =
+        map wrapper $ renderFn <$> getProps this <*> readState this
+
+      go
+        = spec' getInitialState renderHandler # _
         { displayName = name
 
         , componentWillReceiveProps = \this nextProps -> do
@@ -428,14 +490,6 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
                           , isChanged = false
                           }
         }
-
-      where
-        wrap = div !. "list-group-item" <.> classSfx "wrap"
-
-        renderHandler this = do
-          props <- getProps  this
-          state <- readState this
-          pure $ renderIn wrapper $ wrap $ renderFn props state
 
 
 diagTreeEditorSlideEditorResource :: ReactClass Props

@@ -40,7 +40,6 @@
     "purescript-foreign": "4.0.1",
     "purescript-argonaut-core": "3.1.1",
     "purescript-integers": "3.2.0",
-    "purescript-react-spaces": "1.0.1",
     "purescript-datetime": "3.4.1",
     "purescript-js-date": "5.2.0",
     "purescript-foldable-traversable": "3.7.1",

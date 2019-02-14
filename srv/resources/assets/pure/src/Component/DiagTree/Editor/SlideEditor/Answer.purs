@@ -4,24 +4,23 @@ module Component.DiagTree.Editor.SlideEditor.Answer
 
 import Prelude hiding (div)
 
+import Data.Monoid (mempty)
+import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust, isNothing)
+import Data.Either (Either (..), isLeft)
+import Data.Nullable (Nullable, toNullable)
+import Data.Array (head, snoc)
+import Data.String (null)
+
 import Control.Alt ((<|>))
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Aff (launchAff_)
 import Control.MonadZero (guard)
 
-import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust, isNothing)
-import Data.Either (Either (..), isRight)
-import Data.Nullable (Nullable, toNullable)
-import Data.Array (head)
-import Data.String (null)
-
 import DOM.HTML (window) as DOM
 import DOM.HTML.Window (confirm) as DOM
-import React.DOM (text, li) as R
-import React.Spaces ((!), (!.), renderIn, element, text, empty)
 
-import React.Spaces.DOM
-     ( div, img, span, button, i, p, h4, input
+import React.DOM
+     ( text, div, div', img, span, span', button, i, p, p', h4, input, li
      , audio, video, source
      )
 
@@ -116,202 +115,265 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
           , isProcessing
           , isUploadingFailed
           , isAttachmentDeleted
-          } -> do
+          } ->
 
-  if isNothing answer || map isRight identity == Just true
-     then p $ span !. "label label-primary" $ text "Новый ответ"
-     else empty
+  ( if isJust answer && map isLeft identity == Just true
+       then mempty
+       else pure $
+            p' $ pure $
+              span [className "label label-primary"] [text "Новый ответ"]
+  )
 
-  if not isUploadingFailed
-     then empty
-     else div $ do
-            span !. "label label-danger" $ text "Ошибка"
-            text $
-              " Произошла ошибка при попытке загрузить " <>
-              showAccusative mediaType <> "."
+  <>
 
-  if not isProcessing
-     then empty
-     else element $
-            spinnerEl
+  ( if not isUploadingFailed
+       then mempty
+       else pure $
+            div'
+              [ span [className "label label-danger"] [text "Ошибка"]
+              , text $
+                  " Произошла ошибка при попытке загрузить " <>
+                  showAccusative mediaType <> "."
+              ]
+  )
+
+  <>
+
+  ( if not isProcessing
+       then mempty
+       else pure $
+            flip spinnerEl mempty
               { withLabel: Right "Загрузка…"
               , appContext
-              } []
+              }
+  )
 
-  let legacyWarnM =
-        case (Modern <$> attachment) <|> (answer >>= _.attachment) of
-             Just (Legacy _) -> span !. classSfx "deprecation-warning" $ do
-               span !. "label label-warning" $ text "Внимание"
-               -- It can be only `ImageMediaType` in case of legacy attachment
-               text " Картинка хранится в базе неэффективным образом,\
-                    \ рекомендуется загрузить её заново."
+  <>
 
-             _ -> empty
+  let
+    legacyWarnM =
+      case (Modern <$> attachment) <|> (answer >>= _.attachment) of
+           Just (Legacy _) -> pure $
+             span
+               [ className $ classSfx "deprecation-warning" ]
+               [ span [className "label label-warning"] [text "Внимание"]
+               , -- It can be only `ImageMediaType` in case of legacy attachment
+                 text " Картинка хранится в базе неэффективным образом,\
+                      \ рекомендуется загрузить её заново."
+               ]
 
-      imgSrc =
-        let
-          modern = attachment <#> getDiagTreeSlideAttachmentPath
-          legacy = answer >>= _.attachment >>= case _ of
-                                                    Legacy x -> Just x
-                                                    Modern _ -> Nothing
-        in
-          if isAttachmentDeleted
-             then Nothing
-             else modern <|> legacy
+           _ -> mempty
 
-      imgM = do
-        guard $ mediaType == ImageMediaType
-        x <- imgSrc
+    imgSrc = if isAttachmentDeleted then Nothing else modern <|> legacy where
+      modern = attachment <#> getDiagTreeSlideAttachmentPath
 
-        pure $ do
-          legacyWarnM
-          img !. classSfx "image" ! role "presentation" ! src x
+      legacy =
+        answer >>= _.attachment >>=
+          case _ of
+               Legacy x -> Just x
+               Modern _ -> Nothing
 
-      audioM = do
-        guard $ mediaType == AudioMediaType
-        filePath <- attachment <#> getDiagTreeSlideAttachmentPath
+    imgEls = do
+      guard $ mediaType == ImageMediaType
+      x <- imgSrc
 
-        pure $
-          audio !. classSfx "audio" ! controls true $ do
-            source ! src filePath $ empty
-            text "Ваш браузер не поддерживает отображение аудиофайлов"
+      pure $
+        legacyWarnM `snoc`
+        flip img mempty
+          [ className $ classSfx "image"
+          , role "presentation"
+          , src x
+          ]
 
-      videoM = do
-        guard $ mediaType == VideoMediaType
-        filePath <- attachment <#> getDiagTreeSlideAttachmentPath
+    audioEls = do
+      guard $ mediaType == AudioMediaType
+      filePath <- attachment <#> getDiagTreeSlideAttachmentPath
 
-        pure $ do
-          video !. classSfx "video" ! controls true $ do
-            source ! src filePath $ empty
-            text "Ваш браузер не поддерживает отображение видеофайлов"
+      pure $ pure $
+        audio
+          [ className $ classSfx "audio"
+          , controls true
+          ]
+          [ source [src filePath] mempty
+          , text "Ваш браузер не поддерживает отображение аудиофайлов"
+          ]
 
-      previewM = fromMaybe empty $ imgM <|> audioM <|> videoM
-      hasAttachment = isJust imgSrc || isJust (imgM <|> audioM <|> videoM)
-      isBlocked = isDisabled || isProcessing
+    videoEls = do
+      guard $ mediaType == VideoMediaType
+      filePath <- attachment <#> getDiagTreeSlideAttachmentPath
 
-  if isEditing || isNothing answer
-     then editRender isBlocked appContext hasAttachment state previewM
-     else viewRender isBlocked onMoveUp onMoveDown state previewM
+      pure $ pure $
+        video
+          [ className $ classSfx "video"
+          , controls true
+          ]
+          [ source [src filePath] mempty
+          , text "Ваш браузер не поддерживает отображение видеофайлов"
+          ]
+
+    previewEls = fromMaybe mempty $ imgEls <|> audioEls <|> videoEls
+    hasAttachment = isJust imgSrc || isJust (imgEls <|> audioEls <|> videoEls)
+    isBlocked = isDisabled || isProcessing
+  in
+    if isEditing || isNothing answer
+       then editRender isBlocked appContext hasAttachment state previewEls
+       else viewRender isBlocked onMoveUp onMoveDown state previewEls
 
   where
     name = "DiagTreeEditorSlideEditorAnswer"
     classSfx s = name <> "--" <> s
-    wrapper = R.li [className $ "list-group-item" <.> name]
+
+    wrapper =
+      li [className $ "list-group-item" <.> name] <<< pure <<<
+        div [className $ "list-group-item" <.> classSfx "wrap"]
 
     spinnerEl        = createElement spinner
     dropDownSelectEl = createElement dropDownSelect
     dropzoneEl       = createElement dropzone
 
-    viewRender isDisabled onMoveUp onMoveDown state previewM = do
+    viewRender isDisabled onMoveUp onMoveDown state previewEls =
+      [ h4 [className "list-group-item-heading"] [text state.header]
 
-      h4 !. "list-group-item-heading" $ text state.header
+      , p
+          [ className "list-group-item-text" ]
+          $ previewEls `snoc` span' [text state.text]
 
-      p !. "list-group-item-text" $ do
-        previewM
-        span $ text state.text
+      , div
+          [ className $ "btn-toolbar" <.> classSfx "buttons"
+          , role "toolbar"
+          ]
+          $
 
-      div !. "btn-toolbar" <.> classSfx "buttons" ! role "toolbar" $ do
+          ( if isNothing onMoveUp && isNothing onMoveDown
+               then mempty
+               else [ button
+                        [ className "btn btn-default"
+                        , title "Поднять вверх"
+                        , disabled $ isNothing onMoveUp
+                        , onClick state.onMoveUp
+                        ]
+                        [ i [className "glyphicon glyphicon-arrow-up"] mempty ]
 
-        if isNothing onMoveUp && isNothing onMoveDown
-           then empty
-           else do
-                button !. "btn btn-default"
-                       ! title "Поднять вверх"
-                       ! disabled (isNothing onMoveUp)
-                       ! onClick state.onMoveUp
-                       $ i !. "glyphicon glyphicon-arrow-up" $ empty
+                    , button
+                        [ className "btn btn-default"
+                        , title "Опустить вниз"
+                        , disabled $ isNothing onMoveDown
+                        , onClick state.onMoveDown
+                        ]
+                        [ i [className "glyphicon glyphicon-arrow-down"] mempty ]
+                    ]
+          )
 
-                button !. "btn btn-default"
-                       ! title "Опустить вниз"
-                       ! disabled (isNothing onMoveDown)
-                       ! onClick state.onMoveDown
-                       $ i !. "glyphicon glyphicon-arrow-down" $ empty
+          `snoc`
 
-        button !. "btn btn-success"
-               ! title "Редактировать"
-               ! disabled isDisabled
-               ! onClick state.enterEditing
-               $ i !. "glyphicon glyphicon-pencil" $ empty
+          button
+            [ className "btn btn-success"
+            , title "Редактировать"
+            , disabled isDisabled
+            , onClick state.enterEditing
+            ]
+            [ i [className "glyphicon glyphicon-pencil"] mempty ]
 
-        button !. "btn btn-danger"
-               ! title "Удалить"
-               ! disabled isDisabled
-               ! onClick state.delete
-               $ i !. "glyphicon glyphicon-trash" $ empty
+          `snoc`
 
-    editRender isDisabled appContext hasAttachment state previewM = do
-      div !. "form-group" $
-        input !. "form-control"
-              ! _type "text"
-              ! placeholder "Ответ"
-              ! value state.header
-              ! onChange state.onChangeHeader
-              ! disabled isDisabled
+          button
+            [ className "btn btn-danger"
+            , title "Удалить"
+            , disabled isDisabled
+            , onClick state.delete
+            ]
+            [ i [className "glyphicon glyphicon-trash"] mempty ]
+      ]
 
-      div !. "form-group" $
-        input !. "form-control"
-              ! _type "text"
-              ! placeholder "Комментарий"
-              ! value state.text
-              ! onChange state.onChangeText
-              ! disabled isDisabled
+    editRender isDisabled appContext hasAttachment state previewEls =
+      [ div [className "form-group"] $ pure $
+          flip input mempty
+            [ className "form-control"
+            , _type "text"
+            , placeholder "Ответ"
+            , value state.header
+            , onChange state.onChangeHeader
+            , disabled isDisabled
+            ]
 
-      div !. "form-group" $ do
-        div $ element $
-          dropDownSelectEl
-            { appContext
-            , isDisabled: isDisabled || isJust state.attachment || hasAttachment
-            , variants: (unfoldrBoundedEnum :: Array BackendAttachmentMediaType)
-            , selected: Just state.mediaType
-            , variantView: showNominative >>> capitalize
-            , onSelected: Just state.onMediaTypeSelected
-            , placeholder: Just "Тип прикрепляемого файла"
-            , notSelectedTitle: Nothing
-            } []
+      , div [className "form-group"] $ pure $
+          flip input mempty
+            [ className "form-control"
+            , _type "text"
+            , placeholder "Комментарий"
+            , value state.text
+            , onChange state.onChangeText
+            , disabled isDisabled
+            ]
 
-        element $
-          dropzoneEl (dropzoneDefaultProps state.mediaType)
-            { disabled = isDisabled
+      , div
+          [ className "form-group" ]
+          $
+          [ div' $ pure $
+              flip dropDownSelectEl mempty
+                { appContext
+                , isDisabled:
+                    isDisabled || isJust state.attachment || hasAttachment
+                , variants:
+                    (unfoldrBoundedEnum :: Array BackendAttachmentMediaType)
+                , selected: Just state.mediaType
+                , variantView: showNominative >>> capitalize
+                , onSelected: Just state.onMediaTypeSelected
+                , placeholder: Just "Тип прикрепляемого файла"
+                , notSelectedTitle: Nothing
+                }
 
-            , onDropAccepted = toNullable $ Just $ handle2 $
-                \files _ -> case head files of
-                                 Nothing -> pure unit
-                                 Just x  -> state.onFileDropped x
+          , dropzoneEl (dropzoneDefaultProps state.mediaType)
+              { disabled = isDisabled
 
-            , onDropRejected = toNullable $ Just $ handle2 $
-                \files _ -> state.onFilesRejected files
-            } [ R.text $
-                "Нажмите для добавления " <> showGenitive state.mediaType <>
-                " или перетащите " <>
-                sexyShow "его" "файл" "её" (getSex state.mediaType) <> " сюда" ]
+              , onDropAccepted = toNullable $ Just $ handle2 $
+                  \files _ -> maybe (pure unit) state.onFileDropped $ head files
 
-        previewM
+              , onDropRejected = toNullable $ Just $ handle2 $
+                  \files _ -> state.onFilesRejected files
+              }
+              [ text $
+                  "Нажмите для добавления " <> showGenitive state.mediaType <>
+                  " или перетащите " <>
+                  sexyShow "его" "файл" "её" (getSex state.mediaType) <> " сюда"
+              ]
+          ]
+          <>
+          previewEls
+          <>
+          if not hasAttachment
+             then mempty
+             else [ text " "
+                  , button
+                      [ className "btn btn-danger"
+                      , disabled isDisabled
+                      , onClick state.deleteAttachment
+                      ]
+                      [ i [className "glyphicon glyphicon-trash"] mempty
+                      , text $ " Удалить " <> showAccusative state.mediaType
+                      ]
+                  ]
 
-        if not hasAttachment
-           then empty
-           else do text " "
-                   button !. "btn btn-danger"
-                          ! disabled isDisabled
-                          ! onClick state.deleteAttachment
-                          $ do i !. "glyphicon glyphicon-trash" $ empty
-                               text $ " Удалить " <>
-                                 showAccusative state.mediaType
+      , div
+          [ className "btn-toolbar" ]
+          [ button
+              [ className "btn btn-default"
+              , _type "button"
+              , onClick state.cancelEditing
+              , disabled isDisabled
+              ]
+              [ text "Отменить" ]
 
-      div !. "btn-toolbar" $ do
-        button !. "btn btn-default"
-               ! _type "button"
-               ! onClick state.cancelEditing
-               ! disabled isDisabled
-               $ text "Отменить"
-
-        let isSaveBlocked =
-              isDisabled || not state.isChanged || null state.header
-
-        button !. "btn btn-success"
-               ! _type "button"
-               ! onClick state.save
-               ! disabled isSaveBlocked
-               $ text "Сохранить ответ"
+          , button
+              [ className "btn btn-success"
+              , _type "button"
+              , onClick state.save
+              , disabled $
+                  isDisabled || not state.isChanged || null state.header
+              ]
+              [ text "Сохранить ответ" ]
+          ]
+      ]
 
     enterEditingHandler this _ =
       transformState this _ { isEditing = true }
@@ -429,8 +491,8 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
 
       fromMaybe (pure unit) $
         identity >>= \x ->
-          map (\f -> callEventHandler f x)
-              (if isUp then onMoveUp else onMoveDown)
+          (if isUp then onMoveUp else onMoveDown) <#>
+            \f -> callEventHandler f x
 
     buildIntervalValues answer =
       { header     : fromMaybe "" $ answer <#> _.header
@@ -440,9 +502,10 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
       }
       where
         attachment =
-          answer <#> _.attachment >>= case _ of
-                                           Just (Modern x) -> Just x
-                                           _ -> Nothing
+          answer <#> _.attachment >>=
+            case _ of
+                 Just (Modern x) -> Just x
+                 _ -> Nothing
 
     getInitialState this = do
       { answer } <- getProps this
@@ -471,8 +534,8 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
            , delete: deleteHandler this
            }
 
-    spec renderFn =
-      spec' getInitialState renderHandler # _
+    spec renderFn = x where
+      x = spec' getInitialState renderHandler # _
         { displayName = name
 
         , componentWillReceiveProps = \this nextProps -> do
@@ -493,18 +556,13 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
                           }
         }
 
-      where
-        wrap = div !. "list-group-item" <.> classSfx "wrap"
+      renderHandler this =
+        map wrapper $ renderFn <$> getProps this <*> readState this
 
-        renderHandler this = do
-          props <- getProps  this
-          state <- readState this
-          pure $ renderIn wrapper $ wrap $ renderFn props state
-
-        eqAnswer a b =
-          a.header     == b.header &&
-          a.text       == b.text &&
-          a.attachment == b.attachment
+      eqAnswer a b =
+        a.header     == b.header &&
+        a.text       == b.text &&
+        a.attachment == b.attachment
 
 
 diagTreeEditorSlideEditorAnswer :: ReactClass Props
