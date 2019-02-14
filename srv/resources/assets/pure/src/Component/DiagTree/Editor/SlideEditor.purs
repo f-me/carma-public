@@ -4,12 +4,7 @@ module Component.DiagTree.Editor.SlideEditor
 
 import Prelude hiding (div)
 
-import Control.Monad.Aff (launchAff_)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Maybe.Trans (runMaybeT)
-import Control.MonadZero (guard)
-import Control.Alt ((<|>))
-
+import Data.Monoid (mempty)
 import Data.Tuple (Tuple (Tuple), fst, snd)
 import Data.Foldable (foldM)
 import Data.Record.Builder (merge)
@@ -19,9 +14,13 @@ import Data.Map as Map
 import Data.Nullable (toNullable)
 import Data.Array ((!!), index, snoc, updateAt, modifyAt, deleteAt, null)
 
-import React.DOM (form, div) as R
-import React.Spaces ((!), (!.), renderIn, text, empty, element)
-import React.Spaces.DOM (div, input, button, p, span)
+import Control.Monad.Aff (launchAff_)
+import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Maybe.Trans (runMaybeT)
+import Control.MonadZero (guard)
+import Control.Alt ((<|>))
+
+import React.DOM (text, form, div, div', input, button, p', span)
 
 import React.DOM.Props
      ( className, _type, placeholder, value, disabled
@@ -110,33 +109,38 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     , onSelectAction
     , onCancel
     , onSave
-    } (DiagTreeSlide slide) -> do
+    } (DiagTreeSlide slide) ->
 
-  if not isFailed
-     then empty
-     else div $ p $ do
-            span !. "label label-danger" $ text "Ошибка"
-            text " Произошла ошибка при сохранении изменений."
+  ( if not isFailed
+       then mempty
+       else pure $
+            div' $ pure $
+              p' [ span [className "label label-danger"] [text "Ошибка"]
+                 , text " Произошла ошибка при сохранении изменений."
+                 ]
+  )
 
-  div !. "form-group" $
-    input !. "form-control" <.> classSfx "header"
-          ! _type "text"
-          ! placeholder "Заголовок"
-          ! disabled isProcessing
-          ! value slide.header
-          ! onChange onChangeHeader
+  <>
 
-  element $
-    rteWrapEl
+  [ div [className "form-group"] $ pure $
+      flip input mempty
+        [ className $ "form-control" <.> classSfx "header"
+        , _type "text"
+        , placeholder "Заголовок"
+        , disabled isProcessing
+        , value slide.header
+        , onChange onChangeHeader
+        ]
+
+  , flip rteWrapEl mempty
       { appContext
       , slideId: slide.id
       , isProcessing
       , value: slide.body
       , onChange: onChangeBody
-      } []
+      }
 
-  element $
-    resourcesEl
+  , flip resourcesEl mempty
       { appContext
       , slideId: slide.id
       , isDisabled: isProcessing
@@ -144,80 +148,102 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
       , updateResource
       , onMoveUp: onResourceMoveUp
       , onMoveDown: onResourceMoveDown
-      } []
+      }
+  ]
 
-  let hasAction  = isJust slide.action
-      answers    = fst $ fromIndexedAnswers slide.answers
-      hasAnswers = not $ null answers && null newAnswers
-      hasBoth    = hasAction && hasAnswers
+  <>
 
-  -- Rendering "answers" only if "action" is not set
-  if hasAction && not hasBoth
-     then empty
-     else element $
-            answersEl
-              { appContext
-              , slideId: slide.id
-              , isDisabled: isProcessing
-              , answers: fst $ fromIndexedAnswers slide.answers
-              , newAnswers
-              , updateAnswer
-              , onMoveUp: onAnswerMoveUp
-              , onMoveDown: onAnswerMoveDown
-              } []
+  let
+    hasAction  = isJust slide.action
+    answers    = fst $ fromIndexedAnswers slide.answers
+    hasAnswers = not $ null answers && null newAnswers
+    hasBoth    = hasAction && hasAnswers
+  in
+    -- Rendering "answers" only if "action" is not set
+    ( if hasAction && not hasBoth
+         then mempty
+         else pure $
+              flip answersEl mempty
+                { appContext
+                , slideId: slide.id
+                , isDisabled: isProcessing
+                , answers: fst $ fromIndexedAnswers slide.answers
+                , newAnswers
+                , updateAnswer
+                , onMoveUp: onAnswerMoveUp
+                , onMoveDown: onAnswerMoveDown
+                }
+    )
 
-  -- Rendering "action" only if "answers" is empty
-  if hasAnswers && not hasBoth
-     then empty
-     else element $
-            actionEl
-              { appContext
-              , isDisabled: isProcessing
-              , action: slide.action
-              , onSelected: onSelectAction
-              } []
+    <>
 
-  if not hasBoth
-     then pure unit
-     else div $ p $ do
-            span !. "label label-danger" $ text "Ошибка"
-            text " Одновременно заданы «рекомендация» и «ответы»\
-                 \ (необходимо оставить либо «рекомендацию», либо «ответы»)."
+    ( -- Rendering "action" only if "answers" is empty
+      if hasAnswers && not hasBoth
+         then mempty
+         else pure $
+              flip actionEl mempty
+                { appContext
+                , isDisabled: isProcessing
+                , action: slide.action
+                , onSelected: onSelectAction
+                }
+    )
 
-  div !. "btn-toolbar" $ do
+    <>
 
-    let isBlocked = isProcessing || not isChanged
+    ( if not hasBoth
+         then mempty
+         else pure $
+              div' $ pure $
+                p' [ span [className "label label-danger"] [text "Ошибка"]
+                   , text " Одновременно заданы «рекомендация» и «ответы»\
+                          \ (необходимо оставить либо «рекомендацию»,\
+                          \ либо «ответы»)."
+                   ]
+    )
 
-    button !. "btn btn-default"
-           ! _type "button"
-           ! disabled isBlocked
-           ! onClick onCancel
-           $ text "Отменить изменения"
+    <>
 
-    button !. "btn btn-success"
-           ! _type "button"
-           ! disabled (isBlocked || hasBoth)
-           ! onClick onSave
-           $ text "Сохранить"
+    [ div
+        [ className "btn-toolbar" ]
+        $
+        let
+          isBlocked = isProcessing || not isChanged
+        in
+          [ button
+              [ className "btn btn-default"
+              , _type "button"
+              , disabled isBlocked
+              , onClick onCancel
+              ]
+              [ text "Отменить изменения" ]
+
+          , button
+              [ className "btn btn-success"
+              , _type "button"
+              , disabled $ isBlocked || hasBoth
+              , onClick onSave
+              ]
+              [ text "Сохранить" ]
+          ]
+      ]
 
   where
     name = "DiagTreeEditorSlideEditor"
     classSfx s = name <> "--" <> s
-    wrapper = R.form [className name]
-    renderer = renderIn wrapper
+    wrapper = form [className name]
 
     rteWrapEl   = createElement rteWrap
     resourcesEl = createElement diagTreeEditorSlideEditorResources
     answersEl   = createElement diagTreeEditorSlideEditorAnswers
     actionEl    = createElement diagTreeEditorSlideEditorAction
 
-    changeHeaderHandler this event = do
-      let x = eventInputValue event
+    changeHeaderHandler this event = go where
+      go = transformState this
+         $ \s -> s { slide = s.slide <#> updater x, isChanged = true }
 
-      transformState this $
-        \s -> s { slide = s.slide <#> updater x, isChanged = true }
-
-      where updater x (DiagTreeSlide s) = DiagTreeSlide s { header = x }
+      updater x' (DiagTreeSlide s) = DiagTreeSlide s { header = x' }
+      x = eventInputValue event
 
     changeBodyHandler this valueStr = do
       transformState this $ \s ->
@@ -236,11 +262,10 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
         in
           fromMaybe s newState
 
-    selectActionHandler this action =
-      transformState this $
-        \s -> s { slide = s.slide <#> updater, isChanged = true }
-
-      where updater (DiagTreeSlide s) = DiagTreeSlide s { action = action }
+    selectActionHandler this action = go where
+      updater (DiagTreeSlide s) = DiagTreeSlide s { action = action }
+      go = transformState this
+         $ \s -> s { slide = s.slide <#> updater, isChanged = true }
 
     updateResourceHandler this (NewItem resource) =
       transformState this $ \s ->
@@ -461,7 +486,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
          nextSlide.body   == prevSlide.body   &&
          nextSlide.action == prevSlide.action &&
 
-         eqDiagTreeSlideResources  nextSlide.resources prevSlide.resources &&
+         eqDiagTreeSlideResources nextSlide.resources prevSlide.resources &&
 
          let nextAnswers = fst $ fromIndexedAnswers nextSlide.answers
              prevAnswers = fst $ fromIndexedAnswers prevSlide.answers
@@ -493,8 +518,18 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
            , onSave             :          saveHandler           this
            }
 
-    spec renderFn =
-      spec' getInitialState renderHandler # _
+    spec renderFn = x where
+      renderHandler this = do
+        state <- readState this
+
+        map wrapper $
+          case state.slide of
+               Nothing -> pure [text "…"]
+               Just x' -> do
+                 props <- getProps this
+                 pure $ renderFn props state x'
+
+      x = spec' getInitialState renderHandler # _
         { displayName = name
 
         , componentWillReceiveProps = \this nextProps -> do
@@ -502,33 +537,25 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
             void $ runMaybeT $ fetchSlide this state nextProps
         }
 
-      where
-        renderHandler this = do
-          props <- getProps  this
-          state <- readState this
-
-          pure $ renderer $
-            case state.slide of
-                 Nothing -> text "…"
-                 Just x  -> renderFn props state x
-
 
 diagTreeEditorSlideEditor :: ReactClass { appContext :: AppContext }
-diagTreeEditorSlideEditor = storeConnect f diagTreeEditorSlideEditorRender
-  where
-    f appState = let branch = appState.diagTree.editor in merge
-      { slide:
-          branch.selectedSlideBranch >>= getSlideByBranch branch.slides
+diagTreeEditorSlideEditor = go where
+  go = storeConnect f diagTreeEditorSlideEditorRender
 
-      , slidePath: branch.selectedSlideBranch
+  f appState
+    = let branch = appState.diagTree.editor in merge
+    { slide:
+        branch.selectedSlideBranch >>= getSlideByBranch branch.slides
 
-      -- This component supposed to be rendered only when any upper editor
-      -- processing is done, so we check processing only of slide editing
-      -- actions.
-      , isProcessing: branch.slideSaving.isProcessing
+    , slidePath: branch.selectedSlideBranch
 
-      , isFailed: branch.slideSaving.isFailed
-      }
+    -- This component supposed to be rendered only when any upper editor
+    -- processing is done, so we check processing only of slide editing
+    -- actions.
+    , isProcessing: branch.slideSaving.isProcessing
+
+    , isFailed: branch.slideSaving.isFailed
+    }
 
 
 -- For debouncing `onChange` triggering (for optimization purposes)
@@ -541,17 +568,17 @@ rteWrap
                 }
 
 rteWrap = createClass $ spec $
-  \ { isProcessing } { onRTEChange, rteValue } ->
+  \ { isProcessing } { onRTEChange, rteValue } -> pure $
 
-  rteEl (richTextEditorDefaultProps rteValue)
+  flip rteEl mempty (richTextEditorDefaultProps rteValue)
     { placeholder = toNullable $ Just "Описание"
     , disabled    = toNullable $ Just isProcessing
     , onChange    = toNullable $ Just $ handle onRTEChange
-    } []
+    }
 
   where
     name = "DiagTreeEditorSlideEditorRTEWrap"
-    wrapper = R.div [className $ name <.> "form-group"]
+    wrapper = div [className $ name <.> "form-group"]
     rteEl = createElement richTextEditor
 
     onRTEChangeHandler this value = do
@@ -571,8 +598,11 @@ rteWrap = createClass $ spec $
            , rteValue
            }
 
-    spec renderFn =
-      spec' getInitialState renderHandler # _
+    spec renderFn = x where
+      renderHandler this =
+        map wrapper $ renderFn <$> getProps this <*> readState this
+
+      x = spec' getInitialState renderHandler # _
         { displayName = name
 
         , componentWillMount = \this -> do
@@ -622,11 +652,5 @@ rteWrap = createClass $ spec $
 
             case changeSubscription of
                  Nothing -> pure unit
-                 Just x  -> unsubscribeFromDebouncer changeDebouncer x
+                 Just x' -> unsubscribeFromDebouncer changeDebouncer x'
         }
-
-      where
-        renderHandler this = do
-          props <- getProps  this
-          state <- readState this
-          pure $ wrapper [renderFn props state]

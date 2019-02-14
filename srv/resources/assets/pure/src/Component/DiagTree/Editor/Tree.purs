@@ -376,7 +376,7 @@ diagTreeEditorTreeRender = createClass $ spec $
 
       where
         renderHandler this =
-          wrapper <$> (renderFn <$> getProps this <*> readState this)
+          map wrapper $ renderFn <$> getProps this <*> readState this
 
 
 diagTreeEditorTree :: ReactClass { appContext :: AppContext }

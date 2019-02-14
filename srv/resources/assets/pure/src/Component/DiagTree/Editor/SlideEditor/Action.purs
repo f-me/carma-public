@@ -4,13 +4,12 @@ module Component.DiagTree.Editor.SlideEditor.Action
 
 import Prelude hiding (div)
 
+import Data.Monoid (mempty)
 import Data.Maybe (Maybe (..))
 
 import React (ReactClass, EventHandler, createElement)
-import React.DOM (div) as R
+import React.DOM (text, div, div', label)
 import React.DOM.Props (className)
-import React.Spaces ((!.), renderIn, text, element)
-import React.Spaces.DOM (div, label)
 
 import Utils ((<.>), createClassStatelessWithName, unfoldrBoundedEnum)
 import Component.Generic.DropDownSelect (dropDownSelect)
@@ -27,27 +26,27 @@ type Props =
 
 diagTreeEditorSlideEditorActionRender :: ReactClass Props
 diagTreeEditorSlideEditorActionRender = createClassStatelessWithName name $
-  \ { appContext, isDisabled, action, onSelected } -> renderer $ do
+  \ { appContext, isDisabled, action, onSelected } -> wrapper
 
-  label !. "control-label" $ text "Рекомендация"
+  [ label [className "control-label"] [text "Рекомендация"]
 
-  div $ element $
-    dropDownSelectEl
-      { appContext
-      , isDisabled
-      , variants
-      , selected: action
-      , variantView: show
-      , onSelected: Just onSelected
-      , placeholder: Just "Что делать?"
-      , notSelectedTitle: Just "(не выбрано)"
-      } []
+  , div' $ pure $
+      flip dropDownSelectEl mempty
+        { appContext
+        , isDisabled
+        , variants
+        , selected: action
+        , variantView: show
+        , onSelected: Just onSelected
+        , placeholder: Just "Что делать?"
+        , notSelectedTitle: Just "(не выбрано)"
+        }
+  ]
 
   where
     name = "DiagTreeEditorSlideEditorAction"
     classSfx s = name <> "--" <> s
-    wrapper = R.div [className $ "form-group" <.> name]
-    renderer = renderIn wrapper
+    wrapper = div [className $ "form-group" <.> name]
     variants = (unfoldrBoundedEnum :: Array DiagTreeSlideAction)
     dropDownSelectEl = createElement dropDownSelect
 
