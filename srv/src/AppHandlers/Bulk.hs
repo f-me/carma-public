@@ -62,20 +62,24 @@ import           Util as U
 checkUserPermissions :: Maybe Int -> Handler App App Int
 checkUserPermissions subProgramId = do
   Just user <- currentUserMeta
-  let Just (Ident uid) = Patch.get user Usermeta.ident
-  let Just roles       = Patch.get user Usermeta.roles
-  let Just subPrograms = Patch.get user Usermeta.subPrograms
+  let Just (Ident uid)  = Patch.get user Usermeta.ident
+  let Just isUserActive = Patch.get user Usermeta.isActive
+  let Just roles        = Patch.get user Usermeta.roles
+  let Just subPrograms  = Patch.get user Usermeta.subPrograms
 
-  let validSubProgram  = case subProgramId of
-                           Just sid -> V.elem (Ident sid) subPrograms
-                           Nothing  -> True
+  let validSubProgram =
+        case subProgramId of
+             Just sid -> Ident sid `V.elem` subPrograms
+             Nothing  -> True
 
-  unless ((V.elem Role.partner roles && validSubProgram) ||
-           V.elem Role.vinAdmin roles ||
-           V.elem Role.psaanalyst roles) $
-         handleError 403
+  let hasRole = flip V.elem roles
 
-  return uid
+  let isAccessGranted
+        = (hasRole Role.partner && validSubProgram)
+        || hasRole Role.vinAdmin
+        || hasRole Role.psaanalyst
+
+  uid <$ unless (isUserActive && isAccessGranted) (handleError 403)
 
 -- | Read @program@/@subprogram@/@format@ parameters and upload a VIN
 -- file.
@@ -88,7 +92,7 @@ checkUserPermissions subProgramId = do
 vinImport :: AppHandler ()
 vinImport = logExceptions "Bulk/vinImport" $ do
   subprog <- getParam "subprogram"
-  format <- getParam "format"
+  format  <- getParam "format"
 
   case (B.readInt =<< subprog, B.readInt =<< format) of
     (Just (sid, _), Just (fid, _)) -> do
