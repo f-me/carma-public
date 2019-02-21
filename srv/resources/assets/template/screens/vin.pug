@@ -22,6 +22,14 @@
         a#vin-send.btn.btn-primary(data-bind=`click: vinSendHandler`)
           i.glyphicon.glyphicon-upload.glyphicon-white
           | &nbsp;Загрузить
+
+    hr
+    .form-group
+      .col-md-offset-4.col-md-8
+        a#vin-import-dir.btn.btn-primary(data-bind=`click: vinImportDirectoryHandler`)
+          i.glyphicon.glyphicon-upload.glyphicon-white
+          | &nbsp;Загрузить из папки
+
   fieldset
     #vin-box-container
 
