@@ -1,7 +1,7 @@
 # CaRMa
 
 [![CircleCI](https://circleci.com/gh/ruamk/carma/tree/master.svg?style=svg)](https://circleci.com/gh/ruamk/carma/tree/master)
-[![](https://images.microbadger.com/badges/image/ruamc/carma-bundle.svg)](https://microbadger.com/images/ruamc/carma-bundle)
+[![Docker](https://images.microbadger.com/badges/image/ruamc/carma-bundle.svg)](https://microbadger.com/images/ruamc/carma-bundle)
 
 ## About documentation
 
@@ -257,7 +257,7 @@ And restart proper **CaRMa** services.
    4. Now you can ashure that it's working by this command:
 
       ```bash
-      curl -v 'http://127.0.0.1:8165/reverse-search/ru-RU,ru/52.51719785,13.3978352028938'
+      curl -v 'http://127.0.0.1:8165/reverse-search/ru-RU,ru/37.378847,55.558741'
       ```
 
 #### macOS
