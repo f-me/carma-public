@@ -386,6 +386,9 @@ processField (pid, _) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
             protoNullizeEmptyStrings cn >>
             pass
           , sqlCast cn "int")
+      SMileage ->
+          ( void $ protoUpdateWithFun cn "pg_temp.mileageordead" [cn']
+          , sqlCast cn "int")
       SVIN ->
           -- We don't use protoUpdateWithFun here because it breaks
           -- encoding of function arguments

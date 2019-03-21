@@ -568,6 +568,28 @@ installFunctions =
          RETURN null;
      END;
      $$ LANGUAGE plpgsql;
+
+     CREATE OR REPLACE FUNCTION pg_temp.mileageordead(text) RETURNS int AS $$
+     DECLARE x NUMERIC;
+     BEGIN
+         IF $1 IS NULL THEN
+             RETURN null;
+         END IF;
+
+         IF starts_with($1, '0') THEN
+             RETURN null;
+         END IF;
+
+         x = $1::INTEGER;
+         IF (x > 0) AND (x <= 1999999) THEN
+             RETURN $1;
+         ELSE
+             RETURN null;
+         END IF;
+     EXCEPTION WHEN others THEN
+         RETURN null;
+     END;
+     $$ LANGUAGE plpgsql;
      |]
 
 
