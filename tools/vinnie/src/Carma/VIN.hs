@@ -417,8 +417,7 @@ processField (pid, _) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
             pass
           , sqlCast cn "int2")
       SPhone ->
-          ( void $ protoUpdateWithFun cn
-            "'+'||regexp_replace" [iname, "'\\D'", "''", "'g'"]
+          ( void $ protoUpdateWithFun cn "pg_temp.phoneordead" [cn']
           , sqlCast cn "text")
       SName ->
           ( case cols of

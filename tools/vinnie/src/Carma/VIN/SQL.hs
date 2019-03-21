@@ -590,6 +590,25 @@ installFunctions =
          RETURN null;
      END;
      $$ LANGUAGE plpgsql;
+
+     CREATE OR REPLACE FUNCTION pg_temp.phoneordead(text) RETURNS text AS $$
+     BEGIN
+         IF $1 IS NULL THEN
+             RETURN null;
+         END IF;
+
+         IF $1 ~ '^\+7\d{10}$' THEN
+             RETURN $1;
+         END IF;
+         
+         IF $1 ~ '^8\d{10}$' THEN
+             RETURN '+7' || substring($1, 2);
+         END IF;
+
+         RETURN null;
+     END;
+     $$ LANGUAGE plpgsql;
+     
      |]
 
 
