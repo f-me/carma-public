@@ -6,10 +6,9 @@ echo === Install nginx config
 cp conf/nginx.conf /etc/nginx/vhosts/caroperator-svc.conf
 /etc/init.d/nginx force-reload
 
-
 echo === Install rsyslog config
 cp conf/syslog.conf /etc/rsyslog.d/40-caroperator-svc.conf
-/etc/init.d/rsyslog start
+service rsyslog restart
 
 echo === Install upstart job
 init-checkconf conf/upstart.conf
