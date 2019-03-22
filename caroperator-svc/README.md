@@ -40,3 +40,6 @@ Real configs and deployment process may vary.
 
 - [ ] `rate_limit` (on __nginx__ side, provide an example here and doc it
       properly)
+- [ ] Default config file just as an example and add real config to
+      `.gitignore` (add copying of real config file to
+      [`tools/builder.sh`](../tools/builder.sh))
