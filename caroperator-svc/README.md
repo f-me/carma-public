@@ -38,5 +38,5 @@ Real configs and deployment process may vary.
 
 ## TODO
 
-[ ] `rate_limit` (on __nginx__ side, provide an example here and doc it
-    properly)
+- [ ] `rate_limit` (on __nginx__ side, provide an example here and doc it
+      properly)
