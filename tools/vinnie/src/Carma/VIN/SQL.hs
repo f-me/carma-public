@@ -41,6 +41,8 @@ import           Database.PostgreSQL.Simple.ToRow
 import           Data.Model
 import           Data.Model.Types
 import           Carma.Model.Contract as C
+import           Carma.Model.CarMake as CarMake
+import           Carma.Model.CarModel as CarModel
 import           Carma.Model.Partner
 import           Carma.Model.Program
 import           Carma.Model.SubProgram
@@ -139,6 +141,16 @@ contractTable = PT $ tableName
 partnerTable :: PlainText
 partnerTable = PT $ tableName
                (modelInfo :: ModelInfo Partner)
+
+
+carMakeTable :: PlainText
+carMakeTable = PT $ tableName
+               (modelInfo :: ModelInfo CarMake)
+
+
+carModelTable :: PlainText
+carModelTable = PT $ tableName
+                (modelInfo :: ModelInfo CarModel)
 
 
 -- | First argument of @concat_ws@, quoted.
@@ -608,8 +620,27 @@ installFunctions =
          RETURN null;
      END;
      $$ LANGUAGE plpgsql;
-     
-     |]
+     |] >>
+    
+    execute
+    [sql|
+     CREATE OR REPLACE FUNCTION pg_temp.checkmakemodel(integer, integer)
+     RETURNS BOOLEAN AS $$
+     DECLARE
+         makeId integer = $1;
+         modelId integer = $2;
+     BEGIN
+         PERFORM *
+         FROM "?" AS maker, "?" AS model
+         WHERE ? = maker.id AND
+               makeId = maker.id AND
+               modelId = model.id;
+
+         RETURN FOUND;
+     END;
+     $$ LANGUAGE plpgsql;
+     |] ( carMakeTable, carModelTable
+        , PT $ fieldName CarModel.parent)
 
 
 -- | Create a purgatory for new contracts with schema identical to
@@ -746,6 +777,16 @@ markEmptyRequired =
      |]
 
 
+-- | Add error to every row where combination make/model is invalid.
+markInvalidMakeModel :: Import Int64
+markInvalidMakeModel =
+    execute
+    [sql|
+     UPDATE vinnie_queue SET errors = errors || ARRAY [?]
+     WHERE NOT pg_temp.checkmakemodel(make, model);
+    |] (Only InvalidMakeModel
+       )
+    
 -- | Calculate how many erroneous rows are in queue table.
 countErrors :: Import Int64
 countErrors = do
@@ -816,6 +857,7 @@ transferContracts conn =
 data RowError = EmptyRequired Text
               | NoIdentifiers
               | NoSubprogram
+              | InvalidMakeModel
                 deriving Show
 
 instance ToField RowError where
@@ -825,3 +867,5 @@ instance ToField RowError where
         toField $ T.concat ["Ни одно из полей-идентификаторов не распознано"]
     toField NoSubprogram =
         toField $ T.concat ["Подпрограмма не распознана"]
+    toField InvalidMakeModel =
+        toField $ T.concat ["Комбинация марка-модель указана не верно"]

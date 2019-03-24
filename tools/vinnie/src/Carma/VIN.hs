@@ -317,6 +317,7 @@ process psid enc mapping = do
   setSpecialDefaults uid (snd psid) arcVal (takeFileName input)
 
   markMissingIdentifiers
+  markInvalidMakeModel
 
   -- Finally, write new contracts to live table, omitting those
   -- already present and duplicate contracts in the queue
