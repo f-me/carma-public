@@ -3,21 +3,22 @@ module App.Store.DiagTree.Editor.Handlers.SharedUtils.Slide
      , extractPartialBackendSlideFromSlide
      ) where
 
-import Prelude hiding (id)
-
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Maybe.Trans (MaybeT)
-import Control.MonadZero (guard)
-import Control.Alt ((<|>))
+import Prelude
 
 import Data.Tuple (fst)
 import Data.Maybe (Maybe (..), maybe, isJust, isNothing)
-import Data.JSDate (LOCALE, parse, toDateTime)
+import Data.JSDate (parse, toDateTime)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Foldable (foldM)
 import Data.Array (length, head, snoc, fromFoldable)
+
+import Control.Monad.Maybe.Trans (MaybeT)
+import Control.MonadZero (guard)
+import Control.Alt ((<|>))
+
+import Effect (Effect)
+import Effect.Class (liftEffect)
 
 import Utils (toMaybeT)
 
@@ -43,17 +44,16 @@ import App.Store.DiagTree.Editor.Types
 
 -- Building a slide from backend data
 getSlide
-  :: forall getSlideEff
-   . Map DiagTreeSlideId BackendSlide
+  :: Map DiagTreeSlideId BackendSlide
   -> DiagTreeSlideId
-  -> MaybeT (Eff (locale :: LOCALE | getSlideEff)) DiagTreeSlide
+  -> MaybeT Effect DiagTreeSlide
 
 getSlide flatSlides slideId = do
   s@{ id, isRoot, header, body, actions } <-
     toMaybeT $ slideId `Map.lookup` flatSlides
 
   ctime <- do
-    jsDate <- liftEff $ parse s.ctime
+    jsDate <- liftEffect $ parse s.ctime
     toMaybeT $ toDateTime jsDate
 
   resources <- toMaybeT $ foldM resourceReducer [] s.resources

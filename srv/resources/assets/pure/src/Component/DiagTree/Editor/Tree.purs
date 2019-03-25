@@ -4,12 +4,10 @@ module Component.DiagTree.Editor.Tree
 
 import Prelude hiding (div)
 
-import Data.Monoid (mempty)
 import Data.Foldable (foldr)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe (..), isJust, fromMaybe, maybe)
-import Data.Record.Builder (merge, build)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String.NonEmpty (toString)
@@ -19,26 +17,28 @@ import Data.Array
      ( (!!), index, last, head, take, init, length, snoc, fromFoldable
      )
 
-import Control.Monad.Aff (launchAff_)
-import Control.Monad.Eff.Class (liftEff)
+import Record.Builder (merge, build)
+
+import Control.Monad.Trans.Class (lift)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.MonadZero (guard)
 
-import DOM.HTML (window) as DOM
-import DOM.HTML.Window (confirm) as DOM
+import Effect.Aff (launchAff_)
+import Effect.Uncurried (mkEffectFn1)
+
+import Web.HTML (window) as DOM
+import Web.HTML.Window (confirm) as DOM
 
 import React
      ( ReactClass
+     , component
      , getProps
-     , readState
-     , transformState
-     , createClass
-     , spec'
-     , preventDefault
-     , createElement
-     , handle
+     , getState
+     , modifyState
+     , createLeafElement
      )
 
+import React.SyntheticEvent (preventDefault)
 import React.DOM (text, div, button, i', label', input)
 import React.DOM.Dynamic (div) as RDyn
 import React.DOM.Props (className, onClick, onChange, _type, checked)
@@ -97,7 +97,7 @@ diagTreeEditorTreeRender
        , copyPasteBuffer     :: CopyPasteBuffer
        }
 
-diagTreeEditorTreeRender = createClass $ spec $
+diagTreeEditorTreeRender = defineComponent $
   \ -- props
     { appContext, slides, selectedSlideBranch, search
     , copyPasteState, copyPasteBuffer
@@ -109,7 +109,7 @@ diagTreeEditorTreeRender = createClass $ spec $
 
   [ div [className $ "checkbox" <.> classSfx "dont-shift-levels"] $ pure $
       label'
-        [ flip input mempty
+        [ input
             [ _type "checkbox"
             , checked dontShiftLevels
             , onChange changeDontShiftLevels
@@ -134,6 +134,7 @@ diagTreeEditorTreeRender = createClass $ spec $
 
     itemProps =
       { appContext
+      , ref: refPlug
       , selectedSlide: selectedSlideBranch, unfoldedSlides, search
       , select: selectSlide, delete: deleteSlide
       , copy: copySlide
@@ -161,7 +162,7 @@ diagTreeEditorTreeRender = createClass $ spec $
                      , slide
                      }
 
-    itemRender x = itemEl p mempty where
+    itemRender x = itemEl p where
       p = itemPropsBuilder x `build` itemProps
 
     itemsListEl
@@ -175,7 +176,7 @@ diagTreeEditorTreeRender = createClass $ spec $
     name = "DiagTreeEditorTree"
     classSfx s = name <> "--" <> s
     wrapper = div [className name]
-    itemEl = createElement diagTreeEditorTreeItem
+    itemEl = createLeafElement diagTreeEditorTreeItem
 
     shiftedSlidesMenuFn selectRoot selectOneLevelUp levelsHidden =
       [ div [className $ classSfx "folded-parents-menu"] $ pure $
@@ -266,7 +267,7 @@ diagTreeEditorTreeRender = createClass $ spec $
             $ DiagTree $ Editor $ PasteSlideRequest slideBranch
 
     toggleSlideFoldHandler this slideId =
-      transformState this $ \s@{ unfoldedSlides } ->
+      modifyState this $ \s@{ unfoldedSlides } ->
         let f = if slideId `Set.member` unfoldedSlides
                    then Set.delete
                    else Set.insert
@@ -275,7 +276,7 @@ diagTreeEditorTreeRender = createClass $ spec $
     -- When search mode is on slide could be selected, if search is reset after
     -- we keep whole branch unfolded (to prevent it from disapearing from user).
     unfoldSlideBranchHandler this slideBranch =
-      transformState this $ \s@{ unfoldedSlides } ->
+      modifyState this $ \s@{ unfoldedSlides } ->
         s { unfoldedSlides = _ } $
           foldr Set.insert unfoldedSlides slideBranch
 
@@ -321,62 +322,60 @@ diagTreeEditorTreeRender = createClass $ spec $
           shiftSlideBranch branch nextN (Just header) nextSlide
 
     changeDontShiftLevelsHandler this event = do
-      let isChecked = eventIsChecked event
-      transformState this _ { dontShiftLevels = isChecked }
+      isChecked <- eventIsChecked event
+      modifyState this _ { dontShiftLevels = isChecked }
 
-    getInitialState this = do
+    refPlug = mkEffectFn1 $ \_ -> pure unit
+
+    defineComponent renderFn = component name $ \this -> do
       { appContext, selectedSlideBranch } <- getProps this
 
       let toggleSlideFold   = toggleSlideFoldHandler   this
-          unfoldSlideBranch = unfoldSlideBranchHandler this
+      let unfoldSlideBranch = unfoldSlideBranchHandler this
 
-          selectOneLevelUp  = selectOneLevelUpHandler appContext this
-          selectRoot        = selectRootHandler       appContext this
+      let selectOneLevelUp  = selectOneLevelUpHandler appContext this
+      let selectRoot        = selectRootHandler       appContext this
 
-          changeDontShiftLevels = changeDontShiftLevelsHandler this
+      let changeDontShiftLevels = changeDontShiftLevelsHandler this
 
-          selectSlide = handle $
+      let selectSlide =
             selectSlideHandler appContext this
                                toggleSlideFold unfoldSlideBranch
 
-          -- Not unfolding at initialization step if a root slide is selected
+      let -- Not unfolding at initialization step if a root slide is selected
           unfoldedSlides = maybe Set.empty f selectedSlideBranch
             where f x = if length x /= 1 then Set.fromFoldable x else Set.empty
 
-      pure { selectSlide
-           , unfoldedSlides
-           , deleteSlide       : handle $ deleteSlideHandler appContext this
-           , copySlide         : handle $ copySlideHandler appContext this
-           , cutSlide          : handle $ cutSlideHandler appContext this
-           , pasteSlide        : handle $ pasteSlideHandler appContext this
-           , shiftedSlidesMenu : shiftedSlidesMenuFn selectRoot selectOneLevelUp
-           , dontShiftLevels   : false
-           , changeDontShiftLevels
+      let state =
+            { selectSlide
+            , unfoldedSlides
+            , deleteSlide: deleteSlideHandler appContext this
+            , copySlide: copySlideHandler appContext this
+            , cutSlide: cutSlideHandler appContext this
+            , pasteSlide: pasteSlideHandler appContext this
+            , shiftedSlidesMenu: shiftedSlidesMenuFn selectRoot selectOneLevelUp
+            , dontShiftLevels: false
+            , changeDontShiftLevels
+            }
+
+      pure { state
+           , render: map wrapper $ renderFn <$> getProps this <*> getState this
+
+           , unsafeComponentWillReceiveProps:
+               \{ selectedSlideBranch: nextSelected, slides } -> do
+                 { selectedSlideBranch: prevSelected } <- getProps this
+
+                 -- Unfolding new selected branch
+                 void $ runMaybeT $ do
+                   x <- toMaybeT $ do
+                     selectedBranch <- nextSelected
+                     guard $ nextSelected /= prevSelected
+                     void $ getSlideByBranch slides selectedBranch
+                     pure $ Set.fromFoldable selectedBranch
+
+                   lift $ modifyState this $
+                     \s -> s { unfoldedSlides = s.unfoldedSlides `Set.union` x }
            }
-
-    spec renderFn =
-      spec' getInitialState renderHandler # _
-        { displayName = name
-
-        , componentWillReceiveProps =
-            \this { selectedSlideBranch: nextSelected, slides } -> do
-              { selectedSlideBranch: prevSelected } <- getProps this
-
-              -- Unfolding new selected branch
-              void $ runMaybeT $ do
-                x <- toMaybeT $ do
-                  selectedBranch <- nextSelected
-                  guard $ nextSelected /= prevSelected
-                  void $ getSlideByBranch slides selectedBranch
-                  pure $ Set.fromFoldable selectedBranch
-
-                liftEff $ transformState this $
-                  \s -> s { unfoldedSlides = s.unfoldedSlides `Set.union` x }
-        }
-
-      where
-        renderHandler this =
-          map wrapper $ renderFn <$> getProps this <*> readState this
 
 
 diagTreeEditorTree :: ReactClass { appContext :: AppContext }

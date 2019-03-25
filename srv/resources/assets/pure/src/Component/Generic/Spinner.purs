@@ -4,55 +4,55 @@ module Component.Generic.Spinner
 
 import Prelude hiding (div)
 
-import Data.Monoid (mempty)
 import Data.Either (Either (..))
 
-import React (ReactClass, getProps)
+import React (ReactClass, component, getProps)
 import React.DOM (div, div', text)
 import React.DOM.Props (className)
 
-import Utils (createClassStatelessWithSpec)
 import App.Store (AppContext)
 
 
 type Props =
-  { appContext :: AppContext
+   { appContext :: AppContext
 
-  , withLabel  :: Either Boolean String
-  -- ^ `Left`'s flag indicates is label shown or not
-  --   `Right` for specific custom label to show
-  }
+   , withLabel  :: Either Boolean String
+   -- ^ `Left`'s flag indicates is label shown or not
+   --   `Right` for specific custom label to show
+   }
 
 
 spinnerRender :: ReactClass Props
-spinnerRender
-  = createClassStatelessWithSpec specMiddleware
-  $ \props -> wrapper $ pure
-  $ if props.withLabel /= Left false
+spinnerRender = go where
+  go = component name spec
 
-       then div
-              [ className $ classSfx "with-label" ]
-              [ div' $ pure $ text $ case props.withLabel of
-                                          Left  _ -> "Загрузка…"
-                                          Right x -> x
+  renderFn props
+    = wrapper $ pure
+    $ if props.withLabel /= Left false
 
-              , div [className $ classSfx "icon"] mempty
-              ]
+         then div
+                [ className $ classSfx "with-label" ]
+                [ div' $ pure $ text $ case props.withLabel of
+                                            Left  _ -> "Загрузка…"
+                                            Right x -> x
 
-       else div [className $ classSfx "icon"] mempty
+                , div [className $ classSfx "icon"] mempty
+                ]
 
-  where
-    name = "CircleSpinner"
-    classSfx s = name <> "--" <> s
-    wrapper = div [className name]
+         else div [className $ classSfx "icon"] mempty
 
-    specMiddleware = _
-      { displayName = name
+  spec this = getProps this <#> \props ->
+    { state: {}
+    , render: renderFn <$> getProps this
 
-      , shouldComponentUpdate = \this nextProps _ -> do
-          prevProps <- getProps this
-          pure $ prevProps.withLabel /= nextProps.withLabel
-      }
+    , shouldComponentUpdate: \nextProps _ -> do
+        prevProps <- getProps this
+        pure $ prevProps.withLabel /= nextProps.withLabel
+    }
+
+  name = "CircleSpinner"
+  classSfx s = name <> "--" <> s
+  wrapper = div [className name]
 
 
 spinner :: ReactClass Props

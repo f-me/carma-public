@@ -4,39 +4,40 @@ module Component.DiagTree.Editor.SlideEditor.Action
 
 import Prelude hiding (div)
 
-import Data.Monoid (mempty)
 import Data.Maybe (Maybe (..))
 
-import React (ReactClass, EventHandler, createElement)
+import Effect (Effect)
+
+import React (ReactClass, component, getProps, createLeafElement)
 import React.DOM (text, div, div', label)
 import React.DOM.Props (className)
 
-import Utils ((<.>), createClassStatelessWithName, unfoldrBoundedEnum)
+import Utils ((<.>), unfoldrBoundedEnum)
 import Component.Generic.DropDownSelect (dropDownSelect)
 import App.Store (AppContext)
 import App.Store.DiagTree.Editor.Types (DiagTreeSlideAction)
 
 
 type Props =
-  { appContext :: AppContext
-  , isDisabled :: Boolean
-  , action     :: Maybe DiagTreeSlideAction
-  , onSelected :: EventHandler (Maybe DiagTreeSlideAction)
-  }
+   { appContext :: AppContext
+   , isDisabled :: Boolean
+   , action     :: Maybe DiagTreeSlideAction
+   , onSelected :: Maybe DiagTreeSlideAction -> Effect Unit
+   }
 
 diagTreeEditorSlideEditorActionRender :: ReactClass Props
-diagTreeEditorSlideEditorActionRender = createClassStatelessWithName name $
-  \ { appContext, isDisabled, action, onSelected } -> wrapper
+diagTreeEditorSlideEditorActionRender = defineComponent $
+  \ { appContext, isDisabled, action, onSelected } ->
 
   [ label [className "control-label"] [text "Рекомендация"]
 
   , div' $ pure $
-      flip dropDownSelectEl mempty
+      dropDownSelectEl
         { appContext
         , isDisabled
         , variants
         , selected: action
-        , variantView: show
+        , variantView: (show :: DiagTreeSlideAction -> String)
         , onSelected: Just onSelected
         , placeholder: Just "Что делать?"
         , notSelectedTitle: Just "(не выбрано)"
@@ -48,7 +49,12 @@ diagTreeEditorSlideEditorActionRender = createClassStatelessWithName name $
     classSfx s = name <> "--" <> s
     wrapper = div [className $ "form-group" <.> name]
     variants = (unfoldrBoundedEnum :: Array DiagTreeSlideAction)
-    dropDownSelectEl = createElement dropDownSelect
+    dropDownSelectEl = createLeafElement dropDownSelect
+
+    defineComponent renderFn = component name \ this -> pure
+      { state: {}
+      , render: map wrapper $ renderFn <$> getProps this
+      }
 
 
 diagTreeEditorSlideEditorAction :: ReactClass Props

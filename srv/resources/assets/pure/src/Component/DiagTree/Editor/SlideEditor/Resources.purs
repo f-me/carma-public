@@ -4,23 +4,22 @@ module Component.DiagTree.Editor.SlideEditor.Resources
 
 import Prelude hiding (div)
 
-import Data.Monoid (mempty)
 import Data.Tuple (Tuple (Tuple), snd)
 import Data.Foldable (class Foldable, foldl, length)
 import Data.Maybe (Maybe (..))
-import Data.Nullable (toNullable)
 import Data.String (joinWith)
 import Data.Array (snoc)
+
+import Effect (Effect)
 
 import React.DOM (text, div, button, label, i)
 import React.DOM.Dynamic (ul) as RDyn
 import React.DOM.Props (className, _type, disabled, onClick)
+import React.SyntheticEvent (preventDefault)
 
 import React
-     ( ReactClass, EventHandler
-     , createClass, spec', createElement
-     , getProps, readState, transformState
-     , handle
+     ( ReactClass, component, createLeafElement
+     , getProps, getState, modifyState
      )
 
 import Utils ((<.>), unfoldrBoundedEnum, showAccusative)
@@ -44,31 +43,32 @@ import Component.DiagTree.Editor.SlideEditor.Resource
 
 
 type Props f =
-  { appContext :: AppContext
-  , slideId    :: DiagTreeSlideId
-  , isDisabled :: Boolean
-  , resources  :: f DiagTreeSlideResource
+   { appContext :: AppContext
+   , slideId    :: DiagTreeSlideId
+   , isDisabled :: Boolean
+   , resources  :: f DiagTreeSlideResource
 
-  , updateResource -- See item component for details
-      :: EventHandler
-           ( ItemModification Int
-               { text :: String
-               , file :: Maybe BackendAttachment
-               } )
+   , updateResource -- See item component for details
+       :: ItemModification Int
+            { text :: String
+            , file :: Maybe BackendAttachment
+            }
+       -> Effect Unit
 
-  , onMoveUp   :: EventHandler Int
-  , onMoveDown :: EventHandler Int
-  }
+   , onMoveUp   :: Int -> Effect Unit
+   , onMoveDown :: Int -> Effect Unit
+   }
 
 
 diagTreeEditorSlideEditorResourcesRender
   :: forall f . Foldable f => ReactClass (Props f)
 
-diagTreeEditorSlideEditorResourcesRender = createClass $ spec $
-  \ { appContext, slideId, isDisabled, resources
+diagTreeEditorSlideEditorResourcesRender = defineComponent $
+  \ { turnAddingOn, turnAddingOff }
+    { appContext, slideId, isDisabled, resources
     , updateResource, onMoveUp, onMoveDown
     }
-    { isAdding, turnAddingOn, turnAddingOff } ->
+    { isAdding } ->
 
   [ label [className "control-label"] [text "Прикреплённые файлы"]
 
@@ -76,12 +76,12 @@ diagTreeEditorSlideEditorResourcesRender = createClass $ spec $
       [ className $ "list-group" <.> classSfx "list" ]
       let
         itemReducer lastIndex (Tuple itemIndex list) resource = go where
-          go = Tuple (itemIndex + 1) $ list `snoc` itemEl props mempty
+          go = Tuple (itemIndex + 1) $ list `snoc` itemEl props
 
           props =
             { appContext
             , slideId
-            , key: toNullable $ Just $ show itemIndex
+            , key: show itemIndex
             , itemIndex: Just itemIndex
             , isDisabled
             , resource: Just resource
@@ -96,10 +96,10 @@ diagTreeEditorSlideEditorResourcesRender = createClass $ spec $
         snd $ foldl (itemReducer $ length resources - 1) (Tuple 0 []) resources
 
   , if isAdding
-       then flip itemEl mempty
+       then itemEl
               { appContext
               , slideId
-              , key: toNullable Nothing
+              , key: mempty
               , itemIndex: Nothing
               , isDisabled
               , resource: Nothing
@@ -126,22 +126,25 @@ diagTreeEditorSlideEditorResourcesRender = createClass $ spec $
     name = "DiagTreeEditorSlideEditorResources"
     classSfx s = name <> "--" <> s
     wrapper = div [className $ "form-group" <.> name]
-    itemEl = createElement diagTreeEditorSlideEditorResource
+    itemEl = createLeafElement diagTreeEditorSlideEditorResource
 
     turnAddingHandler this isOn =
-      transformState this _ { isAdding = isOn }
+      modifyState this _ { isAdding = isOn }
 
-    getInitialState this = pure
-      { isAdding: false
-      , turnAddingOn: const $ turnAddingHandler this true
-      , turnAddingOff: let f = turnAddingHandler this false in handle \unit -> f
-      }
+    defineComponent renderFn = component name \this -> do
+      let preBound =
+            { turnAddingOn:
+                \event -> preventDefault event *> turnAddingHandler this true
 
-    spec renderFn = go where
-      go = spec' getInitialState renderHandler # _ { displayName = name }
+            , turnAddingOff: turnAddingHandler this false
+            }
 
-      renderHandler this =
-        map wrapper $ renderFn <$> getProps this <*> readState this
+      let r = renderFn preBound
+
+      pure
+        { state: { isAdding: false }
+        , render: map wrapper $ r <$> getProps this <*> getState this
+        }
 
 
 diagTreeEditorSlideEditorResources

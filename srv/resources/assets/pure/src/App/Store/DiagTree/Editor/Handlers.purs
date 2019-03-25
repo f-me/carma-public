@@ -4,6 +4,10 @@ module App.Store.DiagTree.Editor.Handlers
 
 import Prelude
 
+import Data.Maybe (Maybe, fromMaybe)
+
+import Effect.Aff (Aff)
+
 import App.Store (AppContext)
 import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction (..))
 import App.Store.DiagTree.Editor.Handlers.CopySlide (copySlide)
@@ -14,26 +18,14 @@ import App.Store.DiagTree.Editor.Handlers.LoadSlides (loadSlides)
 import App.Store.DiagTree.Editor.Handlers.NewSlide (newSlide)
 import App.Store.DiagTree.Editor.Handlers.SaveSlide (saveSlide)
 import App.Store.DiagTree.Editor.Reducers (DiagTreeEditorState)
-import Control.Monad.Aff (Aff)
-import Control.Monad.Aff.AVar (AVAR)
-import Control.Monad.Eff.Console (CONSOLE)
-import Data.JSDate (LOCALE)
-import Data.Maybe (Maybe, fromMaybe)
-import Network.HTTP.Affjax (AJAX)
 
 
 diagTreeEditorHandler
-  :: forall eff
-   . AppContext
+  :: AppContext
   -> DiagTreeEditorState
   -> Maybe DiagTreeEditorState
   -> DiagTreeEditorAction
-  -> Aff ( ajax    :: AJAX
-         , avar    :: AVAR
-         , locale  :: LOCALE
-         , console :: CONSOLE
-         | eff
-         ) Unit
+  -> Aff Unit
 
 diagTreeEditorHandler appCtx prevState nextState action = case action of
 
@@ -57,19 +49,19 @@ diagTreeEditorHandler appCtx prevState nextState action = case action of
     if isProcessing
        then ignore
        else let state = fromMaybe prevState nextState
-            in copySlide appCtx state
+             in copySlide appCtx state
 
   CutSlideRequest slidePath ->
     if isProcessing
        then ignore
        else let state = fromMaybe prevState nextState
-            in cutSlide appCtx state
+             in cutSlide appCtx state
 
   PasteSlideRequest slidePath ->
     if isProcessing
        then ignore
        else let state = fromMaybe prevState nextState
-            in pasteSlide appCtx prevState slidePath
+             in pasteSlide appCtx prevState slidePath
 
   SaveSlideRequest slidePath { slide, newAnswers } ->
     if isProcessing

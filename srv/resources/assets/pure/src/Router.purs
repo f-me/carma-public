@@ -6,28 +6,25 @@ module Router
 
 import Prelude
 
-import Data.Generic (class Generic, gShow)
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
 import Data.Maybe (fromMaybe)
 
 import Control.Alt ((<|>))
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Ref (REF)
+import Effect (Effect)
 
-import DOM (DOM)
-
-import Routing.Match (Match)
-import Routing.Match.Class (lit, str)
+import Routing.Match (Match, lit, str)
 import Routing.Hash (matches, setHash)
 
 
 data Location
-  = Empty
-  | DiagTreeEditPartial
-  | NotFound
+   = Empty
+   | DiagTreeEditPartial
+   | NotFound
 
 derive instance eqLocation :: Eq Location
-derive instance genericLocation :: Generic Location
-instance showLocation :: Show Location where show = gShow
+derive instance genericLocation :: Generic Location _
+instance showLocation :: Show Location where show = genericShow
 
 -- Backward mapping for navigating by `Location`s.
 locationHash :: Location -> String
@@ -37,26 +34,20 @@ locationHash DiagTreeEditPartial = "partial/diag-tree-edit"
 
 
 routing :: Match Location
-routing
-   =  f DiagTreeEditPartial (partials *> lit "diag-tree-edit")
-  <|> (NotFound <$ str)
-  <|> pure Empty
+routing = go where
+  go  =  f DiagTreeEditPartial (partials *> lit "diag-tree-edit")
+     <|> (NotFound <$ str)
+     <|> pure Empty
 
-  where
+  partials = lit "partial"
 
-    partials = lit "partial"
-
-    -- `lit "foo"` matches both "foo" and "foo/smth"
-    -- but wee need to match only "foo", so, this helps to solve it.
-    f :: Location -> Match Unit -> Match Location
-    f l m = (NotFound <$ (m *> str)) <|> (l <$ m)
+  -- `lit "foo"` matches both "foo" and "foo/smth"
+  -- but wee need to match only "foo", so, this helps to solve it.
+  f :: Location -> Match Unit -> Match Location
+  f l m = (NotFound <$ (m *> str)) <|> (l <$ m)
 
 
-initRouter
-  :: forall eff
-   . (Location -> Eff (dom :: DOM, ref :: REF | eff) Unit)
-  -> Eff (dom :: DOM, ref :: REF | eff) Unit
-
+initRouter :: (Location -> Effect Unit) -> Effect Unit
 initRouter notify = void $ matches routing $ \oldRoute newRoute ->
 
   let isPassed = fromMaybe true $ (_ /= newRoute) <$> oldRoute
@@ -64,13 +55,13 @@ initRouter notify = void $ matches routing $ \oldRoute newRoute ->
 
       navigate =
         if newRoute == Empty
-           then setHash $ defaultRoute
+           then setHash defaultRoute
            else notify newRoute
 
    in when isPassed navigate
 
 
-navigateToRoute :: forall eff. Location -> Eff (dom :: DOM | eff) Unit
+navigateToRoute :: Location -> Effect Unit
 navigateToRoute Empty    = pure unit
 navigateToRoute NotFound = pure unit
 navigateToRoute route    = setHash $ locationHash route

@@ -10,20 +10,22 @@ module App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
      , toBackendAttachment
      ) where
 
-import Prelude hiding (id)
-
-import Control.MonadZero (guard)
+import Prelude
+import Prim.Row (class Cons)
 
 import Data.Int (fromNumber, toNumber)
 import Data.Tuple (Tuple (Tuple))
 import Data.Maybe (Maybe (..), isJust)
-import Data.StrMap as StrMap
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Argonaut.Core as A
-import Data.Record (get)
 import Data.Symbol (SProxy (SProxy), class IsSymbol, reflectSymbol)
 import Data.String.Read (read)
+import Foreign.Object as FObj
+
+import Record (get)
+
+import Control.MonadZero (guard)
 
 import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment.Types
      ( BackendAttachmentMediaType (..)
@@ -33,21 +35,21 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment.Types
 type BackendAttachment = Record BackendAttachmentFields
 
 type BackendAttachmentFields =
-  ( id        :: Int
-  , hash      :: String
-  , filename  :: String
-  , mediaType :: BackendAttachmentMediaType
-  )
+   ( id        :: Int
+   , hash      :: String
+   , filename  :: String
+   , mediaType :: BackendAttachmentMediaType
+   )
 
 class AttachmentKeyToBackendKey k where
   resourceAttachmentKeyToBackendKey
     :: forall a r'
-     . RowCons k a r' BackendAttachmentFields
+     . Cons k a r' BackendAttachmentFields
     => IsSymbol k
     => SProxy k -> String
 
 instance resourceAttachmentKeyToBackendKeyGeneric
-  :: (IsSymbol k) => AttachmentKeyToBackendKey k
+  :: IsSymbol k => AttachmentKeyToBackendKey k
   where
   resourceAttachmentKeyToBackendKey = reflectSymbol
 
@@ -68,16 +70,15 @@ fromBackendAttachment json = do
   obj <- A.toObject json
 
   guard $
-    Set.fromFoldable (StrMap.keys obj)
-      `Set.subset` backendAttachmentValidKeys
+    Set.fromFoldable (FObj.keys obj) `Set.subset` backendAttachmentValidKeys
 
   let l :: forall k a r'
-         . RowCons k a r' BackendAttachmentFields
+         . Cons k a r' BackendAttachmentFields
         => IsSymbol k
         => AttachmentKeyToBackendKey k
         => SProxy k -> Maybe A.Json
 
-      l key = resourceAttachmentKeyToBackendKey key `StrMap.lookup` obj
+      l key = resourceAttachmentKeyToBackendKey key `FObj.lookup` obj
 
   id       <- l (SProxy :: SProxy "id")       >>= A.toNumber >>= fromNumber
   hash     <- l (SProxy :: SProxy "hash")     >>= A.toString
@@ -92,7 +93,7 @@ fromBackendAttachment json = do
 
 
 toBackendAttachment :: BackendAttachment -> A.Json
-toBackendAttachment y = A.fromObject $ StrMap.fromFoldable
+toBackendAttachment y = A.fromObject $ FObj.fromFoldable
   [ fAtt y (SProxy :: SProxy "id")        $ toNumber >>> A.fromNumber
   , fAtt y (SProxy :: SProxy "hash")      A.fromString
   , fAtt y (SProxy :: SProxy "filename")  A.fromString
@@ -102,7 +103,7 @@ toBackendAttachment y = A.fromObject $ StrMap.fromFoldable
   where
     fAtt -- "Att" is for "Attachment"
       :: forall k a r'
-       . RowCons k a r' BackendAttachmentFields
+       . Cons k a r' BackendAttachmentFields
       => IsSymbol k
       => AttachmentKeyToBackendKey k
       => BackendAttachment

@@ -14,34 +14,37 @@ module Utils.DiagTree.Editor
 
 import Prelude
 
-import Control.Monad.Aff (Aff)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Console (CONSOLE, error)
-import Control.Monad.Eff.Exception (message, stack)
-import Control.Monad.Error.Class (catchError)
-
 import Data.Functor (voidRight)
 import Data.Tuple (Tuple (Tuple))
 import Data.Array (index, uncons, length, zip)
 import Data.Map as Map
 import Data.Foldable (foldM, foldl)
 import Data.Nullable (toNullable)
+import Data.Either (Either (..))
 import Data.Maybe (Maybe (..), maybe, fromMaybe)
-import Data.Foreign (Foreign, unsafeFromForeign)
 import Data.MediaType.Common (applicationJSON)
 import Data.Argonaut.Core as A
 
-import DOM.HTML (window) as DOM
-import DOM.HTML.Window (alert) as DOM
-import DOM (DOM)
-import DOM.HTML.Types (ALERT)
-import DOM.File.Types (File)
-import DOM.File.File as File
-import DOM.XHR.FormData as FormData
+import Control.Monad.Error.Class (catchError)
 
-import Network.HTTP.Affjax (AJAX, AffjaxResponse, affjax)
-import Network.HTTP.RequestHeader (RequestHeader (..))
+import Effect (Effect)
+import Effect.Aff (Aff)
+import Effect.Class (liftEffect)
+import Effect.Console (error)
+import Effect.Exception (message, stack)
+
+import Web.File.File as File
+import Web.XHR.FormData as FormData
+import Web.HTML (window)
+import Web.HTML.Window (alert)
+
+import Affjax (request)
+import Affjax.RequestHeader (RequestHeader (..))
+import Affjax.RequestBody (RequestBody (FormData))
+
+import Affjax.ResponseFormat
+     ( ResponseFormatError, printResponseFormatError, json
+     )
 
 import Utils.Affjax (postRequest)
 import Bindings.ReactDropzone as ReactDropzone
@@ -169,41 +172,40 @@ aConsultation = { label: show Consultation, service: "Consultation" }
 
 
 -- Uploading a file attaching it to a slide
-uploadFile
-  :: forall eff
-   . DiagTreeSlideId
-  -> File
-  -> Aff ( ajax    :: AJAX
-         , console :: CONSOLE
-         | eff
-         ) (Maybe BackendAttachment)
+uploadFile :: DiagTreeSlideId -> File.File -> Aff (Maybe BackendAttachment)
+uploadFile slideId file = catchError go handleError where
+  go = do
+    formData <- FormData <$> liftEffect buildFormData
 
-uploadFile slideId file = flip catchError handleError $ do
-  let url      = "/upload/DiagSlide/" <> show slideId <> "/files"
-      fdFile   = FormData.FormDataFile (File.name file) file
-      formData = FormData.toFormData [Tuple "file" fdFile]
+    (res :: Either ResponseFormatError A.Json) <-
+      map _.body $ request $
+        postRequest url formData json #
+          _ { headers = [Accept applicationJSON] }
 
-  (res :: AffjaxResponse Foreign) <- affjax $
-    postRequest url formData # _ { headers = [Accept applicationJSON] }
+    case fromBackendAttachment <$> res of
+         Right attachment -> pure attachment
+         Left  formatErr  -> logParseError formatErr
 
-  let json       = unsafeFromForeign res.response :: A.Json
-      attachment = fromBackendAttachment json
+  url = "/upload/DiagSlide/" <> show slideId <> "/files"
 
-  case attachment of
-       Nothing -> logParseError
-       _       -> pure attachment
+  buildFormData = do
+    fd <- FormData.new
+    fd <$ FormData.appendBlob (FormData.EntryName "file")
+                              (File.toBlob file)
+                              (Just $ FormData.FileName $ File.name file)
+                              fd
 
-  where
-    handleError err = voidRight Nothing $ liftEff $ error $
-      "Uploading file (" <> File.name file <> ") failed: " <> message err
-      # \x -> maybe x (\y -> x <> "\nStack trace:\n" <> y) (stack err)
+  handleError err = voidRight Nothing $ liftEffect $ error $
+    "Uploading file (" <> File.name file <> ") is failed: " <> message err
+    # \x -> maybe x (\y -> x <> "\nStack trace:\n" <> y) (stack err)
 
-    logParseError = voidRight Nothing $ liftEff $ error $
-      "Parsing upload response of file (" <> File.name file <> ") failed!"
+  logParseError formatErr = voidRight Nothing $ liftEffect $ error $
+    "Parsing upload response of file (" <> File.name file <> ") is failed " <>
+    "(error: " <> printResponseFormatError formatErr <> ")!"
 
 
 dropzoneDefaultProps
-  :: BackendAttachmentMediaType -> ReactDropzone.Props () () () () () ()
+  :: BackendAttachmentMediaType -> ReactDropzone.Props () () () () () () ()
 
 dropzoneDefaultProps mediaType = ReactDropzone.dropzoneDefaultProps
   { accept = toNullable $ Just
@@ -217,7 +219,7 @@ dropzoneDefaultProps mediaType = ReactDropzone.dropzoneDefaultProps
              \ video/webm"
 
   , multiple          = false
-  , className         = setClassName id
+  , className         = setClassName identity
   , activeClassName   = setClassName (_ <> "--active")
   , acceptClassName   = setClassName (_ <> "--accept")
   , rejectClassName   = setClassName (_ <> "--reject")
@@ -227,17 +229,14 @@ dropzoneDefaultProps mediaType = ReactDropzone.dropzoneDefaultProps
   where setClassName f = toNullable $ Just $ f "ReactDropzone"
 
 
-rejectedFilesAlert
-  :: forall eff. Array File -> Eff (dom :: DOM, alert :: ALERT | eff) Unit
+rejectedFilesAlert :: Array File.File -> Effect Unit
+rejectedFilesAlert files = window >>= alert message where
+  fileReducer acc file = acc <> "\n  • \"" <> File.name file <> "\""
 
-rejectedFilesAlert files = DOM.window >>= DOM.alert message
-  where
-    fileReducer acc file = acc <> "\n  • \"" <> File.name file <> "\""
-
-    message =
-      "Допустимые расширения загружаемых файлов:"
-        <> "\n  • Для картинок: .jpg, .jpeg, .png, .svg"
-        <> "\n  • Для видеофайлов: .mp4, .ogv, .webm"
-        <> "\n  • Для аудиофайлов: .mp3, .ogg, .wav"
-        <> "\n\nСледующие файлы не могут быть загружены:"
-        <> foldl fileReducer "" files
+  message =
+    "Допустимые расширения загружаемых файлов:"
+      <> "\n  • Для картинок: .jpg, .jpeg, .png, .svg"
+      <> "\n  • Для видеофайлов: .mp4, .ogv, .webm"
+      <> "\n  • Для аудиофайлов: .mp3, .ogg, .wav"
+      <> "\n\nСледующие файлы не могут быть загружены:"
+      <> foldl fileReducer "" files

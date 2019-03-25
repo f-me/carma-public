@@ -1,23 +1,16 @@
-'use strict';
+'use strict'
 
 const
-  path           = require('path'),
-  webpack        = require('webpack'),
-  UglifyJSPlugin = require("uglifyjs-webpack-plugin");
+  path    = require('path'),
+  webpack = require('webpack')
 
 const
   RES_DIR    = path.resolve(__dirname, '..', '..'),
   STATIC_DIR = path.join(RES_DIR, 'static'),
   BUILD_DIR  = path.join(STATIC_DIR, 'build', 'pureFrontend'),
-  SRC_DIR    = path.resolve(__dirname, 'src');
+  SRC_DIR    = path.resolve(__dirname, 'src')
 
-const
-  IS_PROD_BUILD  = process.env.NODE_ENV === "production",
-  IS_DEBUG_BUILD = process.env.NODE_ENV === "debug";
-
-module.exports = {
-  devtool: 'source-map',
-
+module.exports = (env, {mode}) => ({
   entry: {
     pure: [
       path.join(SRC_DIR, 'Main.styl'),
@@ -63,16 +56,8 @@ module.exports = {
             loader: 'purs-loader',
 
             options: {
-              src: [
-                path.join(
-                  'bower_components', 'purescript-*', 'src', '**', '*.purs'
-                ),
-
-                path.join('src', '**', '*.purs'),
-              ],
-
               psc: 'psa',
-              bundle: IS_PROD_BUILD || IS_DEBUG_BUILD,
+              bundle: mode === 'production',
             },
           },
         ],
@@ -84,18 +69,14 @@ module.exports = {
     ],
   },
 
-  plugins: (() => {
-    const x = [
-      new webpack.optimize.CommonsChunkPlugin({
-        names: ['pure', 'vendor'],
-        minChunks: Infinity,
-      }),
-
-      new webpack.EnvironmentPlugin({NODE_ENV: 'development'}),
-      new webpack.LoaderOptionsPlugin({debug: !IS_PROD_BUILD}),
-    ];
-
-    if (IS_PROD_BUILD) x.push(new UglifyJSPlugin());
-    return x;
-  })(),
-};
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          reuseExistingChunk: true,
+        },
+      },
+    },
+  },
+})

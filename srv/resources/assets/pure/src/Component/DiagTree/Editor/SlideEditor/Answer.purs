@@ -4,20 +4,22 @@ module Component.DiagTree.Editor.SlideEditor.Answer
 
 import Prelude hiding (div)
 
-import Data.Monoid (mempty)
 import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust, isNothing)
 import Data.Either (Either (..), isLeft)
-import Data.Nullable (Nullable, toNullable)
+import Data.Nullable (toNullable)
 import Data.Array (head, snoc)
 import Data.String (null)
 
 import Control.Alt ((<|>))
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Aff (launchAff_)
 import Control.MonadZero (guard)
 
-import DOM.HTML (window) as DOM
-import DOM.HTML.Window (confirm) as DOM
+import Effect (Effect)
+import Effect.Uncurried (mkEffectFn2)
+import Effect.Class (liftEffect)
+import Effect.Aff (launchAff_)
+
+import Web.HTML (window) as DOM
+import Web.HTML.Window (confirm) as DOM
 
 import React.DOM
      ( text, div, div', img, span, span', button, i, p, p', h4, input, li
@@ -31,14 +33,12 @@ import React.DOM.Props
      )
 
 import React
-     ( ReactClass, EventHandler
-     , getProps, readState, createClass, createElement, spec'
-     , transformState
-     , handle
+     ( ReactClass, component, getProps, getState, modifyState
+     , createLeafElement, unsafeCreateElement
      )
 
 import App.Store (AppContext)
-import Bindings.ReactDropzone (dropzone, handle2)
+import Bindings.ReactDropzone (dropzone)
 import Component.Generic.Spinner (spinner)
 import Component.Generic.DropDownSelect (dropDownSelect)
 import Component.DiagTree.Editor.SlideEditor.Helpers (ItemModification (..))
@@ -49,7 +49,6 @@ import Utils
      , getSex, sexyShow, capitalize
      , eventInputValue
      , unfoldrBoundedEnum
-     , callEventHandler
      )
 
 import Utils.DiagTree.Editor
@@ -71,44 +70,46 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
 
 
 type Props =
-  { appContext :: AppContext
-  , key        :: Nullable String
-  , slideId    :: DiagTreeSlideId
-  , identity   :: Maybe (Either DiagTreeSlideId Int)
-  , isDisabled :: Boolean
+   { appContext :: AppContext
+   , slideId    :: DiagTreeSlideId
+   , identity   :: Maybe (Either DiagTreeSlideId Int)
+   , isDisabled :: Boolean
 
-  , answer
-      :: Maybe { header     :: String
-               , text       :: String
-               , attachment :: Maybe DiagTreeSlideAttachment
-               }
+   , answer
+       :: Maybe { header     :: String
+                , text       :: String
+                , attachment :: Maybe DiagTreeSlideAttachment
+                }
 
-  , updateAnswer
-      :: EventHandler
-           ( ItemModification (Either DiagTreeSlideId Int)
-               { header     :: String
-               , text       :: String
-               , attachment :: Maybe BackendAttachment
+   , updateAnswer
+       :: ItemModification (Either DiagTreeSlideId Int)
+            { header     :: String
+            , text       :: String
+            , attachment :: Maybe BackendAttachment
 
-               , isAttachmentDeleted :: Boolean
-                 -- ^ Makes sense only for legacy `file` field.
-                 --   Also it's only for previously created answers, saving
-                 --   legacy type of attachment is not allowed for new answers.
-                 --   TODO FIXME Remove this flag after removing
-                 --              deprecated `file` field.
-               } )
+            , isAttachmentDeleted :: Boolean
+              -- ^ Makes sense only for legacy `file` field.
+              --   Also it's only for previously created answers, saving
+              --   legacy type of attachment is not allowed for new answers.
+              --   TODO FIXME Remove this flag after removing
+              --              deprecated `file` field.
+            }
+       -> Effect Unit
 
-  , onCancel :: Maybe (EventHandler Unit)
-    -- ^ Only for adding new one (when `answer` prop is `Nothing`)
+   , onCancel :: Maybe (Effect Unit)
+     -- ^ Only for adding new one (when `answer` prop is `Nothing`)
 
-  , onMoveUp   :: Maybe (EventHandler (Either DiagTreeSlideId Int))
-  , onMoveDown :: Maybe (EventHandler (Either DiagTreeSlideId Int))
-  }
+   , onMoveUp   :: Maybe (Either DiagTreeSlideId Int -> Effect Unit)
+     -- ^ `Maybe` indicates whether an answer could be moved up
+   , onMoveDown :: Maybe (Either DiagTreeSlideId Int -> Effect Unit)
+     -- ^ `Maybe` indicates whether an answer could be moved down
+   }
 
 
 diagTreeEditorSlideEditorAnswerRender :: ReactClass Props
-diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
-  \ { appContext, identity, answer, isDisabled, onMoveUp, onMoveDown }
+diagTreeEditorSlideEditorAnswerRender = defineComponent $
+  \ preBound
+    { appContext, identity, answer, isDisabled, onMoveUp, onMoveDown }
     state@{ mediaType
           , attachment
           , isEditing
@@ -142,7 +143,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
   ( if not isProcessing
        then mempty
        else pure $
-            flip spinnerEl mempty
+            spinnerEl
               { withLabel: Right "Загрузка…"
               , appContext
               }
@@ -179,11 +180,10 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
 
       pure $
         legacyWarnM `snoc`
-        flip img mempty
-          [ className $ classSfx "image"
-          , role "presentation"
-          , src x
-          ]
+        img [ className $ classSfx "image"
+            , role "presentation"
+            , src x
+            ]
 
     audioEls = do
       guard $ mediaType == AudioMediaType
@@ -194,7 +194,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
           [ className $ classSfx "audio"
           , controls true
           ]
-          [ source [src filePath] mempty
+          [ source [src filePath]
           , text "Ваш браузер не поддерживает отображение аудиофайлов"
           ]
 
@@ -207,7 +207,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
           [ className $ classSfx "video"
           , controls true
           ]
-          [ source [src filePath] mempty
+          [ source [src filePath]
           , text "Ваш браузер не поддерживает отображение видеофайлов"
           ]
 
@@ -216,8 +216,10 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
     isBlocked = isDisabled || isProcessing
   in
     if isEditing || isNothing answer
-       then editRender isBlocked appContext hasAttachment state previewEls
-       else viewRender isBlocked onMoveUp onMoveDown state previewEls
+       then editRender isBlocked appContext hasAttachment
+                       preBound state previewEls
+       else viewRender isBlocked onMoveUp onMoveDown
+                       preBound state previewEls
 
   where
     name = "DiagTreeEditorSlideEditorAnswer"
@@ -227,11 +229,11 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
       li [className $ "list-group-item" <.> name] <<< pure <<<
         div [className $ "list-group-item" <.> classSfx "wrap"]
 
-    spinnerEl        = createElement spinner
-    dropDownSelectEl = createElement dropDownSelect
-    dropzoneEl       = createElement dropzone
+    spinnerEl        = createLeafElement spinner
+    dropDownSelectEl = createLeafElement dropDownSelect
+    dropzoneEl       = unsafeCreateElement dropzone
 
-    viewRender isDisabled onMoveUp onMoveDown state previewEls =
+    viewRender isDisabled onMoveUp onMoveDown preBound state previewEls =
       [ h4 [className "list-group-item-heading"] [text state.header]
 
       , p
@@ -250,7 +252,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
                         [ className "btn btn-default"
                         , title "Поднять вверх"
                         , disabled $ isNothing onMoveUp
-                        , onClick state.onMoveUp
+                        , onClick preBound.onMoveUp
                         ]
                         [ i [className "glyphicon glyphicon-arrow-up"] mempty ]
 
@@ -258,9 +260,11 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
                         [ className "btn btn-default"
                         , title "Опустить вниз"
                         , disabled $ isNothing onMoveDown
-                        , onClick state.onMoveDown
+                        , onClick preBound.onMoveDown
                         ]
-                        [ i [className "glyphicon glyphicon-arrow-down"] mempty ]
+                        [ i [className "glyphicon glyphicon-arrow-down"]
+                            mempty
+                        ]
                     ]
           )
 
@@ -270,7 +274,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
             [ className "btn btn-success"
             , title "Редактировать"
             , disabled isDisabled
-            , onClick state.enterEditing
+            , onClick preBound.enterEditing
             ]
             [ i [className "glyphicon glyphicon-pencil"] mempty ]
 
@@ -280,29 +284,29 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
             [ className "btn btn-danger"
             , title "Удалить"
             , disabled isDisabled
-            , onClick state.delete
+            , onClick preBound.delete
             ]
             [ i [className "glyphicon glyphicon-trash"] mempty ]
       ]
 
-    editRender isDisabled appContext hasAttachment state previewEls =
+    editRender isDisabled appContext hasAttachment preBound state previewEls =
       [ div [className "form-group"] $ pure $
-          flip input mempty
+          input
             [ className "form-control"
             , _type "text"
             , placeholder "Ответ"
             , value state.header
-            , onChange state.onChangeHeader
+            , onChange preBound.onChangeHeader
             , disabled isDisabled
             ]
 
       , div [className "form-group"] $ pure $
-          flip input mempty
+          input
             [ className "form-control"
             , _type "text"
             , placeholder "Комментарий"
             , value state.text
-            , onChange state.onChangeText
+            , onChange preBound.onChangeText
             , disabled isDisabled
             ]
 
@@ -310,7 +314,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
           [ className "form-group" ]
           $
           [ div' $ pure $
-              flip dropDownSelectEl mempty
+              dropDownSelectEl
                 { appContext
                 , isDisabled:
                     isDisabled || isJust state.attachment || hasAttachment
@@ -318,7 +322,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
                     (unfoldrBoundedEnum :: Array BackendAttachmentMediaType)
                 , selected: Just state.mediaType
                 , variantView: showNominative >>> capitalize
-                , onSelected: Just state.onMediaTypeSelected
+                , onSelected: Just preBound.onMediaTypeSelected
                 , placeholder: Just "Тип прикрепляемого файла"
                 , notSelectedTitle: Nothing
                 }
@@ -326,11 +330,13 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
           , dropzoneEl (dropzoneDefaultProps state.mediaType)
               { disabled = isDisabled
 
-              , onDropAccepted = toNullable $ Just $ handle2 $
-                  \files _ -> maybe (pure unit) state.onFileDropped $ head files
+              , onDropAccepted = toNullable $ Just $ mkEffectFn2 $
+                  \files _ -> maybe (pure unit)
+                                    preBound.onFileDropped
+                                    (head files)
 
-              , onDropRejected = toNullable $ Just $ handle2 $
-                  \files _ -> state.onFilesRejected files
+              , onDropRejected = toNullable $ Just $ mkEffectFn2 $
+                  \files _ -> preBound.onFilesRejected files
               }
               [ text $
                   "Нажмите для добавления " <> showGenitive state.mediaType <>
@@ -347,7 +353,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
                   , button
                       [ className "btn btn-danger"
                       , disabled isDisabled
-                      , onClick state.deleteAttachment
+                      , onClick preBound.deleteAttachment
                       ]
                       [ i [className "glyphicon glyphicon-trash"] mempty
                       , text $ " Удалить " <> showAccusative state.mediaType
@@ -359,7 +365,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
           [ button
               [ className "btn btn-default"
               , _type "button"
-              , onClick state.cancelEditing
+              , onClick preBound.cancelEditing
               , disabled isDisabled
               ]
               [ text "Отменить" ]
@@ -367,7 +373,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
           , button
               [ className "btn btn-success"
               , _type "button"
-              , onClick state.save
+              , onClick preBound.save
               , disabled $
                   isDisabled || not state.isChanged || null state.header
               ]
@@ -376,19 +382,15 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
       ]
 
     enterEditingHandler this _ =
-      transformState this _ { isEditing = true }
+      modifyState this _ { isEditing = true }
 
     cancelEditingHandler this _ = do
       { answer, onCancel } <- getProps this
 
       if isNothing answer
-
-         then case onCancel of
-                   Nothing -> pure unit
-                   Just f  -> callEventHandler f unit
-
+         then fromMaybe (pure unit) onCancel
          else let values = buildIntervalValues answer
-               in transformState this _
+               in modifyState this _
                     { header              = values.header
                     , text                = values.text
                     , attachment          = values.attachment
@@ -399,17 +401,17 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
                     }
 
     changeTextHandler this HeaderField event = do
-      let x = eventInputValue event
-      transformState this _ { header = x, isChanged = true }
+      x <- eventInputValue event
+      modifyState this _ { header = x, isChanged = true }
 
     changeTextHandler this TextField event = do
-      let x = eventInputValue event
-      transformState this _ { text = x, isChanged = true }
+      x <- eventInputValue event
+      modifyState this _ { text = x, isChanged = true }
 
     deleteAttachmentHandler this _ = do
-      { mediaType } <- readState this
+      { mediaType } <- getState this
 
-      guardConfirmed mediaType $ transformState this _
+      guardConfirmed mediaType $ modifyState this _
         { attachment          = Nothing
         , isAttachmentDeleted = true
         , isChanged           = true
@@ -425,23 +427,23 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
 
     fileDroppedHandler this file = guardNotProcessing $ do
       { slideId } <- getProps this
-      transformState this _ { isProcessing = true, isUploadingFailed = false }
+      modifyState this _ { isProcessing = true, isUploadingFailed = false }
 
       launchAff_ $
         uploadFile slideId file >>=
-          liftEff <<< maybe failProcessing doneProcessing
+          liftEffect <<< maybe failProcessing doneProcessing
 
       where
         guardNotProcessing m = do
-          { isProcessing } <- readState this
+          { isProcessing } <- getState this
           if isProcessing then pure unit else m
 
         failProcessing =
-          transformState this _
+          modifyState this _
             { isProcessing = false, isUploadingFailed = true }
 
         doneProcessing attachment =
-          transformState this \s -> s
+          modifyState this \s -> s
             { isProcessing = false
             , isUploadingFailed = false
             , isAttachmentDeleted = false
@@ -450,7 +452,7 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
             }
 
     saveHandler this _ = do
-      state@{ isChanged } <- readState this
+      state@{ isChanged } <- getState this
       { isDisabled, answer, updateAnswer, identity } <- getProps this
 
       let existing = answer *> (Left <$> identity)
@@ -467,11 +469,9 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
                     guard $ not $ null state.header
 
       case able *> (existing <|> new) of
-           Just (Left ident) ->
-             callEventHandler updateAnswer $ ChangeItem ident value
-           Just (Right _) ->
-             callEventHandler updateAnswer $ NewItem value
-           Nothing -> pure unit
+           Just (Left ident) -> updateAnswer $ ChangeItem ident value
+           Just (Right _)    -> updateAnswer $ NewItem value
+           Nothing           -> pure unit
 
     deleteHandler this _ = do
       { isDisabled, updateAnswer, identity } <- getProps this
@@ -480,72 +480,79 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
         DOM.window >>= DOM.confirm "Вы действительно хотите удалить ответ?"
 
       case guard (not isDisabled) *> guard isConfirmed *> identity of
-           Just ident -> callEventHandler updateAnswer $ DeleteItem ident
+           Just ident -> updateAnswer $ DeleteItem ident
            _ -> pure unit
 
     mediaTypeSelectedHandler this =
-      maybe (pure unit) \x -> transformState this _ { mediaType = x }
+      maybe (pure unit) \x -> modifyState this _ { mediaType = x }
 
     moveHandler this isUp _ = do
       { identity, onMoveUp, onMoveDown } <- getProps this
 
       fromMaybe (pure unit) $
-        identity >>= \x ->
-          (if isUp then onMoveUp else onMoveDown) <#>
-            \f -> callEventHandler f x
+        identity >>= \x -> (if isUp then onMoveUp else onMoveDown) <#> (_ $ x)
 
-    buildIntervalValues answer =
-      { header     : fromMaybe "" $ answer <#> _.header
-      , text       : fromMaybe "" $ answer <#> _.text
-      , mediaType  : fromMaybe ImageMediaType $ attachment <#> _.mediaType
-      , attachment
-      }
-      where
-        attachment =
-          answer <#> _.attachment >>=
-            case _ of
-                 Just (Modern x) -> Just x
-                 _ -> Nothing
-
-    getInitialState this = do
-      { answer } <- getProps this
-      let values = buildIntervalValues answer
-
-      pure { header: values.header
-           , text: values.text
-           , attachment: values.attachment
-           , mediaType: values.mediaType -- For attachment
-           , isEditing: false
-           , isChanged: false
-           , isAttachmentDeleted: false
-           , isProcessing: false
-           , isUploadingFailed: false
-           , enterEditing: enterEditingHandler this
-           , cancelEditing: cancelEditingHandler this
-           , onChangeHeader: changeTextHandler this HeaderField
-           , onChangeText: changeTextHandler this TextField
-           , deleteAttachment: deleteAttachmentHandler this
-           , onFileDropped: fileDroppedHandler this
-           , onFilesRejected: rejectedFilesAlert
-           , onMediaTypeSelected: handle $ mediaTypeSelectedHandler this
-           , onMoveUp: moveHandler this true
-           , onMoveDown: moveHandler this false
-           , save: saveHandler this
-           , delete: deleteHandler this
+    buildIntervalValues answer = go where
+      go = { header     : fromMaybe "" $ answer <#> _.header
+           , text       : fromMaybe "" $ answer <#> _.text
+           , mediaType  : fromMaybe ImageMediaType $ attachment <#> _.mediaType
+           , attachment
            }
 
-    spec renderFn = x where
-      x = spec' getInitialState renderHandler # _
-        { displayName = name
+      attachment =
+        answer <#> _.attachment >>=
+          case _ of
+               Just (Modern x) -> Just x
+               _ -> Nothing
 
-        , componentWillReceiveProps = \this nextProps -> do
+    eqAnswer a b =
+      a.header     == b.header &&
+      a.text       == b.text &&
+      a.attachment == b.attachment
+
+    defineComponent renderFn = component name \this -> do
+      let preBound =
+            { enterEditing: enterEditingHandler this
+            , cancelEditing: cancelEditingHandler this
+            , onChangeHeader: changeTextHandler this HeaderField
+            , onChangeText: changeTextHandler this TextField
+            , deleteAttachment: deleteAttachmentHandler this
+            , onFileDropped: fileDroppedHandler this
+            , onFilesRejected: rejectedFilesAlert
+            , onMediaTypeSelected: mediaTypeSelectedHandler this
+            , onMoveUp: moveHandler this true
+            , onMoveDown: moveHandler this false
+            , save: saveHandler this
+            , delete: deleteHandler this
+            }
+
+      state <-
+        getProps this <#> _.answer <#> buildIntervalValues <#> \values ->
+          { header: values.header
+          , text: values.text
+          , attachment: values.attachment
+          , mediaType: values.mediaType -- For attachment
+          , isEditing: false
+          , isChanged: false
+          , isAttachmentDeleted: false
+          , isProcessing: false
+          , isUploadingFailed: false
+          }
+
+      let r = renderFn preBound
+
+      pure
+        { state
+        , render: map wrapper $ r <$> getProps this <*> getState this
+
+        , unsafeComponentWillReceiveProps: \nextProps -> do
             prevProps <- getProps this
 
             if isJust nextProps.answer == isJust prevProps.answer &&
                Just true == (eqAnswer <$> nextProps.answer <*> prevProps.answer)
                then pure unit
                else let values = buildIntervalValues nextProps.answer
-                     in transformState this _
+                     in modifyState this _
                           { header              = values.header
                           , text                = values.text
                           , attachment          = values.attachment
@@ -555,14 +562,6 @@ diagTreeEditorSlideEditorAnswerRender = createClass $ spec $
                           , isAttachmentDeleted = false
                           }
         }
-
-      renderHandler this =
-        map wrapper $ renderFn <$> getProps this <*> readState this
-
-      eqAnswer a b =
-        a.header     == b.header &&
-        a.text       == b.text &&
-        a.attachment == b.attachment
 
 
 diagTreeEditorSlideEditorAnswer :: ReactClass Props
