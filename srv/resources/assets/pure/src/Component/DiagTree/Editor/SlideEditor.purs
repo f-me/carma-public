@@ -4,21 +4,25 @@ module Component.DiagTree.Editor.SlideEditor
 
 import Prelude hiding (div)
 
-import Data.Monoid (mempty)
 import Data.Tuple (Tuple (Tuple), fst, snd)
 import Data.Foldable (foldM)
-import Data.Record.Builder (merge)
 import Data.Maybe (Maybe (..), isJust, maybe, fromMaybe)
 import Data.Either (Either (..))
 import Data.Map as Map
 import Data.Nullable (toNullable)
 import Data.Array ((!!), index, snoc, updateAt, modifyAt, deleteAt, null)
 
-import Control.Monad.Aff (launchAff_)
-import Control.Monad.Eff.Class (liftEff)
+import Effect.Uncurried (mkEffectFn1)
+
+import Record.Builder (merge)
+
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.MonadZero (guard)
 import Control.Alt ((<|>))
+
+import Effect (Effect)
+import Effect.Class (liftEffect)
+import Effect.Aff (launchAff_)
 
 import React.DOM (text, form, div, div', input, button, p', span)
 
@@ -28,15 +32,11 @@ import React.DOM.Props
      )
 
 import React
-     ( ReactClass, EventHandler
-     , createClass, spec', createElement
-     , getProps, readState, transformState
-     , handle
+     ( ReactClass, component, createLeafElement
+     , getProps, getState, modifyState
      )
 
-import Utils
-     ( (<.>), storeConnect, toMaybeT, eventInputValue, callEventHandler
-     )
+import Utils ((<.>), storeConnect, toMaybeT, eventInputValue)
 
 import Utils.Debouncer
      ( newDebouncer
@@ -98,18 +98,15 @@ diagTreeEditorSlideEditorRender
        , isFailed     :: Boolean
        }
 
-diagTreeEditorSlideEditorRender = createClass $ spec $
-  \ { appContext, isProcessing, isFailed }
-    { newAnswers
-    , isChanged
-    , onChangeHeader
-    , onChangeBody
+diagTreeEditorSlideEditorRender = defineComponent $
+  \ { onChangeHeader, onChangeBody
     , updateResource, onResourceMoveUp, onResourceMoveDown
     , updateAnswer,   onAnswerMoveUp,   onAnswerMoveDown
-    , onSelectAction
-    , onCancel
-    , onSave
-    } (DiagTreeSlide slide) ->
+    , onSelectAction, onCancel,         onSave
+    }
+    { appContext, isProcessing, isFailed }
+    { newAnswers, isChanged }
+    ( DiagTreeSlide slide ) ->
 
   ( if not isFailed
        then mempty
@@ -123,7 +120,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
   <>
 
   [ div [className "form-group"] $ pure $
-      flip input mempty
+      input
         [ className $ "form-control" <.> classSfx "header"
         , _type "text"
         , placeholder "Заголовок"
@@ -132,7 +129,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
         , onChange onChangeHeader
         ]
 
-  , flip rteWrapEl mempty
+  , rteWrapEl
       { appContext
       , slideId: slide.id
       , isProcessing
@@ -140,7 +137,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
       , onChange: onChangeBody
       }
 
-  , flip resourcesEl mempty
+  , resourcesEl
       { appContext
       , slideId: slide.id
       , isDisabled: isProcessing
@@ -163,7 +160,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     ( if hasAction && not hasBoth
          then mempty
          else pure $
-              flip answersEl mempty
+              answersEl
                 { appContext
                 , slideId: slide.id
                 , isDisabled: isProcessing
@@ -181,7 +178,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
       if hasAnswers && not hasBoth
          then mempty
          else pure $
-              flip actionEl mempty
+              actionEl
                 { appContext
                 , isDisabled: isProcessing
                 , action: slide.action
@@ -233,20 +230,21 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
     classSfx s = name <> "--" <> s
     wrapper = form [className name]
 
-    rteWrapEl   = createElement rteWrap
-    resourcesEl = createElement diagTreeEditorSlideEditorResources
-    answersEl   = createElement diagTreeEditorSlideEditorAnswers
-    actionEl    = createElement diagTreeEditorSlideEditorAction
+    rteWrapEl   = createLeafElement rteWrap
+    resourcesEl = createLeafElement diagTreeEditorSlideEditorResources
+    answersEl   = createLeafElement diagTreeEditorSlideEditorAnswers
+    actionEl    = createLeafElement diagTreeEditorSlideEditorAction
 
     changeHeaderHandler this event = go where
-      go = transformState this
-         $ \s -> s { slide = s.slide <#> updater x, isChanged = true }
-
       updater x' (DiagTreeSlide s) = DiagTreeSlide s { header = x' }
-      x = eventInputValue event
+
+      go = do
+        x <- eventInputValue event
+        modifyState this
+          \s -> s { slide = s.slide <#> updater x, isChanged = true }
 
     changeBodyHandler this valueStr = do
-      transformState this $ \s ->
+      modifyState this \s ->
         let
           newState = do
             (DiagTreeSlide slide) <- s.slide
@@ -264,11 +262,13 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
     selectActionHandler this action = go where
       updater (DiagTreeSlide s) = DiagTreeSlide s { action = action }
-      go = transformState this
-         $ \s -> s { slide = s.slide <#> updater, isChanged = true }
+
+      go =
+        modifyState this
+          \s -> s { slide = s.slide <#> updater, isChanged = true }
 
     updateResourceHandler this (NewItem resource) =
-      transformState this $ \s ->
+      modifyState this \s ->
         let
           newSlide = do
             (DiagTreeSlide slide) <- s.slide
@@ -285,7 +285,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
             }
 
     updateResourceHandler this (DeleteItem itemIndex) =
-      transformState this $ \s ->
+      modifyState this \s ->
         let
           newSlide = do
             (DiagTreeSlide slide) <- s.slide
@@ -298,7 +298,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
             }
 
     updateResourceHandler this (ChangeItem itemIndex resource) =
-      transformState this $ \s ->
+      modifyState this \s ->
         let
           newSlide = do
             (DiagTreeSlide slide) <- s.slide
@@ -317,7 +317,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
             }
 
     moveResourceHandler this isUp idx =
-      transformState this $ \s ->
+      modifyState this \s ->
         let
           newSlide = do
             (DiagTreeSlide slide@{ resources }) <- s.slide
@@ -338,7 +338,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
             }
 
     moveAnswerHandler this isUp (Left slideId) = -- For existing answer
-      transformState this $ \s ->
+      modifyState this \s ->
         let
           newSlide = do
             (DiagTreeSlide slide) <- s.slide
@@ -362,7 +362,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
             }
 
     moveAnswerHandler this isUp (Right idx) = -- For one of new answers
-      transformState this $ \s ->
+      modifyState this \s ->
         let
           newAnswers = foldM reducer (Tuple 0 []) s.newAnswers
           swapIdx = if isUp then idx - 1 else idx + 1
@@ -378,7 +378,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
             }
 
     updateAnswerHandler this (NewItem answer) =
-      transformState this $ \s -> s
+      modifyState this \s -> s
         { isChanged = true
 
         , newAnswers = s.newAnswers `snoc`
@@ -390,7 +390,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
     -- Deleting existing answer
     updateAnswerHandler this (DeleteItem (Left slideId)) =
-      transformState this $ \s ->
+      modifyState this \s ->
         let
           f (DiagTreeSlide slide) = do
             let Tuple answers answersIndexes = fromIndexedAnswers slide.answers
@@ -406,7 +406,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
     -- Updating existing answer
     updateAnswerHandler this (ChangeItem (Left slideId) answer) =
-      transformState this $ \s ->
+      modifyState this \s ->
         let
           updater = _
             { header     = answer.header
@@ -438,14 +438,14 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
     -- Deleting new added answer
     updateAnswerHandler this (DeleteItem (Right itemIndex)) =
-      transformState this $ \s ->
+      modifyState this \s ->
         case itemIndex `deleteAt` s.newAnswers of
              Nothing -> s
              Just x  -> s { isChanged = true, newAnswers = x }
 
     -- Updating new added answer
     updateAnswerHandler this (ChangeItem (Right itemIndex) answer) =
-      transformState this $ \s ->
+      modifyState this \s ->
         let
           updater = _
             { header     = answer.header
@@ -463,7 +463,7 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
 
     saveHandler this event = do
       { appContext, slidePath } <- getProps this
-      { slide, newAnswers } <- readState this
+      { slide, newAnswers } <- getState this
 
       case Tuple <$> slidePath <*> slide of
            Nothing -> pure unit
@@ -471,8 +471,8 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
              dispatch appContext $ DiagTree $ Editor $
                SaveSlideRequest x { slide: y, newAnswers }
 
-    resetChanges this slide = do
-      transformState this _
+    resetChanges this slide =
+      modifyState this _
         { slide      = slide
         , newAnswers = []
         , isChanged  = false
@@ -494,47 +494,47 @@ diagTreeEditorSlideEditorRender = createClass $ spec $
           in eqIshDiagTreeSlideAnswers nextAnswers prevAnswers
 
          then toMaybeT $ pure unit
-         else liftEff $ resetChanges this props.slide
+         else liftEffect $ resetChanges this props.slide
 
-    getInitialState this = do
-      { slide } <- getProps this
+    defineComponent renderFn = component name \this -> do
+      let preBound =
+            { onChangeHeader     : changeHeaderHandler   this
+            , onChangeBody       : changeBodyHandler     this
+            , updateResource     : updateResourceHandler this
+            , onResourceMoveUp   : moveResourceHandler   this true
+            , onResourceMoveDown : moveResourceHandler   this false
+            , updateAnswer       : updateAnswerHandler   this
+            , onAnswerMoveUp     : moveAnswerHandler     this true
+            , onAnswerMoveDown   : moveAnswerHandler     this false
+            , onSelectAction     : selectActionHandler   this
+            , onCancel           : cancelHandler         this
+            , onSave             : saveHandler           this
+            }
 
-      pure { slide
+      state <-
+        getProps this <#> \ { slide } ->
+          { slide
+          , newAnswers: []
+            -- ^ It has no `nextSlide` yet, that's why it's separated.
+          , isChanged: false
+          }
 
-           , newAnswers: [] -- It hasn't `nextSlide` yet,
-                            -- that's why it's separated.
+      let r = renderFn preBound
 
-           , isChanged          :          false
-           , onChangeHeader     :          changeHeaderHandler   this
-           , onChangeBody       : handle $ changeBodyHandler     this
-           , updateResource     : handle $ updateResourceHandler this
-           , onResourceMoveUp   : handle $ moveResourceHandler   this true
-           , onResourceMoveDown : handle $ moveResourceHandler   this false
-           , updateAnswer       : handle $ updateAnswerHandler   this
-           , onAnswerMoveUp     : handle $ moveAnswerHandler     this true
-           , onAnswerMoveDown   : handle $ moveAnswerHandler     this false
-           , onSelectAction     : handle $ selectActionHandler   this
-           , onCancel           :          cancelHandler         this
-           , onSave             :          saveHandler           this
-           }
+      pure
+        { state
 
-    spec renderFn = x where
-      renderHandler this = do
-        state <- readState this
+        , render: do
+            s <- getState this
 
-        map wrapper $
-          case state.slide of
-               Nothing -> pure [text "…"]
-               Just x' -> do
-                 props <- getProps this
-                 pure $ renderFn props state x'
+            map wrapper $
+              case s.slide of
+                   Nothing -> pure [text "…"]
+                   Just x' -> getProps this <#> \props -> r props s x'
 
-      x = spec' getInitialState renderHandler # _
-        { displayName = name
-
-        , componentWillReceiveProps = \this nextProps -> do
-            state <- readState this
-            void $ runMaybeT $ fetchSlide this state nextProps
+        , unsafeComponentWillReceiveProps: \nextProps -> do
+            s <- getState this
+            void $ runMaybeT $ fetchSlide this s nextProps
         }
 
 
@@ -564,76 +564,75 @@ rteWrap
                 , slideId      :: DiagTreeSlideId
                 , isProcessing :: Boolean
                 , value        :: String -- ^ Markdown
-                , onChange     :: EventHandler String
+                , onChange     :: String -> Effect Unit
                 }
 
-rteWrap = createClass $ spec $
-  \ { isProcessing } { onRTEChange, rteValue } -> pure $
+rteWrap = defineComponent $
+  \ { onRTEChange } { isProcessing } { rteValue } -> pure $
 
-  flip rteEl mempty (richTextEditorDefaultProps rteValue)
+  rteEl (richTextEditorDefaultProps rteValue)
     { placeholder = toNullable $ Just "Описание"
     , disabled    = toNullable $ Just isProcessing
-    , onChange    = toNullable $ Just $ handle onRTEChange
+    , onChange    = toNullable $ Just onRTEChange
     }
 
   where
     name = "DiagTreeEditorSlideEditorRTEWrap"
     wrapper = div [className $ name <.> "form-group"]
-    rteEl = createElement richTextEditor
+    rteEl = createLeafElement richTextEditor
 
-    onRTEChangeHandler this value = do
-      { changeDebouncer } <- readState this
+    onRTEChangeHandler this changeDebouncer value = do
       let valueStr = valueToString value Markdown
-      transformState this _ { rteValue = value }
+      modifyState this _ { rteValue = value }
       sendToDebouncer changeDebouncer valueStr
 
-    getInitialState this = do
-      { appContext, value } <- getProps this
-      rteValue <- createValueFromString value Markdown
+    defineComponent renderFn = component name \this -> do
       changeDebouncer <- newDebouncer 500
 
-      pure { changeDebouncer
-           , changeSubscription : Nothing
-           , onRTEChange        : onRTEChangeHandler this
-           , rteValue
-           }
+      let preBound =
+            { onRTEChange: mkEffectFn1 $ onRTEChangeHandler this changeDebouncer
+            }
 
-    spec renderFn = x where
-      renderHandler this =
-        map wrapper $ renderFn <$> getProps this <*> readState this
+      state <- do
+        rteValue <-
+          getProps this <#> _.value >>= flip createValueFromString Markdown
 
-      x = spec' getInitialState renderHandler # _
-        { displayName = name
+        pure
+          { changeSubscription: Nothing
+          , rteValue
+          }
 
-        , componentWillMount = \this -> do
+      let r = renderFn preBound
+
+      pure
+        { state
+        , render: map wrapper $ r <$> getProps this <*> getState this
+
+        , unsafeComponentWillMount: do
             { onChange } <- getProps this
-            { changeDebouncer } <- readState this
+            subscription <- changeDebouncer `subscribeToDebouncer` onChange
+            modifyState this _ { changeSubscription = Just subscription }
 
-            subscription <-
-              changeDebouncer `subscribeToDebouncer` callEventHandler onChange
-
-            transformState this _ { changeSubscription = Just subscription }
-
-        , componentWillReceiveProps = \this { value: newValue } -> do
-            { changeDebouncer, rteValue } <- readState this
+        , unsafeComponentWillReceiveProps: \ { value: newValue } -> do
+            { rteValue } <- getState this
             let oldValue = valueToString rteValue Markdown
 
             if oldValue == newValue
                then pure unit
                else do newRTEValue <- createValueFromString newValue Markdown
                        sendToDebouncer changeDebouncer newValue
-                       transformState this _ { rteValue = newRTEValue }
+                       modifyState this _ { rteValue = newRTEValue }
 
-        -- This fixes a bug when you edit RTE value and change other value of a
-        -- field really quick before debounced `onChange` is triggered and then
-        -- your RTE value changes is resetted.
-        , componentDidUpdate = \this { value: prevValue
-                                     , slideId: prevSlideId
-                                     , onChange
-                                     } _ -> do
+        , -- This fixes a bug when you edit RTE value and change other value of
+          -- a field really quick before debounced `onChange` is triggered and
+          -- then your RTE value changes is resetted.
+          componentDidUpdate: \ { value: prevValue
+                                , slideId: prevSlideId
+                                , onChange
+                                } _ _ -> do
 
             { value, slideId } <- getProps this
-            { rteValue } <- readState this
+            { rteValue } <- getState this
             let rteValueStr = valueToString rteValue Markdown
 
             if slideId == prevSlideId && -- If another slide selected we musn't
@@ -644,11 +643,11 @@ rteWrap = createClass $ spec $
                                      -- don't trigger a change.
                value /= rteValueStr -- If RTE value and slide value are the same
                                     -- no need to trigger a change.
-               then callEventHandler onChange $ rteValueStr
+               then onChange rteValueStr
                else pure unit
 
-        , componentWillUnmount = \this -> do
-            { changeDebouncer, changeSubscription } <- readState this
+        , componentWillUnmount: do
+            { changeSubscription } <- getState this
 
             case changeSubscription of
                  Nothing -> pure unit

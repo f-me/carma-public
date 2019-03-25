@@ -5,10 +5,9 @@ module App.Store.DiagTree.Editor.Handlers.Helpers
 
 import Prelude
 
-import Control.Monad.Aff (Aff)
-import Control.Monad.Aff.AVar (AVAR)
-import Control.Monad.Eff.Console (CONSOLE, error)
-import Control.Monad.Eff.Class (liftEff)
+import Effect.Aff (Aff)
+import Effect.Console (error)
+import Effect.Class (liftEffect)
 
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
@@ -16,11 +15,9 @@ import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
 import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction)
 
 
-errLog :: forall eff. String -> Aff (console :: CONSOLE | eff) Unit
-errLog = liftEff <<< error <<< ("Diag Tree Editor: " <> _)
+errLog :: String -> Aff Unit
+errLog = liftEffect <<< error <<< ("Diag Tree Editor: " <> _)
 
 
-sendAction :: forall eff.
-  AppContext -> DiagTreeEditorAction -> Aff (avar :: AVAR | eff) Unit
-
+sendAction :: AppContext -> DiagTreeEditorAction -> Aff Unit
 sendAction appCtx = dispatch appCtx <<< DiagTree <<< Editor

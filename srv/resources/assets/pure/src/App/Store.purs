@@ -1,5 +1,5 @@
 -- This implementation mostly inspired by redux.js library, so you could find
--- parallels to understand it faster if you already met the redux.
+-- parallels to understand it faster if you already met the redux.js library.
 --
 -- Some usage steps:
 --
@@ -16,7 +16,8 @@
 --      (e.g. inside `componentWillUnmount`).
 --      To `subscribe` you need a `StoreListener`,
 --      to make one use `toStoreListener`
---      (it wraps some `Eff` monad that takes an update context as an argument).
+--      (it wraps some `Effect` monad that takes an update context as an
+--      argument).
 --      Subscriber will be notified only if state is changed by a reducer
 --      (use `subscribe'` to get notifications every time action is raised,
 --      notwithstanding if state changes or not);
@@ -72,18 +73,13 @@ import Data.Maybe (Maybe (..), fromMaybe)
 import Data.Foldable (foldM)
 
 import Control.Monad.Rec.Class (forever)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Now (NOW)
-import Control.Monad.Eff.Random (RANDOM)
-import Control.Monad.Eff.Exception.Unsafe (unsafeThrow)
-import Control.Monad.Aff (Aff)
-import Control.Monad.Aff.AVar (AVAR, AVar, makeEmptyVar, takeVar, putVar)
 
-import Control.Monad.Eff.Ref
-     ( Ref, REF
-     , newRef, readRef, writeRef, modifyRef, modifyRef'
-     )
+import Effect (Effect)
+import Effect.Class (liftEffect)
+import Effect.Exception.Unsafe (unsafeThrow)
+import Effect.Aff (Aff)
+import Effect.Aff.AVar as AVar
+import Effect.Ref as Ref
 
 import App.Store.Actions (AppAction)
 import App.Store.Reducers (AppState)
@@ -94,12 +90,12 @@ import Utils.SubscriberId (SubscriberId, newSubscriberId)
 -- A `Ref` indicate is subscription alive or not (unsubscribed),
 -- this fixes triggering after unsubscribing.
 newtype StoreSubscription =
-  StoreSubscription (Tuple SubscriberId (Ref Boolean))
+  StoreSubscription (Tuple SubscriberId (Ref.Ref Boolean))
 instance eqStoreSubscription :: Eq StoreSubscription where
   eq (StoreSubscription (Tuple a _)) (StoreSubscription (Tuple b _)) = eq a b
 
 
--- An abstraction for a foreign subscriber which is an `Eff` monad
+-- An abstraction for a foreign subscriber which is an `Effect` monad
 foreign import data StoreListener :: Type
 
 -- This is an abstraction for `StoreListener` with `Boolean` mark
@@ -107,15 +103,13 @@ foreign import data StoreListener :: Type
 -- will it be notified even if state wasn't changed.
 -- A `Ref` indicate is subscription alive or not (unsubscribed),
 -- this fixes triggering after unsubscribing.
-type Subscriber = Tuple Boolean (Tuple StoreListener (Ref Boolean))
+type Subscriber = Tuple Boolean (Tuple StoreListener (Ref.Ref Boolean))
 
--- Converts foreign `Eff` monad to an abstract `StoreListener`
-toStoreListener
-  :: forall eff . (StoreUpdateContext -> Eff eff Unit) -> StoreListener
+-- Converts foreign `Effect` monad to an abstract `StoreListener`
+toStoreListener :: (StoreUpdateContext -> Effect Unit) -> StoreListener
 toStoreListener = unsafeCoerce
 
-callStoreListener
-  :: forall eff . StoreListener -> StoreUpdateContext -> Eff eff Unit
+callStoreListener :: StoreListener -> StoreUpdateContext -> Effect Unit
 callStoreListener = unsafeCoerce
 
 
@@ -131,30 +125,21 @@ type SubscribersMap = Map SubscriberId Subscriber
 
 newtype AppContext
   = AppContext
-  { store       :: Ref AppState
-  , subscribers :: Ref SubscribersMap
-  , actionsBus  :: AVar AppAction
+  { store       :: Ref.Ref AppState
+  , subscribers :: Ref.Ref SubscribersMap
+  , actionsBus  :: AVar.AVar AppAction
 
   -- Only one reducer loop is allowed!
-  , isReduceLoopStarted :: Ref Boolean
+  , isReduceLoopStarted :: Ref.Ref Boolean
   }
 
 
-createAppContext
-  :: forall eff
-   . AppState
-  -> Aff ( ref    :: REF
-         , avar   :: AVAR
-         , now    :: NOW
-         , random :: RANDOM
-         | eff
-         ) AppContext
-
-createAppContext initialState = do
-  (store               :: Ref AppState)       <- liftEff $ newRef initialState
-  (subscribers         :: Ref SubscribersMap) <- liftEff $ newRef empty
-  (isReduceLoopStarted :: Ref Boolean)        <- liftEff $ newRef false
-  (actionsBus          :: AVar AppAction)     <- makeEmptyVar
+createAppContext :: AppState -> Aff AppContext
+createAppContext initState = do
+  (store :: Ref.Ref AppState) <- liftEffect $ Ref.new initState
+  (subscribers :: Ref.Ref SubscribersMap) <- liftEffect $ Ref.new empty
+  (isReduceLoopStarted :: Ref.Ref Boolean) <- liftEffect $ Ref.new false
+  (actionsBus :: AVar.AVar AppAction) <- AVar.empty
 
   pure $ AppContext
        { store
@@ -165,8 +150,7 @@ createAppContext initialState = do
 
 
 reduceLoop
-  :: forall eff
-   . AppContext
+  :: AppContext
   -> (
        AppState
        -> AppAction
@@ -174,127 +158,93 @@ reduceLoop
        -- ^ `Maybe` here to be able to avoid notifying subscribers
        --   (when state isn't changed for example).
      )
-  -> Aff (ref :: REF, avar :: AVAR | eff) Unit
+  -> Aff Unit
 
-reduceLoop appCtx@(AppContext ctx) appReducer = reactToAction \action -> do
+reduceLoop appCtx@(AppContext ctx) appReducer = go where
+  go = reactToAction actionHandler
 
-  subscriberData <-
-    modifyRef' ctx.store $ \state ->
-      let
-        reduced = appReducer state action
-      in
-        { state: fromMaybe state reduced
-        , value: { prevState: state, nextState: reduced, action }
-        }
+  actionHandler action = do
+    subscriberData <-
+      let f state = go' where
+            reduced = appReducer state action
+            go' = { state: fromMaybe state reduced
+                  , value: { prevState: state, nextState: reduced, action }
+                  }
 
-  subscribersMap <- readRef ctx.subscribers
+       in f `Ref.modify'` ctx.store
 
-  notify subscriberData $
-    case subscriberData.nextState of
-         -- State wasn't changed, notifying only strict subscribers
-         Nothing -> filter fst subscribersMap
-         -- State was changed, notifying all subscribers
-         Just _  -> subscribersMap
+    subscribersMap <- Ref.read ctx.subscribers
 
-  where
-    notify updateCtx = foldM (\_ (Tuple _ x) -> f x) unit
-      where
-        f (Tuple x aliveRef) = do
-          isAlive <- readRef aliveRef
-          if isAlive then callStoreListener x updateCtx else pure unit
+    notify subscriberData $
+      case subscriberData.nextState of
+           -- State wasn't changed, notifying only strict subscribers
+           Nothing -> filter fst subscribersMap
+           -- State was changed, notifying all subscribers
+           Just _  -> subscribersMap
 
-    guardOnlyOneInstance = do
-      isReduceLoopStarted <- readRef ctx.isReduceLoopStarted
+  notify updateCtx = foldM (\_ (Tuple _ x) -> f x) unit
+    where
+      f (Tuple x aliveRef) = do
+        isAlive <- Ref.read aliveRef
+        if isAlive then callStoreListener x updateCtx else pure unit
 
-      if isReduceLoopStarted -- `when` here would fail because of strictness
-         then unsafeThrow "Only one reduce loop is allowed"
-         else pure unit
+  guardOnlyOneInstance = do
+    isReduceLoopStarted <- Ref.read ctx.isReduceLoopStarted
 
-      writeRef ctx.isReduceLoopStarted true
+    if isReduceLoopStarted -- `when` here would fail because of strictness
+       then unsafeThrow "Only one reduce loop is allowed"
+       else pure unit
 
-    reactToAction m = do
-      liftEff guardOnlyOneInstance
-      forever $ takeVar ctx.actionsBus >>= liftEff <<< m
+    true `Ref.write` ctx.isReduceLoopStarted
 
-
-getAppState
-  :: forall eff
-   . AppContext
-  -> Eff (ref :: REF | eff) AppState
-
-getAppState (AppContext { store }) = readRef store
+  reactToAction m = do
+    liftEffect guardOnlyOneInstance
+    forever $ AVar.take ctx.actionsBus >>= liftEffect <<< m
 
 
-dispatch
-  :: forall eff
-   . AppContext
-  -> AppAction
-  -> Aff (avar :: AVAR | eff) Unit
+getAppState :: AppContext -> Effect AppState
+getAppState (AppContext { store }) = Ref.read store
 
-dispatch (AppContext { actionsBus }) action = putVar action actionsBus
+
+dispatch :: AppContext -> AppAction -> Aff Unit
+dispatch (AppContext { actionsBus }) action = AVar.put action actionsBus
 
 
 -- See `subscribeInternal` for details.
-subscribe
-  :: forall eff
-   . AppContext
-  -> StoreListener
-  -> Eff ( ref    :: REF
-         , now    :: NOW
-         , random :: RANDOM
-         | eff
-         ) StoreSubscription
-
+subscribe :: AppContext -> StoreListener -> Effect StoreSubscription
 subscribe = subscribeInternal false
 
 -- Strict version of `subscribe`, it means that subscriber will be notified
 -- notwithstanding if state change or not (useful for side-effects handlers).
-subscribe'
-  :: forall eff
-   . AppContext
-  -> StoreListener
-  -> Eff ( ref    :: REF
-         , now    :: NOW
-         , random :: RANDOM
-         | eff
-         ) StoreSubscription
-
+subscribe' :: AppContext -> StoreListener -> Effect StoreSubscription
 subscribe' = subscribeInternal true
 
 
 -- Attempt to `unsubscribe` multiple times for same subscriber
 -- will case NO errors, we take it as okay.
-unsubscribe
-  :: forall eff
-   . AppContext
-  -> StoreSubscription
-  -> Eff (ref :: REF | eff) Unit
-
+unsubscribe :: AppContext -> StoreSubscription -> Effect Unit
 unsubscribe (AppContext { subscribers })
             (StoreSubscription (Tuple subscriberId aliveRef)) = do
 
-  writeRef aliveRef false
-  modifyRef subscribers $ delete subscriberId
+  false `Ref.write` aliveRef
+  delete subscriberId `Ref.modify_` subscribers
 
 
 subscribeInternal
-  :: forall eff
-   . Boolean
+  :: Boolean
   -> AppContext
   -> StoreListener
-  -> Eff ( ref    :: REF
-         , now    :: NOW
-         , random :: RANDOM
-         | eff
-         ) StoreSubscription
+  -> Effect StoreSubscription
 
 subscribeInternal isStrict (AppContext { subscribers }) storeListener = do
   subscriberId <- newSubscriberId
-  aliveRef     <- newRef true
+  aliveRef     <- Ref.new true
 
-  modifyRef' subscribers \subscribersMap ->
-    { value: StoreSubscription $ Tuple subscriberId aliveRef
-    , state: insert subscriberId
-               (Tuple isStrict (Tuple storeListener aliveRef))
-               subscribersMap
-    }
+  let f subscribersMap =
+        { value: StoreSubscription $ Tuple subscriberId aliveRef
+        , state: insert subscriberId
+                   (Tuple isStrict (Tuple storeListener aliveRef))
+                   subscribersMap
+        }
+
+  f `Ref.modify'` subscribers

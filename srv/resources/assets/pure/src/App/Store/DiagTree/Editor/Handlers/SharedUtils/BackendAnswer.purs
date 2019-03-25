@@ -6,20 +6,21 @@ module App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAnswer
      ) where
 
 import Prelude
-
-import Control.MonadZero (guard)
+import Prim.Row (class Cons)
 
 import Data.Int (fromNumber, toNumber)
 import Data.String (null)
 import Data.Tuple (Tuple (Tuple))
 import Data.Maybe (Maybe (..))
-import Data.StrMap as StrMap
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Argonaut.Core as A
-import Data.Record (get)
 import Data.Symbol (SProxy (SProxy), class IsSymbol, reflectSymbol)
 import Data.Array (cons)
+import Foreign.Object as FObj
+import Record (get)
+
+import Control.MonadZero (guard)
 
 import App.Store.DiagTree.Editor.Types (DiagTreeSlideId)
 
@@ -33,18 +34,18 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
 type BackendAnswer = Record BackendAnswerFields
 
 type BackendAnswerFields =
-  ( nextSlide  :: DiagTreeSlideId
-  , header     :: String
-  , text       :: String
-  , attachment :: Maybe BackendAttachment
-  , file       :: Maybe String -- could be not set or `null`
-  )
+   ( nextSlide  :: DiagTreeSlideId
+   , header     :: String
+   , text       :: String
+   , attachment :: Maybe BackendAttachment
+   , file       :: Maybe String -- could be not set or `null`
+   )
 
 
 class AnswerKeyToBackendKey k where
   answerKeyToBackendKey
     :: forall a r'
-     . RowCons k a r' BackendAnswerFields
+     . Cons k a r' BackendAnswerFields
     => IsSymbol k
     => SProxy k -> String
 
@@ -77,7 +78,7 @@ backendAnswerValidKeys = Set.fromFoldable
 
 
 toBackendAnswer :: BackendAnswer -> A.Json
-toBackendAnswer x = A.fromObject $ StrMap.fromFoldable $
+toBackendAnswer x = A.fromObject $ FObj.fromFoldable $
   [ f    x (SProxy :: SProxy "nextSlide")  $ toNumber >>> A.fromNumber
   , f    x (SProxy :: SProxy "header")     A.fromString
   , f    x (SProxy :: SProxy "text")       A.fromString
@@ -87,7 +88,7 @@ toBackendAnswer x = A.fromObject $ StrMap.fromFoldable $
 
   where
     f :: forall k a r'
-       . RowCons k a r' BackendAnswerFields
+       . Cons k a r' BackendAnswerFields
       => IsSymbol k
       => AnswerKeyToBackendKey k
       => BackendAnswer -> SProxy k -> (a -> A.Json) -> Tuple String A.Json
@@ -97,7 +98,7 @@ toBackendAnswer x = A.fromObject $ StrMap.fromFoldable $
 
     fOpt -- For fields that could be not set
       :: forall k a r'
-       . RowCons k (Maybe a) r' BackendAnswerFields
+       . Cons k (Maybe a) r' BackendAnswerFields
       => IsSymbol k
       => AnswerKeyToBackendKey k
       => BackendAnswer
@@ -107,22 +108,22 @@ toBackendAnswer x = A.fromObject $ StrMap.fromFoldable $
 
     fOpt record key converter =
       case key `get` record of
-           Nothing -> id
+           Nothing -> identity
            Just y  -> cons $ f x key $ const $ converter y
 
 
 fromBackendAnswer :: A.Json -> Maybe BackendAnswer
 fromBackendAnswer json = do
   obj <- A.toObject json
-  guard $ Set.fromFoldable (StrMap.keys obj) `Set.subset` backendAnswerValidKeys
+  guard $ Set.fromFoldable (FObj.keys obj) `Set.subset` backendAnswerValidKeys
 
   let l :: forall k a r'
-         . RowCons k a r' BackendAnswerFields
+         . Cons k a r' BackendAnswerFields
         => IsSymbol k
         => AnswerKeyToBackendKey k
         => SProxy k -> Maybe A.Json
 
-      l key = answerKeyToBackendKey key `StrMap.lookup` obj
+      l key = answerKeyToBackendKey key `FObj.lookup` obj
 
   nextSlide <- l (SProxy :: SProxy "nextSlide") >>= A.toNumber >>= fromNumber
   header    <- l (SProxy :: SProxy "header")    >>= A.toString
@@ -148,8 +149,8 @@ fromBackendAnswer json = do
 
   -- TODO FIXME Remove after cleanup migration.
   --            Deprecated field that must be `{}` or just not set.
-  case StrMap.lookup answerActionFieldName obj of
+  case FObj.lookup answerActionFieldName obj of
        Nothing -> pure unit -- Not set, the best way
-       Just x  -> A.toObject x >>= (\y -> unit <$ guard (StrMap.isEmpty y))
+       Just x  -> A.toObject x >>= \y -> unit <$ guard (FObj.isEmpty y)
 
   pure { nextSlide, header, text, attachment, file }

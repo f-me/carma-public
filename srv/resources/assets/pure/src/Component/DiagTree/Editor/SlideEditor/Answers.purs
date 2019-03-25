@@ -4,23 +4,22 @@ module Component.DiagTree.Editor.SlideEditor.Answers
 
 import Prelude hiding (div)
 
-import Data.Monoid (mempty)
 import Data.Tuple (Tuple (Tuple), snd)
 import Data.Foldable (class Foldable, foldl, length)
 import Data.Maybe (Maybe (..))
 import Data.Either (Either (..))
-import Data.Nullable (toNullable)
 import Data.Array (snoc)
+
+import Effect (Effect)
 
 import React.DOM (text, div, button, label, i)
 import React.DOM.Dynamic (ul)
 import React.DOM.Props (className, _type, disabled, onClick)
+import React.SyntheticEvent (preventDefault)
 
 import React
-     ( ReactClass, EventHandler
-     , createClass, spec', createElement
-     , getProps, readState, transformState
-     , handle
+     ( ReactClass, component, createLeafElement
+     , getProps, getState, modifyState
      )
 
 import Utils ((<.>))
@@ -45,39 +44,40 @@ import Component.DiagTree.Editor.SlideEditor.Answer
 
 
 type Props answers newAnswers =
-  { appContext :: AppContext
-  , slideId    :: DiagTreeSlideId
-  , isDisabled :: Boolean
-  , answers    :: answers DiagTreeSlideAnswer
+   { appContext :: AppContext
+   , slideId    :: DiagTreeSlideId
+   , isDisabled :: Boolean
+   , answers    :: answers DiagTreeSlideAnswer
 
-  , newAnswers :: newAnswers { header     :: String
-                             , text       :: String
-                             , attachment :: Maybe DiagTreeSlideAttachment
-                             }
+   , newAnswers :: newAnswers { header     :: String
+                              , text       :: String
+                              , attachment :: Maybe DiagTreeSlideAttachment
+                              }
 
-  , updateAnswer -- See answer item props type component for details
-      :: EventHandler
-           ( ItemModification (Either DiagTreeSlideId Int)
-               { header              :: String
-               , text                :: String
-               , attachment          :: Maybe BackendAttachment
-               , isAttachmentDeleted :: Boolean
-               } )
+   , updateAnswer -- See answer item props type component for details
+       :: ItemModification (Either DiagTreeSlideId Int)
+            { header              :: String
+            , text                :: String
+            , attachment          :: Maybe BackendAttachment
+            , isAttachmentDeleted :: Boolean
+            }
+       -> Effect Unit
 
-  , onMoveUp   :: EventHandler (Either DiagTreeSlideId Int)
-  , onMoveDown :: EventHandler (Either DiagTreeSlideId Int)
-  }
+   , onMoveUp   :: Either DiagTreeSlideId Int -> Effect Unit
+   , onMoveDown :: Either DiagTreeSlideId Int -> Effect Unit
+   }
 
 
 diagTreeEditorSlideEditorAnswersRender
   :: forall f1 f2 . Foldable f1 => Foldable f2 => ReactClass (Props f1 f2)
 
-diagTreeEditorSlideEditorAnswersRender = createClass $ spec $
-  \ { appContext, slideId, isDisabled
+diagTreeEditorSlideEditorAnswersRender = defineComponent $
+  \ { turnAddingOn, turnAddingOff }
+    { appContext, slideId, isDisabled
     , answers, newAnswers, updateAnswer
     , onMoveUp, onMoveDown
     }
-    { isAdding, turnAddingOn, turnAddingOff } ->
+    { isAdding } ->
 
   [ label [className "control-label"] [text "Ответы"]
 
@@ -92,7 +92,7 @@ diagTreeEditorSlideEditorAnswersRender = createClass $ spec $
           if itemIndex >= lastIndex then Nothing else Just onMoveDown
 
         reducer lastIndex (Tuple itemIndex list) answer = go where
-          go = Tuple (itemIndex + 1) $ list `snoc` itemEl p mempty
+          go = Tuple (itemIndex + 1) $ list `snoc` itemEl p
           answerSlideId = answer.nextSlide # \(DiagTreeSlide x) -> x.id
           moveUp = getMoveUp itemIndex
           moveDown = getMoveDown itemIndex lastIndex
@@ -104,7 +104,7 @@ diagTreeEditorSlideEditorAnswersRender = createClass $ spec $
             }
 
         newReducer lastIndex (Tuple itemIndex list) answer = go where
-          go = Tuple (itemIndex + 1) $ list `snoc` itemEl p mempty
+          go = Tuple (itemIndex + 1) $ list `snoc` itemEl p
           moveUp = getMoveUp itemIndex
           moveDown = getMoveDown itemIndex lastIndex
 
@@ -117,7 +117,7 @@ diagTreeEditorSlideEditorAnswersRender = createClass $ spec $
         props identity moveUp moveDown item =
           { appContext
           , slideId
-          , key: toNullable $ Just $ show identity
+          , key: show identity
           , identity: Just identity
           , isDisabled
           , answer: Just item
@@ -131,10 +131,10 @@ diagTreeEditorSlideEditorAnswersRender = createClass $ spec $
         reduceEls (newReducer $ length newAnswers - 1) newAnswers
 
   , if isAdding
-       then flip itemEl mempty
+       then itemEl
               { appContext
               , slideId
-              , key: toNullable Nothing
+              , key: mempty
               , identity: Nothing
               , isDisabled
               , answer: Nothing
@@ -159,7 +159,7 @@ diagTreeEditorSlideEditorAnswersRender = createClass $ spec $
     name = "DiagTreeEditorSlideEditorAnswers"
     classSfx s = name <> "--" <> s
     wrapper = div [className $ "form-group" <.> name]
-    itemEl = createElement diagTreeEditorSlideEditorAnswer
+    itemEl = createLeafElement diagTreeEditorSlideEditorAnswer
 
     reduceEls
       :: forall f a b . Foldable f
@@ -167,19 +167,22 @@ diagTreeEditorSlideEditorAnswersRender = createClass $ spec $
     reduceEls r = foldl r acc >>> snd where acc = Tuple 0 mempty
 
     turnAddingHandler this isOn =
-      transformState this _ { isAdding = isOn }
+      modifyState this _ { isAdding = isOn }
 
-    getInitialState this = pure
-      { isAdding: false
-      , turnAddingOn: const $ turnAddingHandler this true
-      , turnAddingOff: let f = turnAddingHandler this false in handle \unit -> f
-      }
+    defineComponent renderFn = component name \this -> do
+      let preBound =
+            { turnAddingOn:
+                \event -> preventDefault event *> turnAddingHandler this true
 
-    spec renderFn = go where
-      go = spec' getInitialState renderHandler # _ { displayName = name }
+            , turnAddingOff: turnAddingHandler this false
+            }
 
-      renderHandler this =
-        map wrapper $ renderFn <$> getProps this <*> readState this
+      let r = renderFn preBound
+
+      pure
+        { state: { isAdding: false }
+        , render: map wrapper $ r <$> getProps this <*> getState this
+        }
 
 
 diagTreeEditorSlideEditorAnswers

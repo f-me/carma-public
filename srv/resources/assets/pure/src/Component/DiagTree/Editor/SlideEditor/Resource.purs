@@ -2,21 +2,23 @@ module Component.DiagTree.Editor.SlideEditor.Resource
      ( diagTreeEditorSlideEditorResource
      ) where
 
-import Prelude hiding (div, id)
+import Prelude hiding (div)
 
-import Data.Monoid (mempty)
 import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust, isNothing)
 import Data.Either (Either (..))
-import Data.Nullable (Nullable, toNullable)
+import Data.Nullable (toNullable)
 import Data.Array (head, snoc)
 
 import Control.Alt ((<|>))
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Aff (launchAff_)
 import Control.MonadZero (guard)
 
-import DOM.HTML (window) as DOM
-import DOM.HTML.Window (confirm) as DOM
+import Effect (Effect)
+import Effect.Uncurried (mkEffectFn2)
+import Effect.Class (liftEffect)
+import Effect.Aff (launchAff_)
+
+import Web.HTML (window) as DOM
+import Web.HTML.Window (confirm) as DOM
 
 import React.DOM
      ( text, div, div', img, span, span', button, i, input, p', li
@@ -30,14 +32,12 @@ import React.DOM.Props
      )
 
 import React
-     ( ReactClass, EventHandler
-     , createClass, createElement, spec'
-     , getProps, readState, transformState
-     , handle
+     ( ReactClass, component, createLeafElement, unsafeCreateElement
+     , getProps, getState, modifyState
      )
 
 import App.Store (AppContext)
-import Bindings.ReactDropzone (dropzone, handle2)
+import Bindings.ReactDropzone (dropzone)
 import Component.Generic.Spinner (spinner)
 import Component.Generic.DropDownSelect (dropDownSelect)
 import Component.DiagTree.Editor.SlideEditor.Helpers (ItemModification (..))
@@ -48,7 +48,6 @@ import Utils
      , getSex, sexyShow, capitalize
      , unfoldrBoundedEnum
      , eventInputValue
-     , callEventHandler
      )
 
 import Utils.DiagTree.Editor
@@ -72,33 +71,35 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
 
 
 type Props =
-  { appContext :: AppContext
-  , key        :: Nullable String
-  , slideId    :: DiagTreeSlideId
-  , itemIndex  :: Maybe Int
-  , isDisabled :: Boolean
+   { appContext :: AppContext
+   , slideId    :: DiagTreeSlideId
+   , itemIndex  :: Maybe Int
+   , isDisabled :: Boolean
 
-  , resource   :: Maybe DiagTreeSlideResource
-    -- ^ When resource is `Nothing` is means adding new one
+   , resource   :: Maybe DiagTreeSlideResource
+     -- ^ When resource is `Nothing` is means adding new one
 
-  , updateResource
-      :: EventHandler
-           ( ItemModification Int
-               { text :: String
-               , file :: Maybe BackendAttachment
-               } )
+   , updateResource
+       :: ItemModification Int
+            { text :: String
+            , file :: Maybe BackendAttachment
+            }
+       -> Effect Unit
 
-  , onCancel :: Maybe (EventHandler Unit)
-    -- ^ Only for adding new one (when `resource` prop is `Nothing`)
+   , onCancel :: Maybe (Effect Unit)
+     -- ^ Only for adding new one (when `resource` prop is `Nothing`)
 
-  , onMoveUp   :: Maybe (EventHandler Int)
-  , onMoveDown :: Maybe (EventHandler Int)
-  }
+   , onMoveUp   :: Maybe (Int -> Effect Unit)
+     -- ^ `Maybe` indicates whether a resource could be moved up
+   , onMoveDown :: Maybe (Int -> Effect Unit)
+     -- ^ `Maybe` indicates whether a resource could be moved down
+   }
 
 
 diagTreeEditorSlideEditorResourceRender :: ReactClass Props
-diagTreeEditorSlideEditorResourceRender = createClass $ spec $
-  \ { appContext, resource, isDisabled, onMoveUp, onMoveDown }
+diagTreeEditorSlideEditorResourceRender = defineComponent $
+  \ preBound
+    { appContext, resource, isDisabled, onMoveUp, onMoveDown }
     state@{ file, mediaType, isEditing, isProcessing, isUploadingFailed } ->
 
   case resource of
@@ -127,7 +128,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
   ( if not isProcessing
        then mempty
        else pure $
-            flip spinnerEl mempty
+            spinnerEl
               { withLabel: Right "Загрузка…"
               , appContext
               }
@@ -165,11 +166,10 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
 
       pure $
         legacyWarnM `snoc`
-        flip img mempty
-          [ className $ classSfx "image"
-          , role "presentation"
-          , src x
-          ]
+        img [ className $ classSfx "image"
+            , role "presentation"
+            , src x
+            ]
 
     audioEls = do
       guard $ mediaType == AudioMediaType
@@ -180,7 +180,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
           [ className $ classSfx "audio"
           , controls true
           ]
-          [ source [src filePath] mempty
+          [ source [src filePath]
           , text "Ваш браузер не поддерживает отображение аудиофайлов"
           ]
 
@@ -193,7 +193,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
           [ className $ classSfx "video"
           , controls true
           ]
-          [ source [src filePath] mempty
+          [ source [src filePath]
           , text "Ваш браузер не поддерживает отображение видеофайлов"
           ]
 
@@ -201,8 +201,8 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
     isBlocked = isDisabled || isProcessing
   in
     if isEditing || isNothing resource
-       then editRender isBlocked appContext resource state previewEls
-       else viewRender isBlocked onMoveUp onMoveDown state previewEls
+       then editRender isBlocked appContext resource preBound state previewEls
+       else viewRender isBlocked onMoveUp onMoveDown preBound state previewEls
 
   where
     name = "DiagTreeEditorSlideEditorResource"
@@ -212,11 +212,13 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
       li [className $ "list-group-item" <.> name] <<< pure <<<
         div [className $ "list-group-item" <.> classSfx "wrap"]
 
-    spinnerEl        = createElement spinner
-    dropDownSelectEl = createElement dropDownSelect
-    dropzoneEl       = createElement dropzone
+    spinnerEl        = createLeafElement spinner
+    dropDownSelectEl = createLeafElement dropDownSelect
+    dropzoneEl       = unsafeCreateElement dropzone
 
-    viewRender isDisabled onMoveUp onMoveDown state previewEls = go where
+    viewRender isDisabled onMoveUp onMoveDown
+               preBound state previewEls = go where
+
       go = previewEls `snoc` span' [text state.text] `snoc` toolbar
 
       toolbar =
@@ -231,7 +233,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
                       [ className "btn btn-default"
                       , title "Поднять вверх"
                       , disabled $ isNothing onMoveUp
-                      , onClick state.onMoveUp
+                      , onClick preBound.onMoveUp
                       ]
                       [ i [className "glyphicon glyphicon-arrow-up"] mempty ]
 
@@ -239,7 +241,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
                       [ className "btn btn-default"
                       , title "Опустить вниз"
                       , disabled $ isNothing onMoveDown
-                      , onClick state.onMoveDown
+                      , onClick preBound.onMoveDown
                       ]
                       [ i [className "glyphicon glyphicon-arrow-down"] mempty ]
                   ]
@@ -250,7 +252,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
             [ className "btn btn-success"
             , title "Редактировать"
             , disabled isDisabled
-            , onClick state.enterEditing
+            , onClick preBound.enterEditing
             ]
             [ i [className "glyphicon glyphicon-pencil"] mempty ]
 
@@ -260,22 +262,22 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
             [ className "btn btn-danger"
             , title "Удалить"
             , disabled isDisabled
-            , onClick state.delete
+            , onClick preBound.delete
             ]
             [ i [className "glyphicon glyphicon-trash"] mempty ]
 
-    editRender isDisabled appContext resource state previewEls =
+    editRender isDisabled appContext resource preBound state previewEls =
       [ div
           [ className "form-group" ]
           [ div' $ pure $
-              flip dropDownSelectEl mempty
+              dropDownSelectEl
                 { appContext
                 , isDisabled: isDisabled || isJust state.file || isJust resource
                 , variants:
                     (unfoldrBoundedEnum :: Array BackendAttachmentMediaType)
                 , selected: Just state.mediaType
                 , variantView: showNominative >>> capitalize
-                , onSelected: Just state.onMediaTypeSelected
+                , onSelected: Just preBound.onMediaTypeSelected
                 , placeholder: Just "Тип прикрепляемого файла"
                 , notSelectedTitle: Nothing
                 }
@@ -283,11 +285,13 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
           , dropzoneEl (dropzoneDefaultProps state.mediaType)
               { disabled = isDisabled
 
-              , onDropAccepted = toNullable $ Just $ handle2 $
-                  \files _ -> maybe (pure unit) state.onFileDropped $ head files
+              , onDropAccepted = toNullable $ Just $ mkEffectFn2 $
+                  \files _ -> maybe (pure unit)
+                                    preBound.onFileDropped
+                                    (head files)
 
-              , onDropRejected = toNullable $ Just $ handle2 $
-                  \files _ -> state.onFilesRejected files
+              , onDropRejected = toNullable $ Just $ mkEffectFn2 $
+                  \files _ -> preBound.onFilesRejected files
               }
               [ text $
                   "Нажмите для добавления " <> showGenitive state.mediaType <>
@@ -297,12 +301,12 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
 
           , span [className $ classSfx "edit-image-wrap"] previewEls
 
-          , flip input mempty
+          , input
               [ className "form-control"
               , _type "text"
               , placeholder $ "Подпись к " <> showDative state.mediaType
               , value state.text
-              , onChange state.onChangeText
+              , onChange preBound.onChangeText
               , disabled isDisabled
               ]
           ]
@@ -312,7 +316,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
           [ button
               [ className "btn btn-default"
               , _type "button"
-              , onClick state.cancelEditing
+              , onClick preBound.cancelEditing
               , disabled isDisabled
               ]
               [ text "Отменить" ]
@@ -325,7 +329,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
               button
                 [ className "btn btn-success"
                 , _type "button"
-                , onClick state.save
+                , onClick preBound.save
                 , disabled isSaveBlocked
                 ]
                 [ text "Сохранить" ]
@@ -336,13 +340,9 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
       { resource, onCancel } <- getProps this
 
       if isNothing resource
-
-         then case onCancel of
-                   Nothing -> pure unit
-                   Just f  -> callEventHandler f unit
-
+         then fromMaybe (pure unit) onCancel
          else let values = buildIntervalValues resource
-               in transformState this _
+               in modifyState this _
                     { text      = values.text
                     , file      = values.file
                     , isEditing = false
@@ -350,7 +350,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
                     }
 
     saveHandler this _ = do
-      state@{ isChanged } <- readState this
+      state@{ isChanged } <- getState this
       { isDisabled, resource, updateResource, itemIndex } <- getProps this
 
       let existing = resource *> (Left <$> itemIndex)
@@ -359,48 +359,48 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
 
       case guard (not isDisabled) *> guard isChanged *> (existing <|> new) of
            Just (Left idx) ->
-             callEventHandler updateResource $ ChangeItem idx value
+             updateResource $ ChangeItem idx value
            Just (Right _) ->
-             callEventHandler updateResource $ NewItem value
+             updateResource $ NewItem value
            Nothing -> pure unit
 
     deleteHandler this _ = do
       { isDisabled, updateResource, itemIndex } <- getProps this
-      { mediaType } <- readState this
+      { mediaType } <- getState this
 
       isConfirmed <- DOM.window >>= DOM.confirm
         ("Вы действительно хотите удалить " <> showAccusative mediaType <> "?")
 
       case guard (not isDisabled) *> guard isConfirmed *> itemIndex of
-           Just idx -> callEventHandler updateResource $ DeleteItem idx
+           Just idx -> updateResource $ DeleteItem idx
            _ -> pure unit
 
     changeTextHandler this event = do
-      let newText = eventInputValue event
-      transformState this _ { text = newText, isChanged = true }
+      newText <- eventInputValue event
+      modifyState this _ { text = newText, isChanged = true }
 
     enterEditingHandler this _ =
-      transformState this _ { isEditing = true }
+      modifyState this _ { isEditing = true }
 
     fileDroppedHandler this file = guardNotProcessing $ do
       { slideId } <- getProps this
-      transformState this _ { isProcessing = true, isUploadingFailed = false }
+      modifyState this _ { isProcessing = true, isUploadingFailed = false }
 
       launchAff_ $
         uploadFile slideId file >>=
-          liftEff <<< maybe failProcessing doneProcessing
+          liftEffect <<< maybe failProcessing doneProcessing
 
       where
         guardNotProcessing m = do
-          { isProcessing } <- readState this
+          { isProcessing } <- getState this
           if isProcessing then pure unit else m
 
         failProcessing =
-          transformState this _
+          modifyState this _
             { isProcessing = false, isUploadingFailed = true }
 
         doneProcessing attachment =
-          transformState this \s -> s
+          modifyState this \s -> s
             { isProcessing = false
             , isUploadingFailed = false
             , isChanged = true
@@ -408,15 +408,13 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
             }
 
     mediaTypeSelectedHandler this =
-      maybe (pure unit) \x -> transformState this _ { mediaType = x }
+      maybe (pure unit) \x -> modifyState this _ { mediaType = x }
 
     moveHandler this isUp _ = do
       { itemIndex, onMoveUp, onMoveDown } <- getProps this
 
       fromMaybe (pure unit) $
-        itemIndex >>= \x ->
-          (if isUp then onMoveUp else onMoveDown) <#>
-            \f -> callEventHandler f x
+        itemIndex >>= \x -> (if isUp then onMoveUp else onMoveDown) <#> (_ $ x)
 
     buildIntervalValues
       :: Maybe DiagTreeSlideResource
@@ -443,38 +441,38 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
                Modern x -> Just x
                Legacy _ -> Nothing
 
-    getInitialState this = do
-      { resource } <- getProps this
-      let values = buildIntervalValues resource
+    defineComponent renderFn = component name \this -> do
+      let preBound =
+            { enterEditing: enterEditingHandler this
+            , onChangeText: changeTextHandler this
+            , cancelEditing: cancelEditingHandler this
+            , onFileDropped: fileDroppedHandler this
+            , onFilesRejected: rejectedFilesAlert
+            , onMediaTypeSelected: mediaTypeSelectedHandler this
+            , onMoveUp: moveHandler this true
+            , onMoveDown: moveHandler this false
+            , save: saveHandler this
+            , delete: deleteHandler this
+            }
 
-      pure { text: values.text
-           , file: values.file
-           , mediaType: values.mediaType
-           , isEditing: false
-           , isChanged: false
-           , isProcessing: false
-           , isUploadingFailed: false
-           , enterEditing: enterEditingHandler this
-           , onChangeText: changeTextHandler this
-           , cancelEditing: cancelEditingHandler this
-           , onFileDropped: fileDroppedHandler this
-           , onFilesRejected: rejectedFilesAlert
-           , onMediaTypeSelected: handle $ mediaTypeSelectedHandler this
-           , onMoveUp: moveHandler this true
-           , onMoveDown: moveHandler this false
-           , save: saveHandler this
-           , delete: deleteHandler this
-           }
+      state <-
+        getProps this <#> _.resource <#> buildIntervalValues <#> \values ->
+          { text: values.text
+          , file: values.file
+          , mediaType: values.mediaType
+          , isEditing: false
+          , isChanged: false
+          , isProcessing: false
+          , isUploadingFailed: false
+          }
 
-    spec renderFn = go where
-      renderHandler this =
-        map wrapper $ renderFn <$> getProps this <*> readState this
+      let r = renderFn preBound
 
-      go
-        = spec' getInitialState renderHandler # _
-        { displayName = name
+      pure
+        { state
+        , render: map wrapper $ r <$> getProps this <*> getState this
 
-        , componentWillReceiveProps = \this nextProps -> do
+        , unsafeComponentWillReceiveProps: \nextProps -> do
             prevProps <- getProps this
 
             if isJust nextProps.resource == isJust prevProps.resource &&
@@ -482,7 +480,7 @@ diagTreeEditorSlideEditorResourceRender = createClass $ spec $
                                                      <*> prevProps.resource)
                then pure unit
                else let values = buildIntervalValues nextProps.resource
-                     in transformState this _
+                     in modifyState this _
                           { text      = values.text
                           , file      = values.file
                           , mediaType = values.mediaType

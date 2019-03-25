@@ -6,13 +6,15 @@ module Utils.StoreConnect
 import Prelude
 
 import Data.Maybe (Maybe (..), fromMaybe)
-import Data.Record.Builder (Builder, build)
+import Record.Builder (Builder, build)
 
 import React
      ( ReactClass
-     , createClass, spec', createElement
-     , transformState, readState, getProps
+     , component, unsafeCreateLeafElement
+     , modifyState, getState, getProps
      )
+
+-- local imports
 
 import App.Store.Reducers (AppState)
 
@@ -34,45 +36,38 @@ storeConnect
   -> ReactClass { appContext :: AppContext | props2 }
   -> ReactClass { appContext :: AppContext | props1 }
 
-storeConnect storeSelector child = createClass spec
-  where
-    childEl = createElement child
+storeConnect storeSelector child = component "StoreConnect" spec where
+  childEl = unsafeCreateLeafElement child
+  applyProps = _.mappedProps >>> childEl
+  renderFn this = getState this <#> applyProps
 
-    renderFn this = do
-      state <- readState this
-      pure $ childEl state.mappedProps []
+  getMappedProps props =
+    getAppState props.appContext <#>
+      \appState -> build (storeSelector appState) props
 
-    initialState this = do
-      props    <- getProps this
-      appState <- getAppState props.appContext
+  spec this = getProps this >>= getMappedProps <#> \mappedProps ->
+    { state: { subscription: Nothing, mappedProps }
+    , render: renderFn this
 
-      pure { subscription : Nothing
-           , mappedProps  : build (storeSelector appState) props
-           }
+    , unsafeComponentWillMount: do
+        let listener = toStoreListener \{ prevState, nextState } -> do
+              let appState = fromMaybe prevState nextState
+              x <- getProps this <#> build (storeSelector appState)
+              modifyState this _ { mappedProps = x }
 
-    spec = spec' initialState renderFn # _
-      { displayName = "StoreConnect"
+        { appContext } <- getProps this
+        subscription   <- subscribe appContext listener
+        modifyState this _ { subscription = Just subscription }
 
-      , componentWillMount = \this -> do
-          let listener = toStoreListener \{ prevState, nextState } -> do
-                let appState = fromMaybe prevState nextState
-                x <- getProps this <#> build (storeSelector appState)
-                transformState this $ _ { mappedProps = x }
+    , unsafeComponentWillReceiveProps: \nextProps -> do
+        x <- getMappedProps nextProps
+        modifyState this _ { mappedProps = x }
 
-          { appContext } <- getProps this
-          subscription   <- subscribe appContext listener
-          transformState this $ _ { subscription = Just subscription }
+    , componentWillUnmount: do
+        { appContext }   <- getProps this
+        { subscription } <- getState this
 
-      , componentWillReceiveProps = \this nextProps -> do
-          appState <- getAppState nextProps.appContext
-          let x = build (storeSelector appState) nextProps
-          transformState this $ _ { mappedProps = x }
-
-      , componentWillUnmount = \this -> do
-          { appContext } <- getProps this
-          { subscription } <- readState this
-
-          case subscription of
-               Nothing -> pure unit
-               Just x  -> unsubscribe appContext x
-      }
+        case subscription of
+             Nothing -> pure unit
+             Just x  -> unsubscribe appContext x
+    }

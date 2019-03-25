@@ -4,23 +4,22 @@ module Component.DiagTree.Editor
 
 import Prelude hiding (div)
 
-import Data.Monoid (mempty)
 import Data.Array as A
-import Data.Record.Builder (merge)
 import Data.Either (Either (..))
 import Data.Maybe (Maybe (..), fromMaybe)
 
-import Control.Monad.Aff (launchAff_)
+import Record.Builder (merge)
+
+import Effect.Aff (launchAff_)
+
+import Web.HTML (window) as DOM
+import Web.HTML.Window (confirm) as DOM
 
 import React
-     ( ReactClass
-     , getProps, readState, createClass, createElement, spec'
-     , preventDefault
+     ( ReactClass, component, createLeafElement, getProps
      )
 
-import DOM.HTML (window) as DOM
-import DOM.HTML.Window (confirm) as DOM
-
+import React.SyntheticEvent (preventDefault)
 import React.DOM (div, div', p', span, button, i, i', ul', li', h5', text)
 import React.DOM.Props (className, onClick, disabled, title)
 
@@ -69,16 +68,16 @@ diagTreeEditorRender
                 , slides                    :: DiagTreeSlides
                 }
 
-diagTreeEditorRender = createClass $ spec $
-  \ { appContext
+diagTreeEditorRender = defineComponent $
+  \ { newSlide, pasteSlide, processingSpinnerProps }
+    { appContext
     , isSlideDeletingFailed
     , slideDeletingFailureSfx
     , isNewSlideFailed
     , isProcessing
     , isPasteFailed
     , copyPasteBuffer
-    }
-    { newSlide, pasteSlide, processingSpinnerProps } ->
+    } ->
 
   [ div
       [ className $ "col-md-4" <.> classSfx "tree-panel" ]
@@ -107,12 +106,12 @@ diagTreeEditorRender = createClass $ spec $
               [ i [className $ "glyphicon" <.> "glyphicon-paste"] mempty ]
           ]
 
-      , treeSearchEl { appContext, isDisabled: isProcessing } mempty
+      , treeSearchEl { appContext, isDisabled: isProcessing }
 
       , if not isProcessing
-           then treeEl { appContext } mempty
+           then treeEl { appContext }
            else div [className $ classSfx "processing"]
-                    [spinnerEl processingSpinnerProps mempty]
+                    [spinnerEl processingSpinnerProps]
 
       , -- A hint for a user
         div
@@ -155,9 +154,9 @@ diagTreeEditorRender = createClass $ spec $
       <>
       ( pure $
         if not isProcessing
-           then slideEditorEl { appContext } mempty
+           then slideEditorEl { appContext }
            else div [className $ classSfx "processing"]
-                    [spinnerEl processingSpinnerProps mempty]
+                    [spinnerEl processingSpinnerProps]
       )
   ]
 
@@ -166,17 +165,17 @@ diagTreeEditorRender = createClass $ spec $
     classSfx s = name <> "--" <> s
     wrapper = div [className name]
 
-    spinnerEl     = createElement spinner
-    treeSearchEl  = createElement diagTreeEditorTreeSearch
-    treeEl        = createElement diagTreeEditorTree
-    slideEditorEl = createElement diagTreeEditorSlideEditor
+    spinnerEl     = createLeafElement spinner
+    treeSearchEl  = createLeafElement diagTreeEditorTreeSearch
+    treeEl        = createLeafElement diagTreeEditorTree
+    slideEditorEl = createLeafElement diagTreeEditorSlideEditor
 
-    renderFn mainRender props state = wrapper $ pure $
+    renderFn mainRender props = wrapper $ pure $
       div [className "container"] $ pure $
         div [className "row"] $
-          branching mainRender props state
+          branching mainRender props
 
-    branching mainRender props state
+    branching mainRender props
       | props.isSlidesLoadingFailed = pure $
           div' $ pure $
             p'
@@ -192,10 +191,10 @@ diagTreeEditorRender = createClass $ spec $
             spinnerEl
               { withLabel  : Left true
               , appContext : props.appContext
-              } mempty
+              }
 
       | props.isSlidesLoaded =
-          mainRender props state
+          mainRender props
 
       | otherwise = pure $
           div' $ pure $
@@ -250,31 +249,29 @@ diagTreeEditorRender = createClass $ spec $
                  $ dispatch appContext
                  $ DiagTree $ Editor $ PasteSlideRequest mempty
 
-    getInitialState this = do
+    defineComponent mainRender = component name \this -> do
       { appContext } <- getProps this
 
-      -- Handlers with prebound `AppContext`
-      pure { newSlide: newSlideHandler appContext this
-           , pasteSlide: pasteSlideHandler appContext this
-           , processingSpinnerProps:
-               { withLabel: Right "Обработка…", appContext }
-           }
+      let preBound =
+            { newSlide: newSlideHandler appContext this
+            , pasteSlide: pasteSlideHandler appContext this
+            , processingSpinnerProps:
+                { withLabel: Right "Обработка…", appContext }
+            }
 
-    spec mainRender = go where
-      renderWrap = renderFn mainRender
-      renderHandler this = renderWrap <$> getProps this <*> readState this
+      let r = renderFn $ mainRender preBound
 
-      go
-        = spec' getInitialState renderHandler # _
-        { displayName = name
+      pure
+        { state: {}
+        , render: r <$> getProps this
 
-        , componentDidMount = \this -> do
-            props <- getProps this
+        , componentDidMount: do
+            { isSlidesLoaded, isSlidesLoading } <- getProps this
 
-            if props.isSlidesLoaded || props.isSlidesLoading
+            if isSlidesLoaded || isSlidesLoading
                then pure unit
                else launchAff_
-                  $ dispatch props.appContext
+                  $ dispatch appContext
                   $ DiagTree $ Editor LoadSlidesRequest
         }
 

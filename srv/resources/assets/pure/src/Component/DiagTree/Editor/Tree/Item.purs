@@ -4,7 +4,6 @@ module Component.DiagTree.Editor.Tree.Item
 
 import Prelude hiding (div)
 
-import Data.Monoid (mempty)
 import Data.Array ((:), elemIndex, snoc, last, null, unsnoc)
 import Data.Foldable (foldl)
 import Data.Map (Map)
@@ -16,53 +15,52 @@ import Data.String (length, splitAt)
 import Data.Tuple (Tuple (Tuple), fst)
 
 import Control.Lazy (fix)
+import Control.MonadZero (guard)
 
-import React (ReactClass, EventHandler, preventDefault, stopPropagation)
+import Effect (Effect)
+
+import React (ReactClass, component, getProps)
+import React.SyntheticEvent (preventDefault, stopPropagation)
 import React.DOM (text, div, button, i, span)
 import React.DOM.Dynamic (div) as RDyn
 import React.DOM.Props (className, key, onClick, title, disabled)
 
-import Utils ( callEventHandler
-             , createClassStatelessWithName
-             , (<.>)
-             )
-
+import Utils ((<.>))
 import Utils.CopyPasteBuffer (CopyPasteBufferState (..), CopyPasteBuffer)
-
 import App.Store (AppContext)
-import App.Store.DiagTree.Editor.Types ( DiagTreeSlideId
-                                       , DiagTreeSlide(DiagTreeSlide)
-                                       , fromIndexedAnswers
-                                       )
+
+import App.Store.DiagTree.Editor.Types
+     ( DiagTreeSlideId
+     , DiagTreeSlide (DiagTreeSlide)
+     , fromIndexedAnswers
+     )
 
 type Props =
-  { appContext     :: AppContext
-  , key            :: String
+   { appContext     :: AppContext
+   , selectedSlide  :: Maybe (Array DiagTreeSlideId)
+   , unfoldedSlides :: Set DiagTreeSlideId
 
-  , selectedSlide  :: Maybe (Array DiagTreeSlideId)
-  , unfoldedSlides :: Set DiagTreeSlideId
+   , search
+       :: Maybe { query    :: String
+                , parents  :: Set DiagTreeSlideId
+                , patterns :: Map DiagTreeSlideId
+                                  { answer   :: Maybe Int
+                                  , question :: Maybe Int
+                                  }
+                }
 
-  , search
-      :: Maybe { query    :: String
-               , parents  :: Set DiagTreeSlideId
-               , patterns :: Map DiagTreeSlideId
-                                 { answer   :: Maybe Int
-                                 , question :: Maybe Int
-                                 }
-               }
+   , select          :: Array DiagTreeSlideId -> Effect Unit
+   , delete          :: Array DiagTreeSlideId -> Effect Unit
+   , copy            :: Array DiagTreeSlideId -> Effect Unit
+   , cut             :: Array DiagTreeSlideId -> Effect Unit
+   , paste           :: Array DiagTreeSlideId -> Effect Unit
+   , copyPasteState  :: CopyPasteBufferState
+   , copyPasteBuffer :: CopyPasteBuffer
 
-  , select          :: EventHandler (Array DiagTreeSlideId)
-  , delete          :: EventHandler (Array DiagTreeSlideId)
-  , copy            :: EventHandler (Array DiagTreeSlideId)
-  , cut             :: EventHandler (Array DiagTreeSlideId)
-  , paste           :: EventHandler (Array DiagTreeSlideId)
-  , copyPasteState  :: CopyPasteBufferState
-  , copyPasteBuffer :: CopyPasteBuffer
-
-  , answerHeader    :: Maybe String
-  , parents         :: Array DiagTreeSlideId
-  , slide           :: DiagTreeSlide
-  }
+   , answerHeader    :: Maybe String
+   , parents         :: Array DiagTreeSlideId
+   , slide           :: DiagTreeSlide
+   }
 
 
 diagTreeEditorTreeItemRender :: ReactClass Props
@@ -86,13 +84,13 @@ diagTreeEditorTreeItemRender = f $
     --   * "unfolded" for items with shown children
     --   * "lead" for items that have no children (end of a branch)
     wClass = name
-      # (if isJust children then addUnfoldedClass else id)
-      # (if null answers then addLeafClass else id)
+      # (if isJust children then addUnfoldedClass else identity)
+      # (if null answers then addLeafClass else identity)
       # case selectedSlide of
              Just x | last x == Just slide.id -> addSelectedClass
                     | isJust $ slide.id `elemIndex` x ->
                         addParentSelectedClass
-             _ -> id
+             _ -> identity
 
     children =
       if isJust search || slide.id `Set.member` unfoldedSlides
@@ -115,27 +113,27 @@ diagTreeEditorTreeItemRender = f $
 
     onHeaderClick event = do
       preventDefault event
-      callEventHandler select slideBranch
+      select slideBranch
 
     onDeleteClick event = do
       preventDefault event
       stopPropagation event
-      callEventHandler delete slideBranch
+      delete slideBranch
 
     onCopyClick event = do
       preventDefault event
       stopPropagation event
-      callEventHandler copy slideBranch
+      copy slideBranch
 
     onCutClick event = do
       preventDefault event
       stopPropagation event
-      callEventHandler cut slideBranch
+      cut slideBranch
 
     onPasteClick event = do
       preventDefault event
       stopPropagation event
-      callEventHandler paste slideBranch
+      paste slideBranch
 
     headerClasses =
       case copyPasteState of
@@ -240,19 +238,18 @@ diagTreeEditorTreeItemRender = f $
     childrenRenderer =
       maybe mempty $ pure <<< RDyn.div [className $ classSfx "children"]
 
-    f renderFn =
-      createClassStatelessWithName name renderFn
+    f renderFn
+      = component name
+      $ \this -> pure
+      { state: {}
+      , render: renderFn <$> getProps this
+      }
 
     -- Highlighting matched search patterns
     hlSearch x (Tuple start len) = fromMaybe [text x] $ do
-      { before: pfx, after } <- splitAt start x
-
-      { before: hl, after: sfx } <-
-        -- Splitting at the end gives you `Nothing`,
-        -- that's why we checking it here.
-        if length after > len
-           then splitAt len after
-           else pure { before: after, after: "" }
+      let { before: pfx, after } = splitAt start x
+      guard $ length after > 0
+      let { before: hl, after: sfx } = splitAt len after
 
       pure
         $ (if pfx /= "" then [text pfx] else mempty)

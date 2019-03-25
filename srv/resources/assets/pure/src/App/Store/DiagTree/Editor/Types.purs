@@ -19,12 +19,18 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe)
 import Data.DateTime (DateTime)
-import Data.Generic (class Generic)
 import Data.Enum (class Enum, class BoundedEnum)
 
-import Data.Generic.Rep as GRep
-import Data.Generic.Rep.Bounded as GRepBounded
-import Data.Generic.Rep.Enum as GRepEnum
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Bounded (genericBottom, genericTop)
+
+import Data.Generic.Rep.Enum
+     ( genericPred
+     , genericSucc
+     , genericCardinality
+     , genericToEnum
+     , genericFromEnum
+     )
 
 import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
      ( BackendAttachmentMediaType
@@ -73,7 +79,7 @@ data DiagTreeSlideAction
   | Tech
   | Consultation
 
-derive instance genericDiagTreeSlideAction :: Generic DiagTreeSlideAction
+derive instance genericDiagTreeSlideAction :: Generic DiagTreeSlideAction _
 derive instance eqDiagTreeSlideAction      :: Eq      DiagTreeSlideAction
 derive instance ordDiagTreeSlideAction     :: Ord     DiagTreeSlideAction
 
@@ -83,24 +89,20 @@ instance showDiagTreeSlideAction :: Show DiagTreeSlideAction where
   show Tech         = "Создать Техпомощь"
   show Consultation = "Создать Консультацию"
 
-derive instance genericRepDiagTreeSlideAction ::
-  GRep.Generic DiagTreeSlideAction _
+instance genericBoundedDiagTreeSlideAction :: Bounded DiagTreeSlideAction where
+  bottom = genericBottom
+  top    = genericTop
 
-instance genericRepBoundedDiagTreeSlideAction :: Bounded DiagTreeSlideAction
-  where
-  bottom = GRepBounded.genericBottom
-  top    = GRepBounded.genericTop
+instance genericEnumDiagTreeSlideAction :: Enum DiagTreeSlideAction where
+  pred = genericPred
+  succ = genericSucc
 
-instance genericRepEnumDiagTreeSlideAction :: Enum DiagTreeSlideAction where
-  pred = GRepEnum.genericPred
-  succ = GRepEnum.genericSucc
-
-instance genericRepBoundedEnumDiagTreeSlideAction ::
+instance genericBoundedEnumDiagTreeSlideAction ::
   BoundedEnum DiagTreeSlideAction
   where
-  cardinality = GRepEnum.genericCardinality
-  toEnum      = GRepEnum.genericToEnum
-  fromEnum    = GRepEnum.genericFromEnum
+  cardinality = genericCardinality
+  toEnum      = genericToEnum
+  fromEnum    = genericFromEnum
 
 
 type DiagTreeSlideAnswer =
