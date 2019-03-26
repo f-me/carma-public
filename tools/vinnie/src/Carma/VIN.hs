@@ -318,6 +318,7 @@ process psid enc mapping = do
 
   markMissingIdentifiers
   markInvalidMakeModel
+  markInvalidDates
 
   -- Finally, write new contracts to live table, omitting those
   -- already present and duplicate contracts in the queue

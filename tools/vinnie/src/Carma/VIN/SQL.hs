@@ -110,6 +110,10 @@ errorsTitle :: Text
 errorsTitle = "Ошибки"
 
 
+minimalValidSince :: Text
+minimalValidSince = "01-01-2009"
+
+
 -- | Produce unique internal names from a CSV header.
 mkInternalNames :: [ColumnTitle] -> [InternalName]
 mkInternalNames columns =
@@ -549,23 +553,14 @@ installFunctions =
     execute_
     [sql|
      CREATE OR REPLACE FUNCTION pg_temp.dateordead(text) RETURNS text AS $$
-     DECLARE f TEXT;
      DECLARE x DATE;
      BEGIN
-         f = replace($1, 'Янв', 'Jan');
-         f = replace(f, 'Фев', 'Feb');
-         f = replace(f, 'Мар', 'Mar');
-         f = replace(f, 'Апр', 'Apr');
-         f = replace(f, 'Май', 'May');
-         f = replace(f, 'Июл', 'Jun');
-         f = replace(f, 'Июн', 'Jul');
-         f = replace(f, 'Авг', 'Aug');
-         f = replace(f, 'Сен', 'Sep');
-         f = replace(f, 'Окт', 'Oct');
-         f = replace(f, 'Ноя', 'Nov');
-         f = replace(f, 'Дек', 'Dec');
-         x = f::DATE;
-         RETURN f;
+         -- check format 'dd.mm.yyyy'
+         IF $1 !~ '^(?:0[1-9]|[12][0-9]|3[0-1])\.(?:0[1-9]|1[012])\.(?:19|20)\d{2}$' THEN
+             RETURN null;
+         END IF;
+         x = $1::DATE;
+         RETURN $1;
      EXCEPTION WHEN others THEN
          RETURN null;
      END;
@@ -782,11 +777,39 @@ markInvalidMakeModel :: Import Int64
 markInvalidMakeModel =
     execute
     [sql|
-     UPDATE vinnie_queue SET errors = errors || ARRAY [?]
+     UPDATE vinnie_queue SET errors = errors || ARRAY[?]
      WHERE NOT pg_temp.checkmakemodel(make, model);
-    |] (Only InvalidMakeModel
-       )
-    
+    |] (Only InvalidMakeModel)
+
+
+-- | Add error to every row where invalid date in columns validSince
+-- | and validUntil.
+markInvalidDates :: Import Int64
+markInvalidDates =
+    execute
+    [sql|
+     UPDATE vinnie_queue SET errors = errors || ARRAY[?]
+     WHERE validSince IS NOT NULL AND
+           validUntil IS NOT NULL AND
+           validSince > validUntil;
+    |] (Only $ ValidSinceGreaterValidUntil
+                 (fieldDesc C.validSince)
+                 (fieldDesc C.validUntil))
+    >>
+    execute
+    [sql|
+     UPDATE vinnie_queue SET errors = errors || ARRAY[?]
+     WHERE validSince < ?::date;
+    |] ( ValidSinceLessMinimum (fieldDesc C.validSince) minimalValidSince
+       , minimalValidSince)
+    >>
+    execute
+    [sql|
+     UPDATE vinnie_queue SET errors = errors || ARRAY[?]
+     WHERE validSince > date(now());
+    |] (Only $ ValidSinceGreaterNow $ fieldDesc C.validSince)
+
+
 -- | Calculate how many erroneous rows are in queue table.
 countErrors :: Import Int64
 countErrors = do
@@ -858,6 +881,9 @@ data RowError = EmptyRequired Text
               | NoIdentifiers
               | NoSubprogram
               | InvalidMakeModel
+              | ValidSinceGreaterValidUntil Text Text
+              | ValidSinceLessMinimum Text Text
+              | ValidSinceGreaterNow Text
                 deriving Show
 
 instance ToField RowError where
@@ -869,3 +895,9 @@ instance ToField RowError where
         toField $ T.concat ["Подпрограмма не распознана"]
     toField InvalidMakeModel =
         toField $ T.concat ["Комбинация марка-модель указана не верно"]
+    toField (ValidSinceGreaterValidUntil vs vu) =
+        toField $ T.concat [vs, " больше ", vu]
+    toField (ValidSinceLessMinimum vs minimim) =
+        toField $ T.concat [vs, " меньше ", minimim]
+    toField (ValidSinceGreaterNow vs) =
+        toField $ T.concat [vs, " больше текущей даты"]
