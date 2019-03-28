@@ -168,6 +168,8 @@ data FormatFieldType = Raw
                      | Number
                      -- ^ Store as an integer after stripping
                      -- non-digits.
+                     | Mileage
+                     -- ^ Store as an integer.
                      | VIN
                      | Email
                      | Plate
@@ -203,6 +205,8 @@ class (FormatFieldParameter (TitleParameter a)) => FFTypeI a where
 instance FFTypeI (SFFT 'Raw)
 
 instance FFTypeI (SFFT 'Number)
+
+instance FFTypeI (SFFT 'Mileage)
 
 instance FFTypeI (SFFT 'VIN)
 
