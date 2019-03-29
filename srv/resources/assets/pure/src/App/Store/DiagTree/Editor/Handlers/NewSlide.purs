@@ -28,7 +28,11 @@ import Utils (toMaybeT)
 import Utils.Affjax (getRequest, postRequest)
 import App.Store (AppContext)
 import App.Store.DiagTree.Editor.Handlers.Helpers (errLog, sendAction)
-import App.Store.DiagTree.Editor.Types (DiagTreeSlide (DiagTreeSlide))
+
+import App.Store.DiagTree.Editor.Types
+     ( DiagTreeSlideId
+     , DiagTreeSlide (DiagTreeSlide)
+     )
 
 import App.Store.DiagTree.Editor.Actions
      ( DiagTreeEditorAction (NewSlideSuccess, NewSlideFailure, SelectSlide)
@@ -55,7 +59,7 @@ newSlide appCtx = catchError go handleError where
            Left  e -> reportParseError e
 
     slide <- runMaybeT $ do
-      newSlideId <- pure $ getBackendSlideId newSlideCreateResult
+      newSlideId <- toMaybeT =<< pure (getBackendSlideId newSlideCreateResult)
 
       (getSlideResponse :: Either ResponseFormatError A.Json) <- lift $
         map _.body $ request $ getRequest (getSlideUrl newSlideId) json
@@ -77,6 +81,8 @@ newSlide appCtx = catchError go handleError where
 
   act = sendAction appCtx
   newSlideUrl = "/_/DiagSlide"
+
+  getSlideUrl :: DiagTreeSlideId -> String
   getSlideUrl slideId = "/_/DiagSlide/" <> show slideId
 
   jsonRequest
