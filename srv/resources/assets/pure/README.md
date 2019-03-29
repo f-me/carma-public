@@ -38,9 +38,6 @@ npm run prod-release
     richTextEditorEl = createElement richTextEditor
   ```
 
-  And never use `(^)` or `(^^)` from `React.Spaces`,
-  instead use prebound `createElement` and `element` from `React.Spaces`.
-
 - Some dependencies are attached as git submodules such as these:
 
   - purescript-react-dropzone

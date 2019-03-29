@@ -1,8 +1,11 @@
 module Main (_main) where
 
 import Prelude
-import Control.Monad.Eff.Unsafe (unsafePerformEff)
+import Effect.Unsafe (unsafePerformEffect)
+
+-- local imports
 import ApplicationInit (runApplication)
 
+
 _main :: Unit
-_main = unsafePerformEff runApplication
+_main = unsafePerformEffect runApplication

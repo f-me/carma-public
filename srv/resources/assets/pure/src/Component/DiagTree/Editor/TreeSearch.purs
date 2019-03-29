@@ -5,23 +5,20 @@ module Component.DiagTree.Editor.TreeSearch
 import Prelude hiding (div)
 
 import Data.Maybe (Maybe (..), maybe)
-import Data.Record.Builder (merge)
 import Data.String (trim, null)
 import Data.String.NonEmpty (NonEmptyString, fromString, toString)
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Aff (launchAff_)
-import Control.Monad.Aff.AVar (AVAR)
+import Record.Builder (merge)
+
+import Effect (Effect)
+import Effect.Aff (launchAff_)
 
 import React
-     ( ReactClass, createClass, spec'
-     , getProps, readState, transformState
-     , preventDefault
+     ( ReactClass, component, getProps, getState, modifyState
      )
 
-import React.Spaces ((!), (!.), renderIn, empty)
-import React.Spaces.DOM (input, button, i)
-import React.DOM (div)
+import React.SyntheticEvent (preventDefault, altKey, ctrlKey, shiftKey, key)
+import React.DOM (div, input, button, i)
 
 import React.DOM.Props
      ( className, value, _type, placeholder, title, disabled
@@ -31,7 +28,8 @@ import React.DOM.Props
 import Utils ((<.>), storeConnect, eventInputValue)
 
 import Utils.Debouncer
-     ( newDebouncer
+     ( DebouncerSubscription
+     , newDebouncer
      , subscribeToDebouncer
      , unsubscribeFromDebouncer
      , sendToDebouncer
@@ -56,121 +54,120 @@ diagTreeEditorTreeSearchRender
                 , searchQuery :: Maybe NonEmptyString
                 }
 
-diagTreeEditorTreeSearchRender = createClass $ spec $
-  \ { isDisabled } { changeHandler, clearHandler, keyHandler, query } -> do
+diagTreeEditorTreeSearchRender = defineComponent $
+  \ { changeHandler, clearHandler, keyHandler } { isDisabled } { query } ->
 
-    input !. classSfx "search-input"
-          ! _type "text"
-          ! placeholder "Поиск"
-          ! value query
-          ! disabled isDisabled
-          ! onChange changeHandler
-          ! onKeyUp keyHandler
+  [ input
+      [ className $ classSfx "search-input"
+      , _type "text"
+      , placeholder "Поиск"
+      , value query
+      , disabled isDisabled
+      , onChange changeHandler
+      , onKeyUp keyHandler
+      ]
 
-    button !. classSfx "clear"
-           ! disabled (isDisabled || null query)
-           ! onClick clearHandler
-           ! title "Очистить строку поиска" $
-
-      i !. "glyphicon" <.> "glyphicon-remove" $ empty
+  , button
+      [ className $ classSfx "clear"
+      , disabled $ isDisabled || null query
+      , onClick clearHandler
+      , title "Очистить строку поиска"
+      ]
+      [ i [className $ "glyphicon" <.> "glyphicon-remove"] mempty ]
+  ]
 
   where
     name = "DiagTreeEditorTreeSearch"
     classSfx s = name <> "--" <> s
     wrapper = div [className name]
 
-    onChangeHandler this event = do
-      { changeDebouncer } <- readState this
-      let query = eventInputValue event
-      transformState this _ { query = query }
+    onChangeHandler this changeDebouncer event = do
+      query <- eventInputValue event
+      modifyState this _ { query = query }
       sendToDebouncer changeDebouncer query
 
-    onClearHandler appCtx this event = do
+    onClearHandler appCtx this changeDebouncer event = do
       preventDefault event
-      resetSearch appCtx this
+      resetSearch appCtx this changeDebouncer
 
-    onKeyHandler appCtx this { altKey, ctrlKey, shiftKey, key } =
-      if not altKey && not ctrlKey && not shiftKey && key == "Escape"
-         then resetSearch appCtx this
-         else pure unit
+    onKeyHandler appCtx this changeDebouncer event = go where
+      condition a b c d = a && b && c && d
+      f x = if x then resetSearch appCtx this changeDebouncer else pure unit
 
-    resetSearch appCtx this = do
-      { changeDebouncer } <- readState this
+      go  =  f
+         =<< condition
+         <$> (not <$> altKey   event)
+         <*> (not <$> ctrlKey  event)
+         <*> (not <$> shiftKey event)
+         <*> (key event <#> (_ == "Escape"))
+
+    resetSearch appCtx this changeDebouncer = do
       act appCtx ResetSearch
 
       -- In case escape pressed before debounced request
       sendToDebouncer changeDebouncer ""
-      transformState this _ { query = "" }
+      modifyState this _ { query = "" }
 
     searchHandler appCtx query = act appCtx $
       case fromString $ trim query of
            Nothing -> ResetSearch
            Just x  -> SearchByQuery x
 
-    getInitialState this = do
+    defineComponent renderFn = component name \this -> do
       { appContext, searchQuery } <- getProps this
       changeDebouncer <- newDebouncer 500
+      let search = searchHandler appContext
 
-      pure { changeDebouncer
-           , changeSubscription : Nothing
-           , changeHandler      : onChangeHandler this
-           , clearHandler       : onClearHandler appContext this
-           , keyHandler         : onKeyHandler appContext this
-           , query              : maybe "" toString searchQuery
-           , search             : searchHandler appContext
-           }
+      let preBound =
+            { changeHandler : onChangeHandler this changeDebouncer
+            , clearHandler  : onClearHandler appContext this changeDebouncer
+            , keyHandler    : onKeyHandler appContext this changeDebouncer
+            }
 
-    spec renderFn =
-      let
-        renderHandler this = do
-          props <- getProps  this
-          state <- readState this
-          pure $ renderIn wrapper $ renderFn props state
-      in
-        spec' getInitialState renderHandler # _
-          { displayName = name
+      let state =
+            { changeSubscription: (Nothing :: Maybe DebouncerSubscription)
+            , query: maybe "" toString searchQuery
+            }
 
-          , componentWillMount = \this -> do
-              { changeDebouncer, search } <- readState this
-              subscription <- subscribeToDebouncer changeDebouncer search
-              transformState this _ { changeSubscription = Just subscription }
-              pure unit
+      let r = renderFn preBound
 
-          , componentWillReceiveProps = \this { searchQuery: newQuery } -> do
-              { searchQuery: oldQuery } <- getProps this
+      pure
+        { state
+        , render: map wrapper $ r <$> getProps this <*> getState this
 
-              if newQuery == oldQuery
-                 then pure unit
-                 else case newQuery <#> toString of
-                           Nothing -> transformState this _ { query = "" }
-                           Just x  -> do
-                             { query } <- readState this
-                             if trim query /= x
-                                then transformState this _ { query = x }
-                                else pure unit
+        , unsafeComponentWillMount: do
+            subscription <- subscribeToDebouncer changeDebouncer search
+            modifyState this _ { changeSubscription = Just subscription }
 
-          , componentWillUnmount = \this -> do
-              { changeDebouncer, changeSubscription } <- readState this
+        , unsafeComponentWillReceiveProps: \ { searchQuery: newQuery } -> do
+            { searchQuery: oldQuery } <- getProps this
 
-              case changeSubscription of
-                   Nothing -> pure unit
-                   Just x  -> unsubscribeFromDebouncer changeDebouncer x
-          }
+            if newQuery == oldQuery
+               then pure unit
+               else case newQuery <#> toString of
+                         Nothing -> modifyState this _ { query = "" }
+                         Just x  -> do
+                           { query } <- getState this
+                           if trim query /= x
+                              then modifyState this _ { query = x }
+                              else pure unit
+
+        , componentWillUnmount: do
+            { changeSubscription } <- getState this
+
+            case changeSubscription of
+                 Nothing -> pure unit
+                 Just x  -> unsubscribeFromDebouncer changeDebouncer x
+        }
 
 
 diagTreeEditorTreeSearch
   :: ReactClass { appContext :: AppContext, isDisabled :: Boolean }
 
-diagTreeEditorTreeSearch = storeConnect f diagTreeEditorTreeSearchRender
-  where
-    f appState =
-      let { searchQuery } = appState.diagTree.editor.treeSearch
-       in merge { searchQuery }
+diagTreeEditorTreeSearch = storeConnect f diagTreeEditorTreeSearchRender where
+  f appState = merge { searchQuery } where
+    { searchQuery } = appState.diagTree.editor.treeSearch
 
 
-act :: forall eff
-     . AppContext
-    -> DiagTreeEditorTreeSearchAction
-    -> Eff (avar :: AVAR | eff) Unit
-
+act :: AppContext -> DiagTreeEditorTreeSearchAction -> Effect Unit
 act ctx = launchAff_ <<< dispatch ctx <<< DiagTree <<< Editor <<< TreeSearch

@@ -5,32 +5,32 @@ module Component.DiagTree.Editor
 import Prelude hiding (div)
 
 import Data.Array as A
-import Data.Record.Builder (merge)
 import Data.Either (Either (..))
-import Data.Maybe (Maybe (..), fromJust, fromMaybe)
+import Data.Maybe (Maybe (..), fromMaybe)
 
-import Control.Monad.Aff (launchAff_)
+import Record.Builder (merge)
+
+import Effect.Aff (launchAff_)
+
+import Web.HTML (window) as DOM
+import Web.HTML.Window (confirm) as DOM
 
 import React
-     ( ReactClass
-     , getProps, readState, createClass, createElement, spec'
-     , preventDefault
+     ( ReactClass, component, createLeafElement, getProps
      )
 
-import DOM.HTML (window) as DOM
-import DOM.HTML.Window (confirm) as DOM
-
+import React.SyntheticEvent (preventDefault)
+import React.DOM (div, div', p', span, button, i, i', ul', li', h5', text)
 import React.DOM.Props (className, onClick, disabled, title)
-import React.DOM (div) as R
-import React.Spaces.DOM (div, p, span, button, i, ul, li, h5)
-import React.Spaces ((!), (!.), renderIn, element, text, empty)
 
 import Utils ((<.>), storeConnect)
+
 import Utils.CopyPasteBuffer
      ( CopyPasteBufferState (..)
      , CopyPasteBuffer
      , getCopyPasteState
      )
+
 import Utils.DiagTree.Editor (getSlideByBranch)
 import Component.Generic.Spinner (spinner)
 import Component.DiagTree.Editor.Tree (diagTreeEditorTree)
@@ -39,16 +39,18 @@ import Component.DiagTree.Editor.SlideEditor (diagTreeEditorSlideEditor)
 import App.Store (AppContext, dispatch)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
+
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
      , DiagTreeSlides
      )
+
 import App.Store.DiagTree.Editor.Actions
      ( DiagTreeEditorAction ( LoadSlidesRequest
                             , NewSlideRequest
-                            , PasteSlideRequest)
+                            , PasteSlideRequest
+                            )
      )
-import Partial.Unsafe (unsafePartial)
 
 
 diagTreeEditorRender
@@ -66,114 +68,139 @@ diagTreeEditorRender
                 , slides                    :: DiagTreeSlides
                 }
 
-diagTreeEditorRender = createClass $ spec $
-  \ { appContext
+diagTreeEditorRender = defineComponent $
+  \ { newSlide, pasteSlide, processingSpinnerProps }
+    { appContext
     , isSlideDeletingFailed
     , slideDeletingFailureSfx
     , isNewSlideFailed
     , isProcessing
     , isPasteFailed
     , copyPasteBuffer
-    }
-    { newSlide, pasteSlide, processingSpinnerProps } -> do
+    } ->
 
-  div !. "col-md-4" <.> classSfx "tree-panel" $ do
+  [ div
+      [ className $ "col-md-4" <.> classSfx "tree-panel" ]
+      [ div
+          [ className "btn-toolbar" ]
+          [ button
+              [ className "btn btn-success"
+              , disabled isProcessing
+              , onClick newSlide
+              ]
+              [ i [className "glyphicon glyphicon-plus"] mempty
+              , text " Новое дерево"
+              ]
 
-    div !. "btn-toolbar" $ do
-      button !. "btn btn-success"
-             ! disabled isProcessing
-             ! onClick newSlide $ do
+          , button
+              [ className $ "btn" <.> classSfx "paste"
+              , title "Вставить ветвь"
+              , onClick pasteSlide
 
-        i !. "glyphicon glyphicon-plus" $ empty
-        text " Новое дерево"
+              , -- disabled if buffer contains root element or empty
+                disabled
+                  (  A.length (fromMaybe mempty copyPasteBuffer.branch) == 1
+                  || getCopyPasteState copyPasteBuffer == EmptyBuffer
+                  )
+              ]
+              [ i [className $ "glyphicon" <.> "glyphicon-paste"] mempty ]
+          ]
 
-      button !. "btn" <.> classSfx "paste"
-             ! onClick pasteSlide
-             -- disabled if buffer contains root element or empty
-             ! disabled ( A.length (fromMaybe [] copyPasteBuffer.branch) == 1 ||
-                          getCopyPasteState copyPasteBuffer == EmptyBuffer
-                        )
-             ! title "Вставить ветвь" $
+      , treeSearchEl { appContext, isDisabled: isProcessing }
 
-        i !. "glyphicon" <.> "glyphicon-paste" $ empty
+      , if not isProcessing
+           then treeEl { appContext }
+           else div [className $ classSfx "processing"]
+                    [spinnerEl processingSpinnerProps]
 
-    element $ treeSearchEl { appContext, isDisabled: isProcessing } []
+      , -- A hint for a user
+        div
+          [ className $ classSfx "tree-hints" ]
+          [ h5' $ pure $ text "Обозначения:"
+          , ul'
+              [ li' $ pure $ text "📂 — Раскрытая ветвь"
+              , li' $ pure $ text "🏁 — Конец ветви (нет вложенных шагов)"
+              ]
+          ]
+      ]
 
-    if isProcessing
-       then div !. classSfx "processing" $ element $
-              spinnerEl processingSpinnerProps []
-
-       else element $ treeEl { appContext } []
-
-    -- A hint for a user
-    div !. classSfx "tree-hints" $ do
-      h5 $ text "Обозначения:"
-      ul $ do
-        li $ text "📂 — Раскрытая ветвь"
-        li $ text "🏁 — Конец ветви (нет вложенных шагов)"
-
-  div !. "col-md-8" <.> classSfx "slide-editor-panel" $ do
-
-    if not isSlideDeletingFailed
-       then pure unit
-       else p $ do span !. "label label-danger" $ text "Ошибка"
-
-                   let sfx = slideDeletingFailureSfx
-                       msg = " Произошла ошибка при попытке удалить ветвь"
-
-                   case sfx <#> text of
-                        Nothing -> text $ msg <> "."
-                        Just x  -> text msg *> i x *> text "."
-
-    if not isNewSlideFailed
-       then pure unit
-       else p $ do span !. "label label-danger" $ text "Ошибка"
-                   text " Произошла ошибка при попытке создать новое дерево."
-
-    if isProcessing
-       then div !. classSfx "processing" $ element $
-              spinnerEl processingSpinnerProps []
-
-       else element $ slideEditorEl { appContext } []
+  , div
+      [ className $ "col-md-8" <.> classSfx "slide-editor-panel" ] $
+      ( if not isSlideDeletingFailed
+           then mempty
+           else pure $
+                p' $
+                  [ span [className "label label-danger"] [text "Ошибка"] ]
+                  <>
+                  let
+                    sfx = slideDeletingFailureSfx
+                    msg = " Произошла ошибка при попытке удалить ветвь"
+                  in
+                    case sfx of
+                         Nothing -> pure $ text $ msg <> "."
+                         Just x  -> [ text msg
+                                    , i' $ pure $ text x
+                                    , text "."
+                                    ]
+      )
+      <>
+      ( if not isNewSlideFailed
+           then mempty
+           else pure $
+                p' [ span [className "label label-danger"] [text "Ошибка"]
+                   , text " Произошла ошибка при попытке создать новое дерево."
+                   ]
+      )
+      <>
+      ( pure $
+        if not isProcessing
+           then slideEditorEl { appContext }
+           else div [className $ classSfx "processing"]
+                    [spinnerEl processingSpinnerProps]
+      )
+  ]
 
   where
     name = "DiagTreeEditor"
     classSfx s = name <> "--" <> s
-    wrapper = R.div [className name]
+    wrapper = div [className name]
 
-    spinnerEl     = createElement spinner
-    treeSearchEl  = createElement diagTreeEditorTreeSearch
-    treeEl        = createElement diagTreeEditorTree
-    slideEditorEl = createElement diagTreeEditorSlideEditor
+    spinnerEl     = createLeafElement spinner
+    treeSearchEl  = createLeafElement diagTreeEditorTreeSearch
+    treeEl        = createLeafElement diagTreeEditorTree
+    slideEditorEl = createLeafElement diagTreeEditorSlideEditor
 
-    renderFn mainRender props state =
-      renderIn wrapper $ do
-        div !. "container" $
-          div !. "row" $
-            branching mainRender props state
+    renderFn mainRender props = wrapper $ pure $
+      div [className "container"] $ pure $
+        div [className "row"] $
+          branching mainRender props
 
-    branching mainRender props state
-      | props.isSlidesLoadingFailed = div $ do
-          p $ do
-            span !. "label label-danger" $ text "Ошибка"
-            text if props.isParsingSlidesDataFailed
-                    then " Произошла ошибка при обработке\
-                         \ полученных от сервера данных"
-                    else " Произошла ошибка при загрузке данных"
+    branching mainRender props
+      | props.isSlidesLoadingFailed = pure $
+          div' $ pure $
+            p'
+              [ span [className "label label-danger"] [text "Ошибка"]
+              , text if props.isParsingSlidesDataFailed
+                        then " Произошла ошибка при обработке\
+                             \ полученных от сервера данных"
+                        else " Произошла ошибка при загрузке данных"
+              ]
 
-      | props.isSlidesLoading =
-          div !. "text-center" $ element $
+      | props.isSlidesLoading = pure $
+          div [className "text-center"] $ pure $
             spinnerEl
               { withLabel  : Left true
               , appContext : props.appContext
-              } []
+              }
 
-      | props.isSlidesLoaded = mainRender props state
+      | props.isSlidesLoaded =
+          mainRender props
 
-      | otherwise = div $ do
-          p $ do
-            span !. "label label-warning" $ text "Ожидание"
-            text " Данные ещё не загружены…"
+      | otherwise = pure $
+          div' $ pure $
+            p' [ span [className "label label-warning"] $ pure $ text "Ожидание"
+               , text " Данные ещё не загружены…"
+               ]
 
     newSlideHandler appContext this event = do
       preventDefault event
@@ -182,96 +209,96 @@ diagTreeEditorRender = createClass $ spec $
       if isProcessing
          then pure unit
          else do
-           wnd    <- DOM.window
-           create <- DOM.confirm "Подтвердите создание нового дерева" wnd
+           isSlideCreationConfirmed <-
+             DOM.confirm "Подтвердите создание нового дерева" =<< DOM.window
 
-           if not create
+           if not isSlideCreationConfirmed
               then pure unit
               else launchAff_
-                 $ dispatch appContext $ DiagTree $ Editor NewSlideRequest
+                 $ dispatch appContext
+                 $ DiagTree $ Editor NewSlideRequest
 
     pasteSlideHandler appContext this event = do
       preventDefault event
       { isProcessing } <- getProps this
-      getSlide <- getProps this <#> _.slides <#> getSlideByBranch
+      getSlide <- getProps this <#> _.slides >>> getSlideByBranch
       copyPasteBuffer <- getProps this <#> _.copyPasteBuffer
 
       if isProcessing
          then pure unit
          else do
-           paste <-
-             let source = fromMaybe "" $
-                   getSlide (unsafePartial $
-                             fromJust copyPasteBuffer.branch) <#>
-                   \(DiagTreeSlide x) -> " #" <> show x.id <> " (\"" <>
-                                         x.header <> "\")"
-                 operation = if copyPasteBuffer.cutting
-                                then "переместить"
-                                else "скопировать"
-                 msg = "Вы уверены, что хотите" <.> operation <.> source
-                       <.> "в корень?"
-             in DOM.window >>= DOM.confirm msg
+           isPasteToRootConfirmed <-
+             let source = copyPasteBuffer.branch >>= getSlide <#> slideSfx
 
-           if paste
-              then launchAff_ $ dispatch appContext $ DiagTree $
-                     Editor $ PasteSlideRequest []
-              else pure unit
+                 operation =
+                   if copyPasteBuffer.cutting
+                      then "переместить"
+                      else "скопировать"
 
-    getInitialState this = do
+                 msg
+                   =  "Вы уверены, что хотите "
+                   <> operation
+                   <> fromMaybe "" source
+                   <> " в корень?"
+
+              in DOM.window >>= DOM.confirm msg
+
+           if not isPasteToRootConfirmed
+              then pure unit
+              else launchAff_
+                 $ dispatch appContext
+                 $ DiagTree $ Editor $ PasteSlideRequest mempty
+
+    defineComponent mainRender = component name \this -> do
       { appContext } <- getProps this
 
-      -- Handlers with prebound `AppContext`
-      pure { newSlide: newSlideHandler appContext this
-           , pasteSlide: pasteSlideHandler appContext this
-           , processingSpinnerProps:
-               { withLabel: Right "Обработка…", appContext }
-           }
+      let preBound =
+            { newSlide: newSlideHandler appContext this
+            , pasteSlide: pasteSlideHandler appContext this
+            , processingSpinnerProps:
+                { withLabel: Right "Обработка…", appContext }
+            }
 
-    spec mainRender =
-      let
-        renderWrap = renderFn mainRender
-        renderHandler this = do
-          props <- getProps  this
-          state <- readState this
-          pure $ renderWrap props state
-      in
-        spec' getInitialState renderHandler # _
-          { displayName = name
+      let r = renderFn $ mainRender preBound
 
-          , componentDidMount = \this -> do
-              props <- getProps this
+      pure
+        { state: {}
+        , render: r <$> getProps this
 
-              if props.isSlidesLoaded || props.isSlidesLoading
-                 then pure unit
-                 else launchAff_
-                    $ dispatch props.appContext
-                    $ DiagTree $ Editor LoadSlidesRequest
-          }
+        , componentDidMount: do
+            { isSlidesLoaded, isSlidesLoading } <- getProps this
+
+            if isSlidesLoaded || isSlidesLoading
+               then pure unit
+               else launchAff_
+                  $ dispatch appContext
+                  $ DiagTree $ Editor LoadSlidesRequest
+        }
 
 
 diagTreeEditor :: ReactClass { appContext :: AppContext }
-diagTreeEditor = storeConnect f diagTreeEditorRender
-  where
-    f appState = merge $ let branch = appState.diagTree.editor in
-      { isSlidesLoading           : branch.isSlidesLoading
-      , isSlidesLoaded            : branch.isSlidesLoaded
-      , isSlidesLoadingFailed     : branch.isSlidesLoadingFailed
-      , isParsingSlidesDataFailed : branch.isParsingSlidesDataFailed
-      , isNewSlideFailed          : branch.newSlide.isFailed
-      , isPasteFailed             : branch.copyPasteBuffer.isFailed
-      , isProcessing              : branch.slideDeleting.isProcessing
-                                      || branch.newSlide.isProcessing
-                                      || branch.copyPasteBuffer.isProcessing
+diagTreeEditor = storeConnect f diagTreeEditorRender where
+  f appState = merge $ let branch = appState.diagTree.editor in
+    { isSlidesLoading           : branch.isSlidesLoading
+    , isSlidesLoaded            : branch.isSlidesLoaded
+    , isSlidesLoadingFailed     : branch.isSlidesLoadingFailed
+    , isParsingSlidesDataFailed : branch.isParsingSlidesDataFailed
+    , isNewSlideFailed          : branch.newSlide.isFailed
+    , isPasteFailed             : branch.copyPasteBuffer.isFailed
+    , isProcessing              : branch.slideDeleting.isProcessing
+                                    || branch.newSlide.isProcessing
+                                    || branch.copyPasteBuffer.isProcessing
 
-      , isSlideDeletingFailed     : branch.slideDeleting.isFailed
-      , slideDeletingFailureSfx   : getSlideDeletingFailureSfx branch
-      , copyPasteBuffer           : branch.copyPasteBuffer
-      , slides                    : branch.slides
-      }
+    , isSlideDeletingFailed     : branch.slideDeleting.isFailed
+    , slideDeletingFailureSfx   : getSlideDeletingFailureSfx branch
+    , copyPasteBuffer           : branch.copyPasteBuffer
+    , slides                    : branch.slides
+    }
 
-    getSlideDeletingFailureSfx branch = do
-      deletingBranch <- branch.slideDeleting.branch
-      getSlideByBranch branch.slides deletingBranch <#> slideSfx
+  getSlideDeletingFailureSfx branch = do
+    deletingBranch <- branch.slideDeleting.branch
+    getSlideByBranch branch.slides deletingBranch <#> slideSfx
 
-    slideSfx (DiagTreeSlide x) =
-      " #" <> show x.id <> " (\"" <> x.header <> "\")"
+
+slideSfx :: DiagTreeSlide -> String
+slideSfx (DiagTreeSlide x) = " #" <> show x.id <> " (\"" <> x.header <> "\")"

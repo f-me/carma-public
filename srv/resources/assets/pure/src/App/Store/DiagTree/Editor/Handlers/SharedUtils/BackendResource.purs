@@ -6,18 +6,19 @@ module App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendResource
      ) where
 
 import Prelude
-
-import Control.MonadZero (guard)
+import Prim.Row (class Cons)
 
 import Data.Tuple (Tuple (Tuple))
 import Data.Maybe (Maybe (..))
-import Data.StrMap as StrMap
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Argonaut.Core as A
-import Data.Record (get)
 import Data.Symbol (SProxy (SProxy), class IsSymbol, reflectSymbol)
 import Data.Array (cons)
+import Foreign.Object as FObj
+import Record (get)
+
+import Control.MonadZero (guard)
 
 import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
      ( BackendAttachment
@@ -29,21 +30,21 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
 type BackendResource = Record BackendResourceFields
 
 type BackendResourceFields =
-  ( text       :: String
-  , file       :: Maybe String
-  , attachment :: Maybe BackendAttachment
-  )
+   ( text       :: String
+   , file       :: Maybe String
+   , attachment :: Maybe BackendAttachment
+   )
 
 
 class ResourceKeyToBackendKey k where
   resourceKeyToBackendKey
     :: forall a r'
-     . RowCons k a r' BackendResourceFields
+     . Cons k a r' BackendResourceFields
     => IsSymbol k
     => SProxy k -> String
 
 instance resourceKeyToBackendKeyGeneric
-  :: (IsSymbol k) => ResourceKeyToBackendKey k
+  :: IsSymbol k => ResourceKeyToBackendKey k
   where
   resourceKeyToBackendKey = reflectSymbol
 
@@ -60,17 +61,15 @@ backendResourceValidKeys = Set.fromFoldable
 fromBackendResource :: A.Json -> Maybe BackendResource
 fromBackendResource json = do
   obj <- A.toObject json
-
-  guard $
-    Set.fromFoldable (StrMap.keys obj) `Set.subset` backendResourceValidKeys
+  guard $ Set.fromFoldable (FObj.keys obj) `Set.subset` backendResourceValidKeys
 
   let l :: forall k a r'
-         . RowCons k a r' BackendResourceFields
+         . Cons k a r' BackendResourceFields
         => IsSymbol k
         => ResourceKeyToBackendKey k
         => SProxy k -> Maybe A.Json
 
-      l key = resourceKeyToBackendKey key `StrMap.lookup` obj
+      l key = resourceKeyToBackendKey key `FObj.lookup` obj
 
   text <- l (SProxy :: SProxy "text") >>= A.toString
 
@@ -91,14 +90,14 @@ fromBackendResource json = do
 
 
 toBackendResource :: BackendResource -> A.Json
-toBackendResource x = A.fromObject $ StrMap.fromFoldable $
+toBackendResource x = A.fromObject $ FObj.fromFoldable $
   [ f    x (SProxy :: SProxy "text")       A.fromString ]
   # fOpt x (SProxy :: SProxy "attachment") toBackendAttachment
   # fOpt x (SProxy :: SProxy "file")       A.fromString
 
   where
     f :: forall k a r'
-       . RowCons k a r' BackendResourceFields
+       . Cons k a r' BackendResourceFields
       => IsSymbol k
       => ResourceKeyToBackendKey k
       => BackendResource -> SProxy k -> (a -> A.Json) -> Tuple String A.Json
@@ -108,7 +107,7 @@ toBackendResource x = A.fromObject $ StrMap.fromFoldable $
 
     fOpt -- For fields that could be not set
       :: forall k a r'
-       . RowCons k (Maybe a) r' BackendResourceFields
+       . Cons k (Maybe a) r' BackendResourceFields
       => IsSymbol k
       => ResourceKeyToBackendKey k
       => BackendResource
@@ -118,5 +117,5 @@ toBackendResource x = A.fromObject $ StrMap.fromFoldable $
 
     fOpt record key converter =
       case key `get` record of
-           Nothing -> id
+           Nothing -> identity
            Just y  -> cons $ f x key $ const $ converter y

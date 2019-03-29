@@ -9,22 +9,21 @@ module App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendSlide
      , getBackendSlideId
      ) where
 
-import Prelude hiding (id)
-import Prelude as Prelude
-
-import Control.MonadZero (guard)
+import Prelude
+import Prim.Row (class Cons)
 
 import Data.Int (fromNumber, toNumber)
 import Data.Maybe (Maybe (..), maybe)
 import Data.Foldable (foldM)
 import Data.Array (snoc)
-import Data.StrMap (StrMap)
-import Data.StrMap as StrMap
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Argonaut.Core as A
-import Data.Record (get)
 import Data.Symbol (SProxy (SProxy), class IsSymbol, reflectSymbol)
+import Foreign.Object as FObj
+import Record (get)
+
+import Control.MonadZero (guard)
 
 import App.Store.DiagTree.Editor.Types (DiagTreeSlideId)
 
@@ -48,15 +47,15 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAnswer
 
 
 type BackendSlide =
-  { id        :: DiagTreeSlideId
-  , isRoot    :: Boolean
-  , ctime     :: String
-  , header    :: String
-  , body      :: String
-  , resources :: Array BackendResource
-  , actions   :: Array BackendAction
-  , answers   :: Array BackendAnswer
-  }
+   { id        :: DiagTreeSlideId
+   , isRoot    :: Boolean
+   , ctime     :: String
+   , header    :: String
+   , body      :: String
+   , resources :: Array BackendResource
+   , actions   :: Array BackendAction
+   , answers   :: Array BackendAnswer
+   }
 
 backendSlideValidKeys :: Set String
 backendSlideValidKeys = Set.fromFoldable
@@ -91,7 +90,7 @@ type PartialBackendSlide = Record PartialBackendSlideFields
 class SlideKeyToBackendKey k where
   slideKeyToBackendKey
     :: forall a r'
-     . RowCons k a r' PartialBackendSlideFields
+     . Cons k a r' PartialBackendSlideFields
     => IsSymbol k
     => SProxy k -> String
 
@@ -116,17 +115,17 @@ defaultPartialBackendSlide =
 fromBackendSlide :: A.Json -> Maybe BackendSlide
 fromBackendSlide = A.toObject >=> fromBackendSlideObj
 
-fromBackendSlideObj :: StrMap A.Json -> Maybe BackendSlide
+fromBackendSlideObj :: FObj.Object A.Json -> Maybe BackendSlide
 fromBackendSlideObj obj = do
-  guard $ Set.fromFoldable (StrMap.keys obj) `Set.subset` backendSlideValidKeys
+  guard $ Set.fromFoldable (FObj.keys obj) `Set.subset` backendSlideValidKeys
 
   let l :: forall k a r'
-         . RowCons k a r' PartialBackendSlideFields
+         . Cons k a r' PartialBackendSlideFields
         => IsSymbol k
         => SlideKeyToBackendKey k
         => SProxy k -> Maybe A.Json
 
-      l key = slideKeyToBackendKey key `StrMap.lookup` obj
+      l key = slideKeyToBackendKey key `FObj.lookup` obj
 
   id        <- l (SProxy :: SProxy "id")        >>= A.toNumber >>= fromNumber
   isActive  <- l (SProxy :: SProxy "isActive")  >>= A.toBoolean
@@ -153,7 +152,9 @@ fromBackendSlideObj obj = do
     reduceAnswer   acc jsonItem = snoc acc <$> fromBackendAnswer   jsonItem
 
 toBackendSlideFromPartial :: PartialBackendSlide -> A.Json
-toBackendSlideFromPartial p = A.fromObject $ StrMap.empty
+toBackendSlideFromPartial p
+  = A.fromObject
+  $ FObj.empty
   # f p (SProxy :: SProxy "id")        (toNumber >>> A.fromNumber)
   # f p (SProxy :: SProxy "isActive")  A.fromBoolean
   # f p (SProxy :: SProxy "isRoot")    A.fromBoolean
@@ -167,15 +168,15 @@ toBackendSlideFromPartial p = A.fromObject $ StrMap.empty
   where
     f :: forall k a r'
        . IsSymbol k
-      => RowCons k (Maybe a) r' PartialBackendSlideFields
+      => Cons k (Maybe a) r' PartialBackendSlideFields
       => PartialBackendSlide
       -> SProxy k
       -> (a -> A.Json)
-      -> (StrMap A.Json -> StrMap A.Json)
+      -> (FObj.Object A.Json -> FObj.Object A.Json)
 
     f partial key converter =
-      maybe Prelude.id (converter >>> inserter) $ key `get` partial
-      where inserter = StrMap.insert $ reflectSymbol key
+      maybe identity (converter >>> inserter) $ key `get` partial
+      where inserter = FObj.insert $ reflectSymbol key
 
 
 getBackendSlideId :: A.Json -> Maybe DiagTreeSlideId
@@ -185,9 +186,9 @@ getBackendSlideId = A.toObject >=> \obj ->
   where
     lookup
       :: forall k a r'
-       . RowCons k a r' PartialBackendSlideFields
+       . Cons k a r' PartialBackendSlideFields
       => IsSymbol k
       => SlideKeyToBackendKey k
-      => SProxy k -> StrMap A.Json -> Maybe A.Json
+      => SProxy k -> FObj.Object A.Json -> Maybe A.Json
 
-    lookup key = StrMap.lookup $ slideKeyToBackendKey key
+    lookup key = FObj.lookup $ slideKeyToBackendKey key

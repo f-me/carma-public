@@ -6,51 +6,51 @@ import Prelude
 
 import Data.Maybe (Maybe (..))
 import Data.String.Read (class Read)
-import Data.Generic (class Generic)
 import Data.Enum (class Enum, class BoundedEnum)
-import Data.Generic.Rep as GRep
-import Data.Generic.Rep.Bounded as GRepBounded
-import Data.Generic.Rep.Enum as GRepEnum
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Bounded (genericBottom, genericTop)
+
+import Data.Generic.Rep.Enum
+     ( genericPred
+     , genericSucc
+     , genericCardinality
+     , genericToEnum
+     , genericFromEnum
+     )
 
 import Utils.ShowCase (class ShowCase)
 import Utils.Sex (class GetSex, Sex (..))
 
 
 data BackendAttachmentMediaType
-  = ImageMediaType
-  | VideoMediaType
-  | AudioMediaType
+   = ImageMediaType
+   | VideoMediaType
+   | AudioMediaType
 
-derive instance genericBackendAttachmentMediaType
-  :: Generic BackendAttachmentMediaType
+derive instance eqBackendAttachmentMediaType :: Eq BackendAttachmentMediaType
+derive instance ordBackendAttachmentMediaType :: Ord BackendAttachmentMediaType
 
-derive instance eqBackendAttachmentMediaType
-  :: Eq      BackendAttachmentMediaType
+derive instance genericBackendAttachmentMediaType ::
+  Generic BackendAttachmentMediaType _
 
-derive instance ordBackendAttachmentMediaType
-  :: Ord     BackendAttachmentMediaType
-
-derive instance genericRepBackendAttachmentMediaType ::
-  GRep.Generic BackendAttachmentMediaType _
-
-instance genericRepBoundedBackendAttachmentMediaType
+instance genericBoundedBackendAttachmentMediaType
   :: Bounded BackendAttachmentMediaType
   where
-  bottom = GRepBounded.genericBottom
-  top    = GRepBounded.genericTop
+  bottom = genericBottom
+  top    = genericTop
 
-instance genericRepEnumBackendAttachmentMediaType
+instance genericEnumBackendAttachmentMediaType
   :: Enum BackendAttachmentMediaType
   where
-  pred = GRepEnum.genericPred
-  succ = GRepEnum.genericSucc
+  pred = genericPred
+  succ = genericSucc
 
-instance genericRepBoundedEnumBackendAttachmentMediaType ::
+instance genericBoundedEnumBackendAttachmentMediaType ::
   BoundedEnum BackendAttachmentMediaType
   where
-  cardinality = GRepEnum.genericCardinality
-  toEnum      = GRepEnum.genericToEnum
-  fromEnum    = GRepEnum.genericFromEnum
+  cardinality = genericCardinality
+  toEnum      = genericToEnum
+  fromEnum    = genericFromEnum
 
 instance showBackendAttachmentMediaType :: Show BackendAttachmentMediaType where
   show ImageMediaType = "image"
