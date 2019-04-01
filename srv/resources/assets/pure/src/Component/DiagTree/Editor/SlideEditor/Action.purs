@@ -51,9 +51,8 @@ diagTreeEditorSlideEditorActionRender = defineComponent $
     variants = (unfoldrBoundedEnum :: Array DiagTreeSlideAction)
     dropDownSelectEl = createLeafElement dropDownSelect
 
-    defineComponent renderFn = component name \ this -> pure
-      { state: {}
-      , render: map wrapper $ renderFn <$> getProps this
+    defineComponent renderFn = component name \this -> pure
+      { render: map wrapper $ renderFn <$> getProps this
       }
 
 

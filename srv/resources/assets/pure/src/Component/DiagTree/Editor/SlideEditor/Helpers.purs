@@ -4,6 +4,6 @@ module Component.DiagTree.Editor.SlideEditor.Helpers
 
 
 data ItemModification identity value
-  = NewItem value
-  | DeleteItem identity
-  | ChangeItem identity value
+   = NewItem value
+   | DeleteItem identity
+   | ChangeItem identity value
