@@ -42,8 +42,7 @@ spinnerRender = go where
          else div [className $ classSfx "icon"] mempty
 
   spec this = getProps this <#> \props ->
-    { state: {}
-    , render: renderFn <$> getProps this
+    { render: renderFn <$> getProps this
 
     , shouldComponentUpdate: \nextProps _ -> do
         prevProps <- getProps this

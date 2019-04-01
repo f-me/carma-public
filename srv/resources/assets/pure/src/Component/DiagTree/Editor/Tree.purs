@@ -98,13 +98,16 @@ diagTreeEditorTreeRender
        }
 
 diagTreeEditorTreeRender = defineComponent $
-  \ -- props
+  \ -- preBound
+    { selectSlide, deleteSlide, copySlide, cutSlide, pasteSlide
+    , shiftedSlidesMenu, changeDontShiftLevels
+    }
+    -- props
     { appContext, slides, selectedSlideBranch, search
     , copyPasteState, copyPasteBuffer
     }
     -- state
-    { selectSlide, deleteSlide, copySlide, cutSlide, pasteSlide, unfoldedSlides
-    , shiftedSlidesMenu, dontShiftLevels, changeDontShiftLevels
+    { unfoldedSlides, dontShiftLevels
     } ->
 
   [ div [className $ "checkbox" <.> classSfx "dont-shift-levels"] $ pure $
@@ -336,30 +339,33 @@ diagTreeEditorTreeRender = defineComponent $
       let selectOneLevelUp  = selectOneLevelUpHandler appContext this
       let selectRoot        = selectRootHandler       appContext this
 
-      let changeDontShiftLevels = changeDontShiftLevelsHandler this
-
       let selectSlide =
             selectSlideHandler appContext this
                                toggleSlideFold unfoldSlideBranch
+
+      let preBound =
+            { selectSlide
+            , deleteSlide: deleteSlideHandler appContext this
+            , copySlide: copySlideHandler appContext this
+            , cutSlide: cutSlideHandler appContext this
+            , pasteSlide: pasteSlideHandler appContext this
+            , shiftedSlidesMenu: shiftedSlidesMenuFn selectRoot selectOneLevelUp
+            , changeDontShiftLevels: changeDontShiftLevelsHandler this
+            }
 
       let -- Not unfolding at initialization step if a root slide is selected
           unfoldedSlides = maybe Set.empty f selectedSlideBranch
             where f x = if length x /= 1 then Set.fromFoldable x else Set.empty
 
       let state =
-            { selectSlide
-            , unfoldedSlides
-            , deleteSlide: deleteSlideHandler appContext this
-            , copySlide: copySlideHandler appContext this
-            , cutSlide: cutSlideHandler appContext this
-            , pasteSlide: pasteSlideHandler appContext this
-            , shiftedSlidesMenu: shiftedSlidesMenuFn selectRoot selectOneLevelUp
+            { unfoldedSlides
             , dontShiftLevels: false
-            , changeDontShiftLevels
             }
 
+      let r = renderFn preBound
+
       pure { state
-           , render: map wrapper $ renderFn <$> getProps this <*> getState this
+           , render: map wrapper $ r <$> getProps this <*> getState this
 
            , unsafeComponentWillReceiveProps:
                \{ selectedSlideBranch: nextSelected, slides } -> do

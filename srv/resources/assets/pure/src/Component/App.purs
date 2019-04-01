@@ -45,8 +45,7 @@ appRender = defineComponent \ { appContext, location } -> wrapper $ pure $
 
     defineComponent renderFn = component name \this ->
       pure
-        { state: {}
-        , render: renderFn <$> getProps this
+        { render: renderFn <$> getProps this
 
         , shouldComponentUpdate: \nextProps _ ->
             getProps this <#> _.location >>> (_ /= nextProps.location)

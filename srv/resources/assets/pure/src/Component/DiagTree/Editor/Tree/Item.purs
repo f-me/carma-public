@@ -238,12 +238,8 @@ diagTreeEditorTreeItemRender = f $
     childrenRenderer =
       maybe mempty $ pure <<< RDyn.div [className $ classSfx "children"]
 
-    f renderFn
-      = component name
-      $ \this -> pure
-      { state: {}
-      , render: renderFn <$> getProps this
-      }
+    f renderFn =
+      component name \this -> pure { render: renderFn <$> getProps this }
 
     -- Highlighting matched search patterns
     hlSearch x (Tuple start len) = fromMaybe [text x] $ do

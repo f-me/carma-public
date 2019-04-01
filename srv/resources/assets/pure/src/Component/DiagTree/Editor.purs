@@ -262,8 +262,7 @@ diagTreeEditorRender = defineComponent $
       let r = renderFn $ mainRender preBound
 
       pure
-        { state: {}
-        , render: r <$> getProps this
+        { render: r <$> getProps this
 
         , componentDidMount: do
             { isSlidesLoaded, isSlidesLoading } <- getProps this
