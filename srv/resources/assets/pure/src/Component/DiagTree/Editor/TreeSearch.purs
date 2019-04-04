@@ -154,10 +154,7 @@ diagTreeEditorTreeSearchRender = defineComponent $
 
         , componentWillUnmount: do
             { changeSubscription } <- getState this
-
-            case changeSubscription of
-                 Nothing -> pure unit
-                 Just x  -> unsubscribeFromDebouncer changeDebouncer x
+            maybe (pure unit) unsubscribeFromDebouncer changeSubscription
         }
 
 
