@@ -6,7 +6,7 @@
 --   1. Create a store by `createAppContext` passing initial state to it;
 --
 --   2. Run `Aff` thread with started `reduceLoop` to update state by actions
---      and notify subscribers when state change (n.b. strict subscribers will
+--      and notify subscribers when state changes (n.b. strict subscribers will
 --      be notified even if state haven't changed), only one thread with started
 --      `reduceLoop` is allowed;
 --
@@ -14,15 +14,11 @@
 --      (e.g. inside `componentWillMount`), it returns unique
 --      `StoreSubscription` which you could use to `unsubscribe`
 --      (e.g. inside `componentWillUnmount`).
---      To `subscribe` you need a `StoreListener`,
---      to make one use `toStoreListener`
---      (it wraps some `Effect` monad that takes an update context as an
---      argument).
 --      Subscriber will be notified only if state is changed by a reducer
 --      (use `subscribe'` to get notifications every time action is raised,
---      notwithstanding if state changes or not);
+--      notwithstanding if state is changed or not);
 --
---   4. `dispatch` some actions any time you want, store reducer passed in 2st
+--   4. `dispatch` some actions any time you want, store reducer passed in 2nd
 --      step handles state updates looking at actions you dispatch, and
 --      subscribers can trigger some side-effect such as API requests looking at
 --      actions you dispatch and they could dispatch another actions with some
@@ -33,7 +29,7 @@
 --
 -- The purpuse of this is to create efficient state storage. You supposed to use
 -- some HOC (High-Order Component) to bind to specific values from store and
--- pass them as properties to a component, so when state is updated component
+-- pass them as properties to a component, so when state updates a component
 -- will rerender but in this case parent component isn't urged to be rerendered,
 -- `shouldComponentUpdate` (of parent component) could return `false` and child
 -- component that attached to the store is still able to update any time. This
@@ -58,14 +54,12 @@ module App.Store
 
      , getAppState
      , dispatch
-     , toStoreListener
      , subscribe
      , subscribe'
      , unsubscribe
      ) where
 
 import Prelude
-import Unsafe.Coerce (unsafeCoerce)
 
 import Data.Map (Map, empty, insert, delete, filter)
 import Data.Tuple (Tuple (Tuple), fst)
@@ -94,9 +88,7 @@ newtype StoreSubscription =
 instance eqStoreSubscription :: Eq StoreSubscription where
   eq (StoreSubscription (Tuple a _)) (StoreSubscription (Tuple b _)) = eq a b
 
-
--- An abstraction for a foreign subscriber which is an `Effect` monad
-foreign import data StoreListener :: Type
+type StoreListener = StoreUpdateContext -> Effect Unit
 
 -- This is an abstraction for `StoreListener` with `Boolean` mark
 -- that indicates if a subscriber strict or not that means
@@ -105,33 +97,26 @@ foreign import data StoreListener :: Type
 -- this fixes triggering after unsubscribing.
 type Subscriber = Tuple Boolean (Tuple StoreListener (Ref.Ref Boolean))
 
--- Converts foreign `Effect` monad to an abstract `StoreListener`
-toStoreListener :: (StoreUpdateContext -> Effect Unit) -> StoreListener
-toStoreListener = unsafeCoerce
-
-callStoreListener :: StoreListener -> StoreUpdateContext -> Effect Unit
-callStoreListener = unsafeCoerce
-
 
 type StoreUpdateContext =
-  { prevState :: AppState
-  , nextState :: Maybe AppState
-  , action    :: AppAction
-  }
+   { prevState :: AppState
+   , nextState :: Maybe AppState
+   , action    :: AppAction
+   }
 
 
 type SubscribersMap = Map SubscriberId Subscriber
 
 
 newtype AppContext
-  = AppContext
-  { store       :: Ref.Ref AppState
-  , subscribers :: Ref.Ref SubscribersMap
-  , actionsBus  :: AVar.AVar AppAction
+      = AppContext
+      { store       :: Ref.Ref AppState
+      , subscribers :: Ref.Ref SubscribersMap
+      , actionsBus  :: AVar.AVar AppAction
 
-  -- Only one reducer loop is allowed!
-  , isReduceLoopStarted :: Ref.Ref Boolean
-  }
+      -- Only one reducer loop is allowed!
+      , isReduceLoopStarted :: Ref.Ref Boolean
+      }
 
 
 createAppContext :: AppState -> Aff AppContext
@@ -186,7 +171,7 @@ reduceLoop appCtx@(AppContext ctx) appReducer = go where
     where
       f (Tuple x aliveRef) = do
         isAlive <- Ref.read aliveRef
-        if isAlive then callStoreListener x updateCtx else pure unit
+        if isAlive then x updateCtx else pure unit
 
   guardOnlyOneInstance = do
     isReduceLoopStarted <- Ref.read ctx.isReduceLoopStarted
