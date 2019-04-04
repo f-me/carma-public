@@ -16,11 +16,8 @@ import React
 
 -- local imports
 
+import App.Store (AppContext, subscribe, unsubscribe, getAppState)
 import App.Store.Reducers (AppState)
-
-import App.Store
-     ( AppContext, toStoreListener, subscribe, unsubscribe, getAppState
-     )
 
 
 type StoreSelector props1 props2
@@ -50,7 +47,7 @@ storeConnect storeSelector child = component "StoreConnect" spec where
     , render: renderFn this
 
     , unsafeComponentWillMount: do
-        let listener = toStoreListener \{ prevState, nextState } -> do
+        let listener = \{ prevState, nextState } -> do
               let appState = fromMaybe prevState nextState
               x <- getProps this <#> build (storeSelector appState)
               modifyState this _ { mappedProps = x }
