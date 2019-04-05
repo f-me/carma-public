@@ -88,10 +88,12 @@ import Utils.SubscriberId (SubscriberId, newSubscriberId)
 -- An identity of a subscrition that could be used to `unsubscribe`.
 -- A `Ref` indicate is subscription alive or not (unsubscribed),
 -- this fixes triggering after unsubscribing.
-newtype StoreSubscription =
-  StoreSubscription (Tuple SubscriberId (Ref.Ref Boolean))
+data StoreSubscription =
+     StoreSubscription SubscriberId (Ref.Ref Boolean) (Effect Unit)
+
 instance eqStoreSubscription :: Eq StoreSubscription where
-  eq (StoreSubscription (Tuple a _)) (StoreSubscription (Tuple b _)) = eq a b
+  eq (StoreSubscription a _ _) (StoreSubscription b _ _) = eq a b
+
 
 type StoreListener = StoreUpdateContext -> Effect Unit
 
@@ -206,12 +208,8 @@ subscribe' = subscribeInternal true
 
 -- Attempt to `unsubscribe` multiple times for same subscriber
 -- will case NO errors, we take it as okay.
-unsubscribe :: AppContext -> StoreSubscription -> Effect Unit
-unsubscribe (AppContext { subscribers })
-            (StoreSubscription (Tuple subscriberId aliveRef)) = do
-
-  false `Ref.write` aliveRef
-  delete subscriberId `Ref.modify_` subscribers
+unsubscribe :: StoreSubscription -> Effect Unit
+unsubscribe (StoreSubscription _ _ unsubscriber) = unsubscriber
 
 
 subscribeInternal
@@ -224,8 +222,12 @@ subscribeInternal isStrict (AppContext { subscribers }) storeListener = do
   subscriberId <- newSubscriberId
   aliveRef     <- Ref.new true
 
+  let unsubscriber = do
+        false `Ref.write` aliveRef
+        delete subscriberId `Ref.modify_` subscribers
+
   let f subscribersMap =
-        { value: StoreSubscription $ Tuple subscriberId aliveRef
+        { value: StoreSubscription subscriberId aliveRef unsubscriber
         , state: insert subscriberId
                    (Tuple isStrict (Tuple storeListener aliveRef))
                    subscribersMap
