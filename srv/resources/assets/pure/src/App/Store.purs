@@ -60,10 +60,9 @@ module App.Store
 import Prelude
 
 import Data.Map (Map, empty, insert, delete, filter)
-import Data.Tuple (Tuple (Tuple), fst, snd)
 import Data.Maybe (Maybe (..), fromMaybe)
 import Data.Either (Either (..))
-import Data.Foldable (class Foldable, foldM)
+import Data.Foldable (class Foldable, traverse_)
 
 import Control.Monad.Rec.Class (forever)
 import Control.Monad.Error.Class (throwError)
@@ -110,15 +109,23 @@ type StoreReducer
   -- ^ `Maybe` here to be able to avoid notifying subscribers
   --   (when state isn't changed for example).
 
--- This is an abstraction for `StoreListener` with `Boolean` mark
--- that indicates if a subscriber strict or not that means
--- will it be notified even if state wasn't changed.
--- A `Ref` indicate is subscription alive or not (unsubscribed),
--- this fixes triggering after unsubscribing.
-type Subscriber = Tuple Boolean (Tuple StoreListener (Ref.Ref Boolean))
+data StoreSubscriber = StoreSubscriber
+     Boolean
+     -- ^ Indicates whether a subscriber is strict or not that means
+     --   it will be notified even if state wasn't changed (strict subscriber)
+     --   or only in case something is changed (lazy/not strict subscriber).
+     StoreListener
+     -- ^ A handler which is called when store state is changed
+     --   or even if just an action is raised but state kept unchanged
+     --   (if a subscriber is strict). It receives raised action,
+     --   previous store state (before action was raised) and new updated state
+     --   (but `Nothing` instead if state kept unchanged, which means new state
+     --   equals to old state).
+     (Ref.Ref Boolean)
+     -- ^ Indicates whether subscription is alive or not (unsubscribed),
+     --   this fixes triggering after unsubscribing (there's was some issues).
 
-
-type SubscribersMap = Map SubscriberId Subscriber
+type SubscribersMap = Map SubscriberId StoreSubscriber
 
 
 newtype AppContext
@@ -175,15 +182,18 @@ createStore storeReducer initState = go where
     notify subscriberData $
       case subscriberData.nextState of
            -- State wasn't changed, notifying only strict subscribers
-           Nothing -> filter fst subscribersMap
+           Nothing -> filter isStoreSubscriberStrict subscribersMap
            -- State was changed, notifying all subscribers
            Just _  -> subscribersMap
 
   notify
-    :: forall f. Foldable f => StoreUpdateContext -> f Subscriber -> Effect Unit
+    :: forall f. Foldable f
+    => StoreUpdateContext
+    -> f StoreSubscriber
+    -> Effect Unit
 
-  notify updateCtx = foldM (const $ snd >>> notifyListener) unit where
-    notifyListener (Tuple storeListener aliveRef) = do
+  notify updateCtx = traverse_ notifyListener where
+    notifyListener (StoreSubscriber _ storeListener aliveRef) = do
       isAlive <- Ref.read aliveRef
       if isAlive then storeListener updateCtx else pure unit
 
@@ -229,8 +239,12 @@ subscribeInternal isStrict (AppContext { subscribers }) storeListener = do
   let f subscribersMap =
         { value: StoreSubscription subscriberId aliveRef unsubscriber
         , state: insert subscriberId
-                   (Tuple isStrict (Tuple storeListener aliveRef))
+                   (StoreSubscriber isStrict storeListener aliveRef)
                    subscribersMap
         }
 
   f `Ref.modify'` subscribers
+
+
+isStoreSubscriberStrict :: StoreSubscriber -> Boolean
+isStoreSubscriberStrict (StoreSubscriber isStrict _ _) = isStrict
