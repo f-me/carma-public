@@ -62,19 +62,14 @@ import Data.Either (Either (..))
 import Data.Foldable (class Foldable, traverse_)
 
 import Control.Monad.Rec.Class (forever)
-import Control.Monad.Error.Class (throwError)
 
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Effect.Aff (Aff, runAff_)
 import Effect.Aff.AVar (put, take) as AffAVar
 import Effect.AVar (AVar, empty) as AVar
-import Effect.Ref as Ref
-import Effect.Console (error)
-import Effect.Exception (message)
-
-import Web.HTML (window)
-import Web.HTML.Window (alert)
+import Effect.Ref (Ref, new, read, write, modify_, modify') as Ref
+import Effect.Exception (Error)
 
 import Utils.SubscriberId (SubscriberId, newSubscriberId)
 
@@ -134,11 +129,12 @@ newtype Store state action
 
 createStore
   :: forall state action
-   . StoreReducer state action
-  -> state
+   . (Error -> Effect Unit) -- ^ Reducer thread failure handler
+  -> StoreReducer state action
+  -> state -- ^ Initial state value
   -> Effect (Store state action)
 
-createStore storeReducer initState = go where
+createStore reducerThreadFailureHandler storeReducer initState = go where
   go = do
     (store       :: Ref.Ref state)                         <- Ref.new initState
     (subscribers :: Ref.Ref (SubscribersMap state action)) <- Ref.new empty
@@ -152,14 +148,7 @@ createStore storeReducer initState = go where
     pure $ Store { store, subscribers, actionsBus }
 
   reducerFailureHandler (Right _)  = pure unit
-  reducerFailureHandler (Left err) = do
-    error $ "Store reducer thread is failed with exception: " <> message err
-
-    window >>= alert
-      "Что-то пошло не так! Настоятельно рекомендуется перезагрузить\
-      \ страницу для продолжения нормальной работы системы!"
-
-    throwError err
+  reducerFailureHandler (Left err) = reducerThreadFailureHandler err
 
   reduce actionsBus actionHandler' = forever reactToAction where
     reactToAction = AffAVar.take actionsBus >>= liftEffect <<< actionHandler'
