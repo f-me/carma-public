@@ -16,7 +16,7 @@ import React
 
 -- local imports
 
-import App.Store (AppContext, subscribe, unsubscribe, getAppState)
+import App.Store (AppContext, subscribe, unsubscribe, getStoreState)
 import App.Store.Reducers (AppState)
 
 
@@ -39,7 +39,7 @@ storeConnect storeSelector child = component "StoreConnect" spec where
   renderFn this = getState this <#> applyProps
 
   getMappedProps props =
-    getAppState props.appContext <#>
+    getStoreState props.appContext <#>
       \appState -> build (storeSelector appState) props
 
   spec this = getProps this >>= getMappedProps <#> \mappedProps ->
