@@ -5,9 +5,8 @@ import Prelude
 import Data.Maybe (Maybe (..))
 
 import Effect (Effect)
-import Effect.Class (liftEffect)
 import Effect.Exception.Unsafe (unsafeThrow)
-import Effect.Aff (launchAff_, forkAff)
+import Effect.Aff (launchAff_)
 
 import Web.HTML (window)
 import Web.HTML.Window (document)
@@ -22,7 +21,7 @@ import ReactDOM (render)
 import Router (initRouter)
 import Component.App (app)
 
-import App.Store (createAppContext, reduceLoop, dispatch)
+import App.Store (createStore, dispatch)
 import App.Store.Actions (AppAction (Navigate))
 import App.Store.Reducers (appInitialState, appReducer)
 import App.Store.HandlersSpec (subscribeHandlers)
@@ -40,11 +39,9 @@ runApplication = do
              Nothing -> unsafeThrow "#app element not found"
              Just el -> pure el
 
-  launchAff_ $ do
-    appContext <- createAppContext appInitialState
-    void $ forkAff $ reduceLoop appContext appReducer
-    liftEffect $ initRouter $ launchAff_ <<< dispatch appContext <<< Navigate
-    subscribeHandlers appContext
-    liftEffect $ void $ flip render appDOMEl $ appEl { appContext }
+  appContext <- createStore appReducer appInitialState
+  initRouter $ launchAff_ <<< dispatch appContext <<< Navigate
+  launchAff_ $ subscribeHandlers appContext
+  void $ flip render appDOMEl $ appEl { appContext }
 
   where appEl = createLeafElement app

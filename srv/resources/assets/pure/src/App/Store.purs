@@ -3,14 +3,11 @@
 --
 -- Some usage steps:
 --
---   1. Create a store by `createAppContext` passing initial state to it;
+--   1. Create a store by `createStore` function passing reducer function to it
+--      (which maps old state to new one looking at received action, it will be
+--      called every time an action is triggered) and initial state value;
 --
---   2. Run `Aff` thread with started `reduceLoop` to update state by actions
---      and notify subscribers when state changes (n.b. strict subscribers will
---      be notified even if state haven't changed), only one thread with started
---      `reduceLoop` is allowed;
---
---   3. Subscribe to the store updates by `subscribe`
+--   2. Subscribe to the store updates by `subscribe`
 --      (e.g. inside `componentWillMount`), it returns unique
 --      `StoreSubscription` which you could use to `unsubscribe`
 --      (e.g. inside `componentWillUnmount`).
@@ -18,13 +15,15 @@
 --      (use `subscribe'` to get notifications every time action is raised,
 --      notwithstanding if state is changed or not);
 --
---   4. `dispatch` some actions any time you want, store reducer passed in 2nd
+--   3. `dispatch` some actions any time you want, store reducer passed in 1st
 --      step handles state updates looking at actions you dispatch, and
 --      subscribers can trigger some side-effect such as API requests looking at
---      actions you dispatch and they could dispatch another actions with some
---      response data;
+--      actions you dispatch (handling the same action at the same time in
+--      reducer you could set `isLoading` flag in store for example) and they
+--      could dispatch another actions with some response data (to save a result
+--      in the store for example);
 --
---   5. Do not forget to `unsubscribe` using `StoreSubscription` in
+--   4. Do not forget to `unsubscribe` using `StoreSubscription` in
 --      `componentWillUnmount`.
 --
 -- The purpuse of this is to create efficient state storage. You supposed to use
@@ -48,11 +47,10 @@ module App.Store
      , StoreSubscription
      , StoreListener
      , StoreUpdateContext
+     , StoreReducer
 
-     , createAppContext
-     , reduceLoop
-
-     , getAppState
+     , createStore
+     , getStoreState
      , dispatch
      , subscribe
      , subscribe'
@@ -62,18 +60,25 @@ module App.Store
 import Prelude
 
 import Data.Map (Map, empty, insert, delete, filter)
-import Data.Tuple (Tuple (Tuple), fst)
+import Data.Tuple (Tuple (Tuple), fst, snd)
 import Data.Maybe (Maybe (..), fromMaybe)
-import Data.Foldable (foldM)
+import Data.Either (Either (..))
+import Data.Foldable (class Foldable, foldM)
 
 import Control.Monad.Rec.Class (forever)
+import Control.Monad.Error.Class (throwError)
 
 import Effect (Effect)
 import Effect.Class (liftEffect)
-import Effect.Exception.Unsafe (unsafeThrow)
-import Effect.Aff (Aff)
-import Effect.Aff.AVar as AVar
+import Effect.Aff (Aff, runAff_)
+import Effect.Aff.AVar (put, take) as AffAVar
+import Effect.AVar (AVar, empty) as AVar
 import Effect.Ref as Ref
+import Effect.Console (error)
+import Effect.Exception (message)
+
+import Web.HTML (window)
+import Web.HTML.Window (alert)
 
 import App.Store.Actions (AppAction)
 import App.Store.Reducers (AppState)
@@ -90,19 +95,25 @@ instance eqStoreSubscription :: Eq StoreSubscription where
 
 type StoreListener = StoreUpdateContext -> Effect Unit
 
+type StoreUpdateContext =
+   { prevState :: AppState
+   , nextState :: Maybe AppState
+   , action    :: AppAction
+   }
+
+type StoreReducer
+   = AppState
+  -> AppAction
+  -> Maybe AppState
+  -- ^ `Maybe` here to be able to avoid notifying subscribers
+  --   (when state isn't changed for example).
+
 -- This is an abstraction for `StoreListener` with `Boolean` mark
 -- that indicates if a subscriber strict or not that means
 -- will it be notified even if state wasn't changed.
 -- A `Ref` indicate is subscription alive or not (unsubscribed),
 -- this fixes triggering after unsubscribing.
 type Subscriber = Tuple Boolean (Tuple StoreListener (Ref.Ref Boolean))
-
-
-type StoreUpdateContext =
-   { prevState :: AppState
-   , nextState :: Maybe AppState
-   , action    :: AppAction
-   }
 
 
 type SubscribersMap = Map SubscriberId Subscriber
@@ -113,52 +124,51 @@ newtype AppContext
       { store       :: Ref.Ref AppState
       , subscribers :: Ref.Ref SubscribersMap
       , actionsBus  :: AVar.AVar AppAction
-
-      -- Only one reducer loop is allowed!
-      , isReduceLoopStarted :: Ref.Ref Boolean
       }
 
 
-createAppContext :: AppState -> Aff AppContext
-createAppContext initState = do
-  (store :: Ref.Ref AppState) <- liftEffect $ Ref.new initState
-  (subscribers :: Ref.Ref SubscribersMap) <- liftEffect $ Ref.new empty
-  (isReduceLoopStarted :: Ref.Ref Boolean) <- liftEffect $ Ref.new false
-  (actionsBus :: AVar.AVar AppAction) <- AVar.empty
+createStore :: StoreReducer -> AppState -> Effect AppContext
+createStore storeReducer initState = go where
+  go = do
+    (store       :: Ref.Ref AppState)       <- Ref.new initState
+    (subscribers :: Ref.Ref SubscribersMap) <- Ref.new empty
+    (actionsBus  :: AVar.AVar AppAction)    <- AVar.empty
 
-  pure $ AppContext
-       { store
-       , subscribers
-       , actionsBus
-       , isReduceLoopStarted
-       }
+    -- Running store reducing thread.
+    runAff_ reducerFailureHandler
+      $ reduce actionsBus
+      $ actionHandler store subscribers
 
+    pure $ AppContext
+         { store
+         , subscribers
+         , actionsBus
+         }
 
-reduceLoop
-  :: AppContext
-  -> (
-       AppState
-       -> AppAction
-       -> Maybe AppState
-       -- ^ `Maybe` here to be able to avoid notifying subscribers
-       --   (when state isn't changed for example).
-     )
-  -> Aff Unit
+  reducerFailureHandler (Right _) = pure unit
+  reducerFailureHandler (Left err) = do
+    error $ "Store reducer thread is failed with exception: " <> message err
 
-reduceLoop appCtx@(AppContext ctx) appReducer = go where
-  go = reactToAction actionHandler
+    window >>= alert
+      "Что-то пошло не так! Настоятельно рекомендуется перезагрузить\
+      \ страницу для продолжения нормальной работы системы!"
 
-  actionHandler action = do
+    throwError err
+
+  reduce actionsBus actionHandler' = forever reactToAction where
+    reactToAction = AffAVar.take actionsBus >>= liftEffect <<< actionHandler'
+
+  actionHandler store subscribers action = do
     subscriberData <-
       let f state = go' where
-            reduced = appReducer state action
+            reduced = storeReducer state action
             go' = { state: fromMaybe state reduced
                   , value: { prevState: state, nextState: reduced, action }
                   }
 
-       in f `Ref.modify'` ctx.store
+       in f `Ref.modify'` store
 
-    subscribersMap <- Ref.read ctx.subscribers
+    subscribersMap <- Ref.read subscribers
 
     notify subscriberData $
       case subscriberData.nextState of
@@ -167,32 +177,21 @@ reduceLoop appCtx@(AppContext ctx) appReducer = go where
            -- State was changed, notifying all subscribers
            Just _  -> subscribersMap
 
-  notify updateCtx = foldM (\_ (Tuple _ x) -> f x) unit
-    where
-      f (Tuple x aliveRef) = do
-        isAlive <- Ref.read aliveRef
-        if isAlive then x updateCtx else pure unit
+  notify
+    :: forall f. Foldable f => StoreUpdateContext -> f Subscriber -> Effect Unit
 
-  guardOnlyOneInstance = do
-    isReduceLoopStarted <- Ref.read ctx.isReduceLoopStarted
-
-    if isReduceLoopStarted -- `when` here would fail because of strictness
-       then unsafeThrow "Only one reduce loop is allowed"
-       else pure unit
-
-    true `Ref.write` ctx.isReduceLoopStarted
-
-  reactToAction m = do
-    liftEffect guardOnlyOneInstance
-    forever $ AVar.take ctx.actionsBus >>= liftEffect <<< m
+  notify updateCtx = foldM (const $ snd >>> notifyListener) unit where
+    notifyListener (Tuple storeListener aliveRef) = do
+      isAlive <- Ref.read aliveRef
+      if isAlive then storeListener updateCtx else pure unit
 
 
-getAppState :: AppContext -> Effect AppState
-getAppState (AppContext { store }) = Ref.read store
+getStoreState :: AppContext -> Effect AppState
+getStoreState (AppContext { store }) = Ref.read store
 
 
 dispatch :: AppContext -> AppAction -> Aff Unit
-dispatch (AppContext { actionsBus }) action = AVar.put action actionsBus
+dispatch (AppContext { actionsBus }) action = AffAVar.put action actionsBus
 
 
 -- See `subscribeInternal` for details.
