@@ -66,5 +66,5 @@ storeConnect storeSelector child = component "StoreConnect" spec where
 
         case subscription of
              Nothing -> pure unit
-             Just x  -> unsubscribe appContext x
+             Just x  -> unsubscribe x
     }
