@@ -7,15 +7,16 @@ import Prelude
 import Effect.Class (liftEffect)
 import Effect.Aff (Aff, launchAff_)
 
-import App.Store (AppContext, subscribe')
+import App.Store (Store, subscribe')
+import App.Store.Reducers (AppState)
 import App.Store.Actions (AppAction (..))
 import App.Store.Handlers (appHandler)
 import App.Store.DiagTree.Actions (DiagTreeAction (..))
 import App.Store.DiagTree.Editor.Handlers (diagTreeEditorHandler)
 
 
-subscribeHandlers :: AppContext -> Aff Unit
-subscribeHandlers appCtx = go where
+subscribeHandlers :: Store AppState AppAction -> Aff Unit
+subscribeHandlers store = go where
   go = do
 
     runHandler \ { prevState, nextState, action } -> case action of
@@ -30,10 +31,10 @@ subscribeHandlers appCtx = go where
       _ -> ignore
 
   ignore = pure unit
-  app = appHandler appCtx
+  app = appHandler store
 
-  diagTreeEditor = diagTreeEditorHandler appCtx
+  diagTreeEditor = diagTreeEditorHandler store
   diagTreeEditorLens = _.diagTree.editor
 
   runHandler selector = void $ liftEffect m where
-    m = subscribe' appCtx $ launchAff_ <<< selector
+    m = subscribe' store $ launchAff_ <<< selector

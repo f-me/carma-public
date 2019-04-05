@@ -34,11 +34,11 @@ import Utils.React.OutsideClick
      ( OutsideClickSubscription, subscribeOutsideClick, unsubscribeOutsideClick
      )
 
-import App.Store (AppContext)
+import App.Store (Store)
 
 
-type Props f a =
-   { appContext  :: AppContext
+type Props state action f a =
+   { store       :: Store state action
    , isDisabled  :: Boolean
    , variants    :: f a -- ^ Some list (Foldable) of `a`
    , selected    :: Maybe a
@@ -58,7 +58,12 @@ type Props f a =
    }
 
 
-dropDownSelectRender :: forall f a. Foldable f => Eq a => ReactClass (Props f a)
+dropDownSelectRender
+  :: forall state action f a
+   . Foldable f
+  => Eq a
+  => ReactClass (Props state action f a)
+
 dropDownSelectRender = defineComponent $
   \ { onToggle, onSelect, itemReducer: itemReducer' }
 
@@ -222,5 +227,10 @@ dropDownSelectRender = defineComponent $
                ]
 
 
-dropDownSelect :: forall f a. Foldable f => Eq a => ReactClass (Props f a)
+dropDownSelect
+  :: forall state action f a
+   . Foldable f
+  => Eq a
+  => ReactClass (Props state action f a)
+
 dropDownSelect = dropDownSelectRender

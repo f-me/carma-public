@@ -10,11 +10,11 @@ import React (ReactClass, component, getProps)
 import React.DOM (div, div', text)
 import React.DOM.Props (className)
 
-import App.Store (AppContext)
+import App.Store (Store)
 
 
-type Props =
-   { appContext :: AppContext
+type Props state action =
+   { store :: Store state action
 
    , withLabel  :: Either Boolean String
    -- ^ `Left`'s flag indicates is label shown or not
@@ -22,7 +22,7 @@ type Props =
    }
 
 
-spinnerRender :: ReactClass Props
+spinnerRender :: forall state action. ReactClass (Props state action)
 spinnerRender = go where
   go = component name spec
 
@@ -54,5 +54,5 @@ spinnerRender = go where
   wrapper = div [className name]
 
 
-spinner :: ReactClass Props
+spinner :: forall state action. ReactClass (Props state action)
 spinner = spinnerRender

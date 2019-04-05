@@ -52,7 +52,8 @@ import Utils.CopyPasteBuffer
      , getCopyPasteState
      )
 
-import App.Store (AppContext, dispatch)
+import App.Store (Store, dispatch)
+import App.Store.Reducers (AppState)
 import App.Store.Actions (AppAction (..))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
 import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction (..))
@@ -78,8 +79,9 @@ maxTreeDepth = 3
 
 
 diagTreeEditorTreeRender
-  :: ReactClass
-       { appContext          :: AppContext
+  :: forall state
+   . ReactClass
+       { store               :: Store state AppAction
        , slides              :: DiagTreeSlides
        , selectedSlideBranch :: Maybe (Array DiagTreeSlideId)
 
@@ -103,7 +105,7 @@ diagTreeEditorTreeRender = defineComponent $
     , shiftedSlidesMenu, changeDontShiftLevels
     }
     -- props
-    { appContext, slides, selectedSlideBranch, search
+    { store, slides, selectedSlideBranch, search
     , copyPasteState, copyPasteBuffer
     }
     -- state
@@ -136,7 +138,7 @@ diagTreeEditorTreeRender = defineComponent $
            Just n  -> shiftedSlidesMenu n
 
     itemProps =
-      { appContext
+      { store
       , ref: refPlug
       , selectedSlide: selectedSlideBranch, unfoldedSlides, search
       , select: selectSlide, delete: deleteSlide
@@ -205,7 +207,7 @@ diagTreeEditorTreeRender = defineComponent $
             "… (скрыто верхних уровней: " <> show levelsHidden <> ") …"
       ]
 
-    selectSlideHandler appContext this =
+    selectSlideHandler store this =
       \toggleSlideFold unfoldSlideBranch slideBranch -> do
       isSearching <- getProps this <#> _.search <#> isJust
 
@@ -216,10 +218,10 @@ diagTreeEditorTreeRender = defineComponent $
                 then unfoldSlideBranch slideBranch
                 else toggleSlideFold x
 
-             launchAff_ $ dispatch appContext $
+             launchAff_ $ dispatch store $
                DiagTree $ Editor $ SelectSlide slideBranch
 
-    deleteSlideHandler appContext this slideBranch = do
+    deleteSlideHandler store this slideBranch = do
       getSlide <- getProps this <#> _.slides <#> getSlideByBranch
 
       create <-
@@ -230,20 +232,20 @@ diagTreeEditorTreeRender = defineComponent $
       if not create
          then pure unit
          else launchAff_
-            $ dispatch appContext
+            $ dispatch store
             $ DiagTree $ Editor $ DeleteSlideRequest slideBranch
 
-    copySlideHandler appContext this slideBranch = do
+    copySlideHandler store this slideBranch = do
       getSlide <- getProps this <#> _.slides <#> getSlideByBranch
-      launchAff_ $ dispatch appContext $
+      launchAff_ $ dispatch store $
         DiagTree $ Editor $ CopySlideRequest slideBranch
 
-    cutSlideHandler appContext this slideBranch = do
+    cutSlideHandler store this slideBranch = do
       getSlide <- getProps this <#> _.slides <#> getSlideByBranch
-      launchAff_ $ dispatch appContext $
+      launchAff_ $ dispatch store $
         DiagTree $ Editor $ CutSlideRequest slideBranch
 
-    pasteSlideHandler appContext this slideBranch = do
+    pasteSlideHandler store this slideBranch = do
       getSlide <- getProps this <#> _.slides <#> getSlideByBranch
       copyPasteBuffer <- getProps this <#> _.copyPasteBuffer
 
@@ -266,7 +268,7 @@ diagTreeEditorTreeRender = defineComponent $
       if not paste
          then pure unit
          else launchAff_
-            $ dispatch appContext
+            $ dispatch store
             $ DiagTree $ Editor $ PasteSlideRequest slideBranch
 
     toggleSlideFoldHandler this slideId =
@@ -283,7 +285,7 @@ diagTreeEditorTreeRender = defineComponent $
         s { unfoldedSlides = _ } $
           foldr Set.insert unfoldedSlides slideBranch
 
-    selectOneLevelUpHandler appContext this event = do
+    selectOneLevelUpHandler store this event = do
       preventDefault event
       { selectedSlideBranch } <- getProps this
 
@@ -291,17 +293,17 @@ diagTreeEditorTreeRender = defineComponent $
            Nothing -> pure unit
            Just [] -> pure unit
            Just x  ->
-             launchAff_ $ dispatch appContext $
+             launchAff_ $ dispatch store $
                DiagTree $ Editor $ SelectSlide x
 
-    selectRootHandler appContext this event = do
+    selectRootHandler store this event = do
       preventDefault event
       { selectedSlideBranch } <- getProps this
 
       case selectedSlideBranch >>= head of
            Nothing -> pure unit
            Just x  ->
-             launchAff_ $ dispatch appContext $
+             launchAff_ $ dispatch store $
                DiagTree $ Editor $ SelectSlide [x]
 
     -- Reduce visible levels of slide path
@@ -331,24 +333,25 @@ diagTreeEditorTreeRender = defineComponent $
     refPlug = mkEffectFn1 $ \_ -> pure unit
 
     defineComponent renderFn = component name $ \this -> do
-      { appContext, selectedSlideBranch } <- getProps this
+      { store, selectedSlideBranch } <- getProps this
 
       let toggleSlideFold   = toggleSlideFoldHandler   this
       let unfoldSlideBranch = unfoldSlideBranchHandler this
 
-      let selectOneLevelUp  = selectOneLevelUpHandler appContext this
-      let selectRoot        = selectRootHandler       appContext this
+      let selectOneLevelUp  = selectOneLevelUpHandler store this
+      let selectRoot        = selectRootHandler       store this
 
       let selectSlide =
-            selectSlideHandler appContext this
-                               toggleSlideFold unfoldSlideBranch
+            selectSlideHandler store this toggleSlideFold unfoldSlideBranch
 
       let preBound =
             { selectSlide
-            , deleteSlide: deleteSlideHandler appContext this
-            , copySlide: copySlideHandler appContext this
-            , cutSlide: cutSlideHandler appContext this
-            , pasteSlide: pasteSlideHandler appContext this
+
+            , deleteSlide : deleteSlideHandler store this
+            , copySlide   : copySlideHandler   store this
+            , cutSlide    : cutSlideHandler    store this
+            , pasteSlide  : pasteSlideHandler  store this
+
             , shiftedSlidesMenu: shiftedSlidesMenuFn selectRoot selectOneLevelUp
             , changeDontShiftLevels: changeDontShiftLevelsHandler this
             }
@@ -384,22 +387,21 @@ diagTreeEditorTreeRender = defineComponent $
            }
 
 
-diagTreeEditorTree :: ReactClass { appContext :: AppContext }
-diagTreeEditorTree = storeConnect f diagTreeEditorTreeRender
-  where
-    f appState = let branch = appState.diagTree.editor in merge
-      { slides              : branch.slides
-      , selectedSlideBranch : branch.selectedSlideBranch
+diagTreeEditorTree :: ReactClass { store :: Store AppState AppAction }
+diagTreeEditorTree = storeConnect f diagTreeEditorTreeRender where
+  f appState = let branch = appState.diagTree.editor in merge
+    { slides              : branch.slides
+    , selectedSlideBranch : branch.selectedSlideBranch
 
-      , search:
-          branch.foundSlides
-            >>= \ { matchedParents: parents, matchedPatterns: patterns } -> do
-                  query <- branch.treeSearch.searchQuery <#> toString
-                  pure { query, parents, patterns }
+    , search:
+        branch.foundSlides
+          >>= \ { matchedParents: parents, matchedPatterns: patterns } -> do
+                query <- branch.treeSearch.searchQuery <#> toString
+                pure { query, parents, patterns }
 
-      , copyPasteState: getCopyPasteState branch.copyPasteBuffer
-      , copyPasteBuffer: branch.copyPasteBuffer
-      }
+    , copyPasteState: getCopyPasteState branch.copyPasteBuffer
+    , copyPasteBuffer: branch.copyPasteBuffer
+    }
 
 
 slideSfx :: DiagTreeSlide -> String

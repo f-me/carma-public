@@ -37,7 +37,7 @@ import React
      , createLeafElement, unsafeCreateElement
      )
 
-import App.Store (AppContext)
+import App.Store (Store)
 import Bindings.ReactDropzone (dropzone)
 import Component.Generic.Spinner (spinner)
 import Component.Generic.DropDownSelect (dropDownSelect)
@@ -69,8 +69,8 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
      )
 
 
-type Props =
-   { appContext :: AppContext
+type Props state action =
+   { store      :: Store state action
    , slideId    :: DiagTreeSlideId
    , identity   :: Maybe (Either DiagTreeSlideId Int)
    , isDisabled :: Boolean
@@ -106,10 +106,12 @@ type Props =
    }
 
 
-diagTreeEditorSlideEditorAnswerRender :: ReactClass Props
+diagTreeEditorSlideEditorAnswerRender
+  :: forall state action. ReactClass (Props state action)
+
 diagTreeEditorSlideEditorAnswerRender = defineComponent $
   \ preBound
-    { appContext, identity, answer, isDisabled, onMoveUp, onMoveDown }
+    { store, identity, answer, isDisabled, onMoveUp, onMoveDown }
     state@{ mediaType
           , attachment
           , isEditing
@@ -145,7 +147,7 @@ diagTreeEditorSlideEditorAnswerRender = defineComponent $
        else pure $
             spinnerEl
               { withLabel: Right "Загрузка…"
-              , appContext
+              , store
               }
   )
 
@@ -216,7 +218,7 @@ diagTreeEditorSlideEditorAnswerRender = defineComponent $
     isBlocked = isDisabled || isProcessing
   in
     if isEditing || isNothing answer
-       then editRender isBlocked appContext hasAttachment
+       then editRender isBlocked store hasAttachment
                        preBound state previewEls
        else viewRender isBlocked onMoveUp onMoveDown
                        preBound state previewEls
@@ -289,7 +291,7 @@ diagTreeEditorSlideEditorAnswerRender = defineComponent $
             [ i [className "glyphicon glyphicon-trash"] mempty ]
       ]
 
-    editRender isDisabled appContext hasAttachment preBound state previewEls =
+    editRender isDisabled store hasAttachment preBound state previewEls =
       [ div [className "form-group"] $ pure $
           input
             [ className "form-control"
@@ -315,7 +317,7 @@ diagTreeEditorSlideEditorAnswerRender = defineComponent $
           $
           [ div' $ pure $
               dropDownSelectEl
-                { appContext
+                { store
                 , isDisabled:
                     isDisabled || isJust state.attachment || hasAttachment
                 , variants:
@@ -564,7 +566,9 @@ diagTreeEditorSlideEditorAnswerRender = defineComponent $
         }
 
 
-diagTreeEditorSlideEditorAnswer :: ReactClass Props
+diagTreeEditorSlideEditorAnswer
+  :: forall state action. ReactClass (Props state action)
+
 diagTreeEditorSlideEditorAnswer = diagTreeEditorSlideEditorAnswerRender
 
 

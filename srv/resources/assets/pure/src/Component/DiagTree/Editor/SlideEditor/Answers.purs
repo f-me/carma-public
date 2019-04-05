@@ -23,7 +23,7 @@ import React
      )
 
 import Utils ((<.>))
-import App.Store (AppContext)
+import App.Store (Store)
 
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlide (DiagTreeSlide)
@@ -43,8 +43,8 @@ import Component.DiagTree.Editor.SlideEditor.Answer
      )
 
 
-type Props answers newAnswers =
-   { appContext :: AppContext
+type Props state action answers newAnswers =
+   { store      :: Store state action
    , slideId    :: DiagTreeSlideId
    , isDisabled :: Boolean
    , answers    :: answers DiagTreeSlideAnswer
@@ -69,11 +69,14 @@ type Props answers newAnswers =
 
 
 diagTreeEditorSlideEditorAnswersRender
-  :: forall f1 f2 . Foldable f1 => Foldable f2 => ReactClass (Props f1 f2)
+  :: forall state action f1 f2
+   . Foldable f1
+  => Foldable f2
+  => ReactClass (Props state action f1 f2)
 
 diagTreeEditorSlideEditorAnswersRender = defineComponent $
   \ { turnAddingOn, turnAddingOff }
-    { appContext, slideId, isDisabled
+    { store, slideId, isDisabled
     , answers, newAnswers, updateAnswer
     , onMoveUp, onMoveDown
     }
@@ -115,7 +118,7 @@ diagTreeEditorSlideEditorAnswersRender = defineComponent $
             }
 
         props identity moveUp moveDown item =
-          { appContext
+          { store
           , slideId
           , key: show identity
           , identity: Just identity
@@ -132,7 +135,7 @@ diagTreeEditorSlideEditorAnswersRender = defineComponent $
 
   , if isAdding
        then itemEl
-              { appContext
+              { store
               , slideId
               , key: mempty
               , identity: Nothing
@@ -186,6 +189,9 @@ diagTreeEditorSlideEditorAnswersRender = defineComponent $
 
 
 diagTreeEditorSlideEditorAnswers
-  :: forall f1 f2 . Foldable f1 => Foldable f2 => ReactClass (Props f1 f2)
+  :: forall state action f1 f2
+   . Foldable f1
+  => Foldable f2
+  => ReactClass (Props state action f1 f2)
 
 diagTreeEditorSlideEditorAnswers = diagTreeEditorSlideEditorAnswersRender

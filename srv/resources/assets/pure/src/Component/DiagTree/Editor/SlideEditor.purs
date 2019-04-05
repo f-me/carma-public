@@ -51,7 +51,8 @@ import Utils.DiagTree.Editor
      , eqIshDiagTreeSlideAnswers
      )
 
-import App.Store (AppContext, dispatch)
+import App.Store (Store, dispatch)
+import App.Store.Reducers (AppState)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
 import Component.DiagTree.Editor.SlideEditor.Helpers (ItemModification (..))
@@ -90,8 +91,9 @@ import Component.DiagTree.Editor.SlideEditor.Action
 
 
 diagTreeEditorSlideEditorRender
-  :: ReactClass
-       { appContext   :: AppContext
+  :: forall state
+   . ReactClass
+       { store        :: Store state AppAction
        , slide        :: Maybe DiagTreeSlide
        , slidePath    :: Maybe (Array DiagTreeSlideId)
        , isProcessing :: Boolean
@@ -104,7 +106,7 @@ diagTreeEditorSlideEditorRender = defineComponent $
     , updateAnswer,   onAnswerMoveUp,   onAnswerMoveDown
     , onSelectAction, onCancel,         onSave
     }
-    { appContext, isProcessing, isFailed }
+    { store, isProcessing, isFailed }
     { newAnswers, isChanged }
     ( DiagTreeSlide slide ) ->
 
@@ -130,15 +132,14 @@ diagTreeEditorSlideEditorRender = defineComponent $
         ]
 
   , rteWrapEl
-      { appContext
-      , slideId: slide.id
+      { slideId: slide.id
       , isProcessing
       , value: slide.body
       , onChange: onChangeBody
       }
 
   , resourcesEl
-      { appContext
+      { store
       , slideId: slide.id
       , isDisabled: isProcessing
       , resources: slide.resources
@@ -161,7 +162,7 @@ diagTreeEditorSlideEditorRender = defineComponent $
          then mempty
          else pure $
               answersEl
-                { appContext
+                { store
                 , slideId: slide.id
                 , isDisabled: isProcessing
                 , answers: fst $ fromIndexedAnswers slide.answers
@@ -179,7 +180,7 @@ diagTreeEditorSlideEditorRender = defineComponent $
          then mempty
          else pure $
               actionEl
-                { appContext
+                { store
                 , isDisabled: isProcessing
                 , action: slide.action
                 , onSelected: onSelectAction
@@ -462,13 +463,13 @@ diagTreeEditorSlideEditorRender = defineComponent $
       resetChanges this slide
 
     saveHandler this event = do
-      { appContext, slidePath } <- getProps this
+      { store, slidePath } <- getProps this
       { slide, newAnswers } <- getState this
 
       case Tuple <$> slidePath <*> slide of
            Nothing -> pure unit
            Just (Tuple x y) -> launchAff_ $
-             dispatch appContext $ DiagTree $ Editor $
+             dispatch store $ DiagTree $ Editor $
                SaveSlideRequest x { slide: y, newAnswers }
 
     resetChanges this slide =
@@ -538,7 +539,7 @@ diagTreeEditorSlideEditorRender = defineComponent $
         }
 
 
-diagTreeEditorSlideEditor :: ReactClass { appContext :: AppContext }
+diagTreeEditorSlideEditor :: ReactClass { store :: Store AppState AppAction }
 diagTreeEditorSlideEditor = go where
   go = storeConnect f diagTreeEditorSlideEditorRender
 
@@ -560,8 +561,7 @@ diagTreeEditorSlideEditor = go where
 
 -- For debouncing `onChange` triggering (for optimization purposes)
 rteWrap
-  :: ReactClass { appContext   :: AppContext
-                , slideId      :: DiagTreeSlideId
+  :: ReactClass { slideId      :: DiagTreeSlideId
                 , isProcessing :: Boolean
                 , value        :: String -- ^ Markdown
                 , onChange     :: String -> Effect Unit

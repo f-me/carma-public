@@ -14,26 +14,28 @@ import React.DOM.Props (className)
 
 import Utils ((<.>), unfoldrBoundedEnum)
 import Component.Generic.DropDownSelect (dropDownSelect)
-import App.Store (AppContext)
+import App.Store (Store)
 import App.Store.DiagTree.Editor.Types (DiagTreeSlideAction)
 
 
-type Props =
-   { appContext :: AppContext
+type Props state action =
+   { store      :: Store state action
    , isDisabled :: Boolean
    , action     :: Maybe DiagTreeSlideAction
    , onSelected :: Maybe DiagTreeSlideAction -> Effect Unit
    }
 
-diagTreeEditorSlideEditorActionRender :: ReactClass Props
+diagTreeEditorSlideEditorActionRender
+  :: forall state action. ReactClass (Props state action)
+
 diagTreeEditorSlideEditorActionRender = defineComponent $
-  \ { appContext, isDisabled, action, onSelected } ->
+  \ { store, isDisabled, action, onSelected } ->
 
   [ label [className "control-label"] [text "Рекомендация"]
 
   , div' $ pure $
       dropDownSelectEl
-        { appContext
+        { store
         , isDisabled
         , variants
         , selected: action
@@ -56,5 +58,7 @@ diagTreeEditorSlideEditorActionRender = defineComponent $
       }
 
 
-diagTreeEditorSlideEditorAction :: ReactClass Props
+diagTreeEditorSlideEditorAction
+  :: forall state action. ReactClass (Props state action)
+
 diagTreeEditorSlideEditorAction = diagTreeEditorSlideEditorActionRender

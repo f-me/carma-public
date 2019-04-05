@@ -37,17 +37,14 @@
 -- P.S. By "rerendering" I meant even just constructing virtual-dom that still
 -- wastes CPU time a lot.
 --
--- This store implementation is attached to `AppState`, so it isn't polymorphic
--- for different state types, just for now, because we don't need more, but with
--- some modifications this store implementation could be separated and
--- generalized, so you could have different stores.
+-- TODO Separate this store implementation to own PureScript package.
 
 module App.Store
-     ( AppContext
-     , StoreSubscription
-     , StoreListener
-     , StoreUpdateContext
+     ( Store
      , StoreReducer
+     , StoreSubscription
+     , StoreUpdateContext
+     , StoreListener
 
      , createStore
      , getStoreState
@@ -79,42 +76,40 @@ import Effect.Exception (message)
 import Web.HTML (window)
 import Web.HTML.Window (alert)
 
-import App.Store.Actions (AppAction)
-import App.Store.Reducers (AppState)
 import Utils.SubscriberId (SubscriberId, newSubscriberId)
 
 
 -- An identity of a subscrition that could be used to `unsubscribe`.
 -- A `Ref` indicate is subscription alive or not (unsubscribed),
 -- this fixes triggering after unsubscribing.
-data StoreSubscription =
-     StoreSubscription SubscriberId (Ref.Ref Boolean) (Effect Unit)
+data StoreSubscription
+   = StoreSubscription SubscriberId (Ref.Ref Boolean) (Effect Unit)
 
 instance eqStoreSubscription :: Eq StoreSubscription where
   eq (StoreSubscription a _ _) (StoreSubscription b _ _) = eq a b
 
 
-type StoreListener = StoreUpdateContext -> Effect Unit
+type StoreListener state action = StoreUpdateContext state action -> Effect Unit
 
-type StoreUpdateContext =
-   { prevState :: AppState
-   , nextState :: Maybe AppState
-   , action    :: AppAction
+type StoreUpdateContext state action =
+   { prevState :: state
+   , nextState :: Maybe state
+   , action    :: action
    }
 
-type StoreReducer
-   = AppState
-  -> AppAction
-  -> Maybe AppState
+type StoreReducer state action
+   = state
+  -> action
+  -> Maybe state
   -- ^ `Maybe` here to be able to avoid notifying subscribers
   --   (when state isn't changed for example).
 
-data StoreSubscriber = StoreSubscriber
+data StoreSubscriber state action = StoreSubscriber
      Boolean
      -- ^ Indicates whether a subscriber is strict or not that means
      --   it will be notified even if state wasn't changed (strict subscriber)
      --   or only in case something is changed (lazy/not strict subscriber).
-     StoreListener
+     (StoreListener state action)
      -- ^ A handler which is called when store state is changed
      --   or even if just an action is raised but state kept unchanged
      --   (if a subscriber is strict). It receives raised action,
@@ -125,36 +120,38 @@ data StoreSubscriber = StoreSubscriber
      -- ^ Indicates whether subscription is alive or not (unsubscribed),
      --   this fixes triggering after unsubscribing (there's was some issues).
 
-type SubscribersMap = Map SubscriberId StoreSubscriber
+type SubscribersMap state action
+   = Map SubscriberId (StoreSubscriber state action)
 
 
-newtype AppContext
-      = AppContext
-      { store       :: Ref.Ref AppState
-      , subscribers :: Ref.Ref SubscribersMap
-      , actionsBus  :: AVar.AVar AppAction
+newtype Store state action
+      = Store
+      { store       :: Ref.Ref state
+      , subscribers :: Ref.Ref (SubscribersMap state action)
+      , actionsBus  :: AVar.AVar action
       }
 
 
-createStore :: StoreReducer -> AppState -> Effect AppContext
+createStore
+  :: forall state action
+   . StoreReducer state action
+  -> state
+  -> Effect (Store state action)
+
 createStore storeReducer initState = go where
   go = do
-    (store       :: Ref.Ref AppState)       <- Ref.new initState
-    (subscribers :: Ref.Ref SubscribersMap) <- Ref.new empty
-    (actionsBus  :: AVar.AVar AppAction)    <- AVar.empty
+    (store       :: Ref.Ref state)                         <- Ref.new initState
+    (subscribers :: Ref.Ref (SubscribersMap state action)) <- Ref.new empty
+    (actionsBus  :: AVar.AVar action)                      <- AVar.empty
 
     -- Running store reducing thread.
     runAff_ reducerFailureHandler
       $ reduce actionsBus
       $ actionHandler store subscribers
 
-    pure $ AppContext
-         { store
-         , subscribers
-         , actionsBus
-         }
+    pure $ Store { store, subscribers, actionsBus }
 
-  reducerFailureHandler (Right _) = pure unit
+  reducerFailureHandler (Right _)  = pure unit
   reducerFailureHandler (Left err) = do
     error $ "Store reducer thread is failed with exception: " <> message err
 
@@ -188,8 +185,8 @@ createStore storeReducer initState = go where
 
   notify
     :: forall f. Foldable f
-    => StoreUpdateContext
-    -> f StoreSubscriber
+    => StoreUpdateContext state action
+    -> f (StoreSubscriber state action)
     -> Effect Unit
 
   notify updateCtx = traverse_ notifyListener where
@@ -198,21 +195,31 @@ createStore storeReducer initState = go where
       if isAlive then storeListener updateCtx else pure unit
 
 
-getStoreState :: AppContext -> Effect AppState
-getStoreState (AppContext { store }) = Ref.read store
+getStoreState :: forall state action. Store state action -> Effect state
+getStoreState (Store { store }) = Ref.read store
 
 
-dispatch :: AppContext -> AppAction -> Aff Unit
-dispatch (AppContext { actionsBus }) action = AffAVar.put action actionsBus
+dispatch :: forall state action. Store state action -> action -> Aff Unit
+dispatch (Store { actionsBus }) action = AffAVar.put action actionsBus
 
 
 -- See `subscribeInternal` for details.
-subscribe :: AppContext -> StoreListener -> Effect StoreSubscription
+subscribe
+  :: forall state action
+   . Store state action
+  -> StoreListener state action
+  -> Effect StoreSubscription
+
 subscribe = subscribeInternal false
 
 -- Strict version of `subscribe`, it means that subscriber will be notified
 -- notwithstanding if state change or not (useful for side-effects handlers).
-subscribe' :: AppContext -> StoreListener -> Effect StoreSubscription
+subscribe'
+  :: forall state action
+   . Store state action
+  -> StoreListener state action
+  -> Effect StoreSubscription
+
 subscribe' = subscribeInternal true
 
 
@@ -223,12 +230,13 @@ unsubscribe (StoreSubscription _ _ unsubscriber) = unsubscriber
 
 
 subscribeInternal
-  :: Boolean
-  -> AppContext
-  -> StoreListener
+  :: forall state action
+   . Boolean
+  -> Store state action
+  -> StoreListener state action
   -> Effect StoreSubscription
 
-subscribeInternal isStrict (AppContext { subscribers }) storeListener = do
+subscribeInternal isStrict (Store { subscribers }) storeListener = do
   subscriberId <- newSubscriberId
   aliveRef     <- Ref.new true
 
@@ -246,5 +254,9 @@ subscribeInternal isStrict (AppContext { subscribers }) storeListener = do
   f `Ref.modify'` subscribers
 
 
-isStoreSubscriberStrict :: StoreSubscriber -> Boolean
+isStoreSubscriberStrict
+  :: forall state action
+   . StoreSubscriber state action
+  -> Boolean
+
 isStoreSubscriberStrict (StoreSubscriber isStrict _ _) = isStrict

@@ -36,7 +36,7 @@ import React
      , getProps, getState, modifyState
      )
 
-import App.Store (AppContext)
+import App.Store (Store)
 import Bindings.ReactDropzone (dropzone)
 import Component.Generic.Spinner (spinner)
 import Component.Generic.DropDownSelect (dropDownSelect)
@@ -70,8 +70,8 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAttachment
      )
 
 
-type Props =
-   { appContext :: AppContext
+type Props state action =
+   { store      :: Store state action
    , slideId    :: DiagTreeSlideId
    , itemIndex  :: Maybe Int
    , isDisabled :: Boolean
@@ -96,10 +96,12 @@ type Props =
    }
 
 
-diagTreeEditorSlideEditorResourceRender :: ReactClass Props
+diagTreeEditorSlideEditorResourceRender
+  :: forall state action. ReactClass (Props state action)
+
 diagTreeEditorSlideEditorResourceRender = defineComponent $
   \ preBound
-    { appContext, resource, isDisabled, onMoveUp, onMoveDown }
+    { store, resource, isDisabled, onMoveUp, onMoveDown }
     state@{ file, mediaType, isEditing, isProcessing, isUploadingFailed } ->
 
   case resource of
@@ -130,7 +132,7 @@ diagTreeEditorSlideEditorResourceRender = defineComponent $
        else pure $
             spinnerEl
               { withLabel: Right "Загрузка…"
-              , appContext
+              , store
               }
   )
 
@@ -201,7 +203,7 @@ diagTreeEditorSlideEditorResourceRender = defineComponent $
     isBlocked = isDisabled || isProcessing
   in
     if isEditing || isNothing resource
-       then editRender isBlocked appContext resource preBound state previewEls
+       then editRender isBlocked store    resource   preBound state previewEls
        else viewRender isBlocked onMoveUp onMoveDown preBound state previewEls
 
   where
@@ -266,12 +268,12 @@ diagTreeEditorSlideEditorResourceRender = defineComponent $
             ]
             [ i [className "glyphicon glyphicon-trash"] mempty ]
 
-    editRender isDisabled appContext resource preBound state previewEls =
+    editRender isDisabled store resource preBound state previewEls =
       [ div
           [ className "form-group" ]
           [ div' $ pure $
               dropDownSelectEl
-                { appContext
+                { store
                 , isDisabled: isDisabled || isJust state.file || isJust resource
                 , variants:
                     (unfoldrBoundedEnum :: Array BackendAttachmentMediaType)
@@ -490,5 +492,7 @@ diagTreeEditorSlideEditorResourceRender = defineComponent $
         }
 
 
-diagTreeEditorSlideEditorResource :: ReactClass Props
+diagTreeEditorSlideEditorResource
+  :: forall state action. ReactClass (Props state action)
+
 diagTreeEditorSlideEditorResource = diagTreeEditorSlideEditorResourceRender

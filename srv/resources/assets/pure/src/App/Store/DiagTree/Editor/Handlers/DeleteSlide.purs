@@ -27,7 +27,8 @@ import Affjax.ResponseFormat
 
 import Utils.Affjax (getRequest, putRequest)
 import Utils.DiagTree.Editor (getSlideByBranch)
-import App.Store (AppContext)
+import App.Store (Store)
+import App.Store.Actions (AppAction)
 import App.Store.DiagTree.Editor.Handlers.Helpers (errLog, sendAction)
 
 import App.Store.DiagTree.Editor.Handlers.SharedUtils
@@ -50,8 +51,14 @@ import App.Store.DiagTree.Editor.Actions
      )
 
 
-deleteSlide :: AppContext -> DiagTreeSlides -> Array DiagTreeSlideId -> Aff Unit
-deleteSlide appCtx slides slidePath = catchError go handleError where
+deleteSlide
+  :: forall state
+   . Store state AppAction
+  -> DiagTreeSlides
+  -> Array DiagTreeSlideId
+  -> Aff Unit
+
+deleteSlide store slides slidePath = catchError go handleError where
   go = do
     case slidePath of
 
@@ -79,7 +86,7 @@ deleteSlide appCtx slides slidePath = catchError go handleError where
     act $ DeleteSlideSuccess slidePath
     act LoadSlidesRequest -- Reloading slides again
 
-  act = sendAction appCtx
+  act = sendAction store
   slideUrl slideId = "/_/DiagSlide/" <> show slideId
 
   reportErr err = errLog $

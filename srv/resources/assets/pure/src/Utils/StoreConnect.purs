@@ -16,22 +16,21 @@ import React
 
 -- local imports
 
-import App.Store (AppContext, subscribe, unsubscribe, getStoreState)
-import App.Store.Reducers (AppState)
+import App.Store (Store, subscribe, unsubscribe, getStoreState)
 
 
-type StoreSelector props1 props2
-   = AppState
+type StoreSelector props1 props2 state action
+   = state
   -> Builder
-       { appContext :: AppContext | props1 }
-       { appContext :: AppContext | props2 }
+       { store :: Store state action | props1 }
+       { store :: Store state action | props2 }
 
 
 storeConnect
-  :: forall props1 props2
-   . StoreSelector props1 props2
-  -> ReactClass { appContext :: AppContext | props2 }
-  -> ReactClass { appContext :: AppContext | props1 }
+  :: forall props1 props2 state action
+   . StoreSelector props1 props2 state action
+  -> ReactClass { store :: Store state action | props2 }
+  -> ReactClass { store :: Store state action | props1 }
 
 storeConnect storeSelector child = component "StoreConnect" spec where
   childEl = unsafeCreateLeafElement child
@@ -39,7 +38,7 @@ storeConnect storeSelector child = component "StoreConnect" spec where
   renderFn this = getState this <#> applyProps
 
   getMappedProps props =
-    getStoreState props.appContext <#>
+    getStoreState props.store <#>
       \appState -> build (storeSelector appState) props
 
   spec this = getProps this >>= getMappedProps <#> \mappedProps ->
@@ -52,8 +51,8 @@ storeConnect storeSelector child = component "StoreConnect" spec where
               x <- getProps this <#> build (storeSelector appState)
               modifyState this _ { mappedProps = x }
 
-        { appContext } <- getProps this
-        subscription   <- subscribe appContext listener
+        { store } <- getProps this
+        subscription   <- subscribe store listener
         modifyState this _ { subscription = Just subscription }
 
     , unsafeComponentWillReceiveProps: \nextProps -> do
@@ -61,7 +60,7 @@ storeConnect storeSelector child = component "StoreConnect" spec where
         modifyState this _ { mappedProps = x }
 
     , componentWillUnmount: do
-        { appContext }   <- getProps this
+        { store }   <- getProps this
         { subscription } <- getState this
 
         case subscription of

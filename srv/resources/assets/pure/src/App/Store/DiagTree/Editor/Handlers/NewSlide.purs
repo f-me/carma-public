@@ -26,7 +26,8 @@ import Affjax.ResponseFormat
 
 import Utils (toMaybeT)
 import Utils.Affjax (getRequest, postRequest)
-import App.Store (AppContext)
+import App.Store (Store)
+import App.Store.Actions (AppAction)
 import App.Store.DiagTree.Editor.Handlers.Helpers (errLog, sendAction)
 
 import App.Store.DiagTree.Editor.Types
@@ -47,8 +48,8 @@ import App.Store.DiagTree.Editor.Handlers.SharedUtils
      )
 
 
-newSlide :: AppContext -> Aff Unit
-newSlide appCtx = catchError go handleError where
+newSlide :: forall state. Store state AppAction -> Aff Unit
+newSlide store = catchError go handleError where
   go = do
     (newSlideResponse :: Either ResponseFormatError A.Json) <-
       map _.body $ request $ postRequest newSlideUrl jsonRequest json
@@ -79,7 +80,7 @@ newSlide appCtx = catchError go handleError where
            act $ NewSlideSuccess x
            act $ SelectSlide [newSlideId]
 
-  act = sendAction appCtx
+  act = sendAction store
   newSlideUrl = "/_/DiagSlide"
 
   getSlideUrl :: DiagTreeSlideId -> String
