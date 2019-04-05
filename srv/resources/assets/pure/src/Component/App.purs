@@ -14,33 +14,35 @@ import React.DOM.Props (className)
 
 import Utils (storeConnect)
 import Router (Location (..))
-import App.Store (AppContext)
+import App.Store (Store)
+import App.Store.Reducers (AppState)
+import App.Store.Actions (AppAction)
 import Component.Generic.Spinner (spinner)
 import Component.DiagTree.Editor (diagTreeEditor)
 
 
 appRender
-  :: ReactClass { location   :: Location
-                , appContext :: AppContext
+  :: ReactClass { store    :: Store AppState AppAction
+                , location :: Location
                 }
 
-appRender = defineComponent \ { appContext, location } -> wrapper $ pure $
+appRender = defineComponent \ { store, location } -> wrapper $ pure $
 
   case location of
 
     DiagTreeEditPartial ->
-      editorEl { appContext }
+      editorEl { store }
 
     NotFound ->
       h1' $ pure $ text "Страница не найдена"
 
     Empty ->
-      spinnerEl { withLabel: Left true, appContext }
+      spinnerEl { withLabel: Left true, store }
 
   where
-    name = "CarmaApp"
-    wrapper = div [className name]
-    editorEl = createLeafElement diagTreeEditor
+    name      = "CarmaApp"
+    wrapper   = div [className name]
+    editorEl  = createLeafElement diagTreeEditor
     spinnerEl = createLeafElement spinner
 
     defineComponent renderFn = component name \this ->
@@ -52,6 +54,6 @@ appRender = defineComponent \ { appContext, location } -> wrapper $ pure $
         }
 
 
-app :: ReactClass { appContext :: AppContext }
+app :: ReactClass { store :: Store AppState AppAction }
 app = storeConnect f appRender where
   f appState = merge { location: appState.currentLocation }

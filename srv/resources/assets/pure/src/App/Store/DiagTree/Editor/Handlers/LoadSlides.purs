@@ -30,7 +30,8 @@ import Affjax.ResponseFormat
 
 import Utils (toMaybeT)
 import Utils.Affjax (getRequest)
-import App.Store (AppContext)
+import App.Store (Store)
+import App.Store.Actions (AppAction)
 import App.Store.DiagTree.Editor.Handlers.Helpers (errLog, sendAction)
 import App.Store.DiagTree.Editor.Types (DiagTreeSlides, DiagTreeSlideId)
 import App.Store.DiagTree.Editor.Handlers.SharedUtils.Slide (getSlide)
@@ -45,8 +46,8 @@ import App.Store.DiagTree.Editor.Actions
      )
 
 
-loadSlides :: AppContext -> Aff Unit
-loadSlides appCtx = catchError go handleError where
+loadSlides :: forall state. Store state AppAction -> Aff Unit
+loadSlides store = catchError go handleError where
   go = do
     (res :: Either ResponseFormatError A.Json) <-
       map _.body $ request $ getRequest "/_/DiagSlide" json
@@ -116,7 +117,7 @@ loadSlides appCtx = catchError go handleError where
 
     act $ LoadSlidesSuccess parsed
 
-  act = sendAction appCtx
+  act = sendAction store
   dataParseFailMsg = "parsing data failed"
 
   handleError err =

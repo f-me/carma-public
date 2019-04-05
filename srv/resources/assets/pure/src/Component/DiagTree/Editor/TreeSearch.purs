@@ -35,7 +35,8 @@ import Utils.Debouncer
      , sendToDebouncer
      )
 
-import App.Store (AppContext, dispatch)
+import App.Store (Store, dispatch)
+import App.Store.Reducers (AppState)
 import App.Store.Actions (AppAction (DiagTree))
 import App.Store.DiagTree.Actions (DiagTreeAction (Editor))
 
@@ -49,7 +50,8 @@ import App.Store.DiagTree.Editor.TreeSearch.Actions
 
 
 diagTreeEditorTreeSearchRender
-  :: ReactClass { appContext  :: AppContext
+  :: forall state
+   . ReactClass { store       :: Store state AppAction
                 , isDisabled  :: Boolean
                 , searchQuery :: Maybe NonEmptyString
                 }
@@ -86,13 +88,13 @@ diagTreeEditorTreeSearchRender = defineComponent $
       modifyState this _ { query = query }
       sendToDebouncer changeDebouncer query
 
-    onClearHandler appCtx this changeDebouncer event = do
+    onClearHandler store this changeDebouncer event = do
       preventDefault event
-      resetSearch appCtx this changeDebouncer
+      resetSearch store this changeDebouncer
 
-    onKeyHandler appCtx this changeDebouncer event = go where
+    onKeyHandler store this changeDebouncer event = go where
       condition a b c d = a && b && c && d
-      f x = if x then resetSearch appCtx this changeDebouncer else pure unit
+      f x = if x then resetSearch store this changeDebouncer else pure unit
 
       go  =  f
          =<< condition
@@ -101,27 +103,27 @@ diagTreeEditorTreeSearchRender = defineComponent $
          <*> (not <$> shiftKey event)
          <*> (key event <#> (_ == "Escape"))
 
-    resetSearch appCtx this changeDebouncer = do
-      act appCtx ResetSearch
+    resetSearch store this changeDebouncer = do
+      act store ResetSearch
 
       -- In case escape pressed before debounced request
       sendToDebouncer changeDebouncer ""
       modifyState this _ { query = "" }
 
-    searchHandler appCtx query = act appCtx $
+    searchHandler store query = act store $
       case fromString $ trim query of
            Nothing -> ResetSearch
            Just x  -> SearchByQuery x
 
     defineComponent renderFn = component name \this -> do
-      { appContext, searchQuery } <- getProps this
+      { store, searchQuery } <- getProps this
       changeDebouncer <- newDebouncer 500
-      let search = searchHandler appContext
+      let search = searchHandler store
 
       let preBound =
-            { changeHandler : onChangeHandler this changeDebouncer
-            , clearHandler  : onClearHandler appContext this changeDebouncer
-            , keyHandler    : onKeyHandler appContext this changeDebouncer
+            { changeHandler : onChangeHandler       this changeDebouncer
+            , clearHandler  : onClearHandler  store this changeDebouncer
+            , keyHandler    : onKeyHandler    store this changeDebouncer
             }
 
       let state =
@@ -159,12 +161,19 @@ diagTreeEditorTreeSearchRender = defineComponent $
 
 
 diagTreeEditorTreeSearch
-  :: ReactClass { appContext :: AppContext, isDisabled :: Boolean }
+  :: ReactClass { store      :: Store AppState AppAction
+                , isDisabled :: Boolean
+                }
 
 diagTreeEditorTreeSearch = storeConnect f diagTreeEditorTreeSearchRender where
   f appState = merge { searchQuery } where
     { searchQuery } = appState.diagTree.editor.treeSearch
 
 
-act :: AppContext -> DiagTreeEditorTreeSearchAction -> Effect Unit
-act ctx = launchAff_ <<< dispatch ctx <<< DiagTree <<< Editor <<< TreeSearch
+act
+  :: forall state
+   . Store state AppAction
+  -> DiagTreeEditorTreeSearchAction
+  -> Effect Unit
+
+act store = launchAff_ <<< dispatch store <<< DiagTree <<< Editor <<< TreeSearch

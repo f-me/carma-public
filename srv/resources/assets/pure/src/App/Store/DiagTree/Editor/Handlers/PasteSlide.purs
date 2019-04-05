@@ -27,7 +27,8 @@ import Affjax.ResponseFormat
      )
 
 import Utils.Affjax (postRequest)
-import App.Store (AppContext)
+import App.Store (Store)
+import App.Store.Actions (AppAction)
 import App.Store.DiagTree.Editor.Handlers.Helpers (errLog, sendAction)
 import App.Store.DiagTree.Editor.Reducers (DiagTreeEditorState)
 import App.Store.DiagTree.Editor.Types (DiagTreeSlideId)
@@ -42,9 +43,13 @@ import App.Store.DiagTree.Editor.Actions
 
 
 pasteSlide
-  :: AppContext -> DiagTreeEditorState -> Array DiagTreeSlideId -> Aff Unit
+  :: forall state
+   . Store state AppAction
+  -> DiagTreeEditorState
+  -> Array DiagTreeSlideId
+  -> Aff Unit
 
-pasteSlide appCtx state destinationSlidePath = catchError go handleError where
+pasteSlide store state destinationSlidePath = catchError go handleError where
   go = do
     if null sourceSlidePath
        then act $ PasteSlideFailure sourceSlidePath
@@ -86,7 +91,7 @@ pasteSlide appCtx state destinationSlidePath = catchError go handleError where
   sourceSlidePath = fromMaybe [] state.copyPasteBuffer.branch
   pathToJSON = A.fromArray <<< map A.fromNumber <<< map toNumber
   decodeInt = A.toNumber >=> fromNumber
-  act = sendAction appCtx
+  act = sendAction store
 
   handleError err = do
     reportErr err

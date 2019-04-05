@@ -39,9 +39,9 @@ runApplication = do
              Nothing -> unsafeThrow "#app element not found"
              Just el -> pure el
 
-  appContext <- createStore appReducer appInitialState
-  initRouter $ launchAff_ <<< dispatch appContext <<< Navigate
-  launchAff_ $ subscribeHandlers appContext
-  void $ flip render appDOMEl $ appEl { appContext }
+  store <- createStore appReducer appInitialState
+  initRouter $ launchAff_ <<< dispatch store <<< Navigate
+  launchAff_ $ subscribeHandlers store
+  void $ flip render appDOMEl $ appEl { store }
 
   where appEl = createLeafElement app

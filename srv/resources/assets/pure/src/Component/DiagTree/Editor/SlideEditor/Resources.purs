@@ -23,7 +23,7 @@ import React
      )
 
 import Utils ((<.>), unfoldrBoundedEnum, showAccusative)
-import App.Store (AppContext)
+import App.Store (Store)
 
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlideId
@@ -42,8 +42,8 @@ import Component.DiagTree.Editor.SlideEditor.Resource
      )
 
 
-type Props f =
-   { appContext :: AppContext
+type Props state action f =
+   { store      :: Store state action
    , slideId    :: DiagTreeSlideId
    , isDisabled :: Boolean
    , resources  :: f DiagTreeSlideResource
@@ -61,11 +61,11 @@ type Props f =
 
 
 diagTreeEditorSlideEditorResourcesRender
-  :: forall f . Foldable f => ReactClass (Props f)
+  :: forall state action f. Foldable f => ReactClass (Props state action f)
 
 diagTreeEditorSlideEditorResourcesRender = defineComponent $
   \ { turnAddingOn, turnAddingOff }
-    { appContext, slideId, isDisabled, resources
+    { store, slideId, isDisabled, resources
     , updateResource, onMoveUp, onMoveDown
     }
     { isAdding } ->
@@ -79,7 +79,7 @@ diagTreeEditorSlideEditorResourcesRender = defineComponent $
           go = Tuple (itemIndex + 1) $ list `snoc` itemEl props
 
           props =
-            { appContext
+            { store
             , slideId
             , key: show itemIndex
             , itemIndex: Just itemIndex
@@ -97,7 +97,7 @@ diagTreeEditorSlideEditorResourcesRender = defineComponent $
 
   , if isAdding
        then itemEl
-              { appContext
+              { store
               , slideId
               , key: mempty
               , itemIndex: Nothing
@@ -148,5 +148,6 @@ diagTreeEditorSlideEditorResourcesRender = defineComponent $
 
 
 diagTreeEditorSlideEditorResources
-  :: forall f . Foldable f => ReactClass (Props f)
+  :: forall state action f. Foldable f => ReactClass (Props state action f)
+
 diagTreeEditorSlideEditorResources = diagTreeEditorSlideEditorResourcesRender

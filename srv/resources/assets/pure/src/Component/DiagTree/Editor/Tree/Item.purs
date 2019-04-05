@@ -27,7 +27,7 @@ import React.DOM.Props (className, key, onClick, title, disabled)
 
 import Utils ((<.>))
 import Utils.CopyPasteBuffer (CopyPasteBufferState (..), CopyPasteBuffer)
-import App.Store (AppContext)
+import App.Store (Store)
 
 import App.Store.DiagTree.Editor.Types
      ( DiagTreeSlideId
@@ -35,8 +35,8 @@ import App.Store.DiagTree.Editor.Types
      , fromIndexedAnswers
      )
 
-type Props =
-   { appContext     :: AppContext
+type Props state action =
+   { store          :: Store state action
    , selectedSlide  :: Maybe (Array DiagTreeSlideId)
    , unfoldedSlides :: Set DiagTreeSlideId
 
@@ -63,7 +63,9 @@ type Props =
    }
 
 
-diagTreeEditorTreeItemRender :: ReactClass Props
+diagTreeEditorTreeItemRender
+  :: forall state action. ReactClass (Props state action)
+
 diagTreeEditorTreeItemRender = f $
   \props@{ selectedSlide, unfoldedSlides
          , search, select, delete
@@ -253,5 +255,5 @@ diagTreeEditorTreeItemRender = f $
         : (if sfx /= "" then [text sfx] else mempty)
 
 
-diagTreeEditorTreeItem :: ReactClass Props
+diagTreeEditorTreeItem :: forall state action. ReactClass (Props state action)
 diagTreeEditorTreeItem = diagTreeEditorTreeItemRender

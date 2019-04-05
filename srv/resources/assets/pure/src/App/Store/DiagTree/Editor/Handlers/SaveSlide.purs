@@ -25,7 +25,8 @@ import Affjax.ResponseFormat
      )
 
 import Utils.Affjax (postRequest, putRequest)
-import App.Store (AppContext)
+import App.Store (Store)
+import App.Store.Actions (AppAction)
 import App.Store.DiagTree.Editor.Handlers.Helpers (errLog, sendAction)
 
 import App.Store.DiagTree.Editor.Types
@@ -51,7 +52,8 @@ import App.Store.DiagTree.Editor.Actions
 
 
 saveSlide
-  :: AppContext
+  :: forall state
+   . Store state AppAction
   -> Array DiagTreeSlideId
   -> DiagTreeSlide
   -> Array { header     :: String
@@ -60,7 +62,7 @@ saveSlide
            }
   -> Aff Unit
 
-saveSlide appCtx slidePath slide@(DiagTreeSlide s) newAnswers = go where
+saveSlide store slidePath slide@(DiagTreeSlide s) newAnswers = go where
   go = catchError process handleError
 
   process = do
@@ -92,7 +94,7 @@ saveSlide appCtx slidePath slide@(DiagTreeSlide s) newAnswers = go where
     act $ SaveSlideSuccess slidePath
     act LoadSlidesRequest -- Reloading updated slides
 
-  act = sendAction appCtx
+  act = sendAction store
   handleError err = reportErr err *> act (SaveSlideFailure slidePath)
 
   reportErr err = errLog $
