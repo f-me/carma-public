@@ -2,111 +2,127 @@ module Component.Generic.DropDownSelect
      ( dropDownSelect
      ) where
 
-import Prelude
-
-import Control.Alt ((<|>))
+import Prelude hiding (div)
 
 import Data.Maybe (Maybe (..), maybe, fromMaybe, isJust, isNothing)
 import Data.Tuple (Tuple (Tuple), snd)
 import Data.Foldable (class Foldable, foldl)
 import Data.Array (snoc)
+import Data.Nullable (toMaybe)
 
-import React.DOM (div, li) as R
-import React.Spaces ((!), (!.), renderIn, text, empty, elements)
-import React.Spaces.DOM (span, button, li, a)
-import React.Spaces.DOM.Dynamic (ul)
+import Control.Alt ((<|>))
+import Control.MonadZero (guard)
+
+import Effect (Effect)
+import Effect.Ref (Ref, new, read, write) as Ref
+
+import React.SyntheticEvent (preventDefault)
+import React.DOM (div, li, span, button, a, a', text)
+import React.DOM.Dynamic (ul)
 
 import React.DOM.Props
-     ( className, _type, href, role, disabled
-     , key, withRef
-     , onClick
+     ( className, _type, href, role, disabled, key, ref, onClick
      )
 
 import React
-     ( ReactClass, EventHandler
-     , createClass, spec'
-     , getProps, readState, transformState
-     , writeRef, readRef, preventDefault
+     ( ReactClass, ReactRef, component, getProps, getState, modifyState
      )
 
-import Utils ((<.>), callEventHandler)
-import App.Store (AppContext)
-import Utils.React.OutsideClick (subscribeOutsideClick, unsubscribeOutsideClick)
+import Utils ((<.>))
+
+import Utils.React.OutsideClick
+     ( OutsideClickSubscription, subscribeOutsideClick, unsubscribeOutsideClick
+     )
+
+import App.Store (Store)
 
 
-type Props f a eff =
-  { appContext  :: AppContext
-  , isDisabled  :: Boolean
-  , variants    :: f a
-  , selected    :: Maybe a
-  , variantView :: a -> String -- Used to show variant title
-  , onSelected  :: Maybe (EventHandler (Maybe a))
+type Props state action f a =
+   { store       :: Store state action
+   , isDisabled  :: Boolean
+   , variants    :: f a -- ^ Some list (Foldable) of `a`
+   , selected    :: Maybe a
+   , variantView :: a -> String -- ^ Used to show variant title
 
-  , placeholder :: Maybe String
-    -- ^ Shown as a dropdown button title when `selected` is `Nothing`
-    --   otherwise `notSelectedTitle` will be used or "…" otherwise.
+   , onSelected :: Maybe (Maybe a -> Effect Unit)
+     -- ^ Outer `Maybe` indicates whether callback is set
+     --   and inner `Maybe` is `selected`.
 
-  , notSelectedTitle :: Maybe String
-    -- ^ You could not have "not selected" option at all
-    --   if it is set to `Nothing`.
-  }
+   , placeholder :: Maybe String
+     -- ^ Shown as a dropdown button title when `selected` is `Nothing`
+     --   otherwise `notSelectedTitle` will be used or "…" otherwise.
+
+   , notSelectedTitle :: Maybe String
+     -- ^ You could not have "not selected" option at all
+     --   if it is set to `Nothing`.
+   }
 
 
 dropDownSelectRender
-  :: forall f a eff. Foldable f => Eq a => ReactClass (Props f a eff)
+  :: forall state action f a
+   . Foldable f
+  => Eq a
+  => ReactClass (Props state action f a)
 
-dropDownSelectRender = createClass $ spec $
-  \ props@{ isDisabled, variants, selected, variantView, placeholder
+dropDownSelectRender = defineComponent $
+  \ { onToggle, onSelect, itemReducer: itemReducer' }
+
+    props@{ isDisabled, variants, selected, variantView, placeholder
           , notSelectedTitle
-          }
+          } ->
 
-    state@{ isOpened, onToggle, onSelect } -> do
+  [ button
+      [ className "btn btn-default dropdown-toggle"
+      , _type "button"
+      , onClick onToggle
+      , disabled isDisabled
+      ]
 
-  button !. "btn btn-default dropdown-toggle"
-         ! _type "button"
-         ! onClick onToggle
-         ! disabled isDisabled
-         $ do
-
-    let variantTitle = variantView <$> selected
-
-        btnLabelClassy =
-          maybe (_ !. classSfx "not-selected-label") (const id) variantTitle
+      let
+        variantTitle = variantView <$> selected
 
         btnLabelText = fromMaybe "…" $
           variantTitle <|> placeholder <|> notSelectedTitle
+      in
+        [ span ( if isNothing variantTitle
+                    then [className $ classSfx "not-selected-label"]
+                    else mempty
+               ) [text $ btnLabelText <> " "]
 
-    btnLabelClassy span $ text $ btnLabelText <> " "
-    span !. "caret" $ empty
+        , span [className "caret"] mempty
+        ]
 
-  ul !. "dropdown-menu" $ do
+  , ul [className "dropdown-menu"] $ let
 
-    case notSelectedTitle of
-         Nothing -> empty
-         Just x  -> do
-           let markSelected el =
-                 if isJust selected
-                    then el ! onClick (onSelect Nothing)
-                    else el !. classSfx "selected"
+      unselectItem = fromMaybe mempty $ notSelectedTitle <#> \title ->
+        [ let
+            item = li attrs [link] where
+              attrs = [key "-1"] `snoc`
+                      if isJust selected
+                         then onClick $ onSelect Nothing
+                         else className $ classSfx "selected"
 
-               markSelectedLink el =
-                 if isJust selected
-                    then el ! href "#"
-                    else el
+            link = a attrs [child] where
+              attrs = if isJust selected then [href "#"] else mempty
+              child = span [className $ classSfx "not-selected-label"]
+                           [text title]
 
-           markSelected li ! key "-1" $
-             markSelectedLink a $ span !. classSfx "not-selected-label" $ text x
+          in item
 
-           li !. "divider" ! role "separator" ! key "0" $ empty
+        , li [className "divider", role "separator", key "0"] mempty
+        ]
 
-    elements $ snd $ foldl (itemReducer props state) (Tuple 1 []) variants
+      items = snd $ foldl (itemReducer' props) (Tuple 1 mempty) variants
+
+      in unselectItem <> items
+  ]
 
   where
     name = "DropDownSelect"
     classSfx s = name <> "--" <> s
     classNameSfx = className <<< classSfx
 
-    itemReducer { selected, variantView } { onSelect } (Tuple n list) item =
+    itemReducer onSelect { selected, variantView } (Tuple n list) item =
       Tuple (n + 1) $ list `snoc`
 
         let isSelected = selected <#> (_ == item)
@@ -114,78 +130,84 @@ dropDownSelectRender = createClass $ spec $
 
          in if isSelected == Nothing || isSelected == Just false
 
-               then renderIn (R.li [keyProp, onClick $ onSelect $ Just item]) $
-                      a ! href "#" $ text $ variantView item
+               then li [keyProp, onClick $ onSelect $ Just item]
+                       [a [href "#"] [text $ variantView item]]
 
-               else renderIn (R.li [keyProp, classNameSfx "selected"]) $
-                      a $ text $ variantView item
+               else li [keyProp, classNameSfx "selected"]
+                       [a' [text $ variantView item]]
 
     selectHandler this item event = do
       preventDefault event
-      transformState this _ { isOpened = false }
+      modifyState this _ { isOpened = false }
       { onSelected, isDisabled } <- getProps this
-
-      if isDisabled
-         then pure unit
-         else case onSelected of
-                   Nothing -> pure unit
-                   Just f  -> callEventHandler f item
+      maybe (pure unit) (_ $ item) $ guard (not isDisabled) *> onSelected
 
     toggleHandler this _ = do
       { isDisabled } <- getProps this
 
       if isDisabled
          then pure unit
-         else transformState this \s -> s { isOpened = not s.isOpened }
+         else modifyState this \s -> s { isOpened = not s.isOpened }
 
-    rootRefName = "componentRoot"
-
-    hookOutsideClick this outsideSubscription = do
-      case outsideSubscription of
-           Nothing -> pure unit
-           Just x  -> unsubscribeOutsideClick x
-
-      rootRef <- readRef this rootRefName
+    hookOutsideClick this readRootRef outsideSubscription = do
+      maybe (pure unit) unsubscribeOutsideClick outsideSubscription
+      rootRef <- readRootRef
 
       case rootRef of
            Nothing ->
              if isNothing outsideSubscription
                 then pure unit
-                else transformState this _ { outsideSubscription = Nothing }
+                else modifyState this _ { outsideSubscription = Nothing }
 
            Just ref -> do
              subscription <-
                flip subscribeOutsideClick ref $
-                 transformState this _ { isOpened = false }
+                 modifyState this _ { isOpened = false }
 
-             transformState this _ { outsideSubscription = Just subscription }
+             modifyState this _ { outsideSubscription = Just subscription }
 
     unhookOutsideClick this outsideSubscription = do
       case outsideSubscription of
            Nothing -> pure unit
            Just x  -> do
              unsubscribeOutsideClick x
-             transformState this _ { outsideSubscription = Nothing }
+             modifyState this _ { outsideSubscription = Nothing }
 
-    getInitialState this = pure
-      { isOpened: false
-      , onToggle: toggleHandler this
-      , onSelect: selectHandler this
-      , refSetter: writeRef this rootRefName
-      , outsideSubscription: Nothing
-      }
+    defineComponent renderFn = component name \this -> do
+      (rootRef :: Ref.Ref (Maybe ReactRef)) <- Ref.new Nothing
 
-    spec renderFn =
-      spec' getInitialState renderHandler # _
-        { displayName = name
+      let onSelect = selectHandler this
 
-        , componentWillUpdate =
-            \this _ { isOpened, outsideSubscription } -> do
-              { isOpened: prevIsOpened } <- readState this
+      let preBound =
+            { onToggle: toggleHandler this
+            , onSelect
+            , itemReducer: itemReducer onSelect
+            }
+
+      let w = wrapper $ toMaybe >>> flip Ref.write rootRef
+          r = renderFn preBound
+          readRootRef = Ref.read rootRef
+
+      let state =
+            { isOpened: false
+            , outsideSubscription: (Nothing :: Maybe OutsideClickSubscription)
+            }
+
+      pure
+        { state
+
+        , render: do
+            props@{ isDisabled } <- getProps this
+            { isOpened } <- getState this
+            pure $ w (isOpened && not isDisabled) $ r props
+
+        , unsafeComponentWillUpdate:
+            \ _ { isOpened, outsideSubscription } -> do
+              { isOpened: prevIsOpened } <- getState this
 
               if (not prevIsOpened && isOpened) ||
                  (isOpened && isNothing outsideSubscription)
-                 then hookOutsideClick this outsideSubscription
+                 then hookOutsideClick this readRootRef outsideSubscription
                  else pure unit
 
               if (not isOpened && prevIsOpened) ||
@@ -193,29 +215,22 @@ dropDownSelectRender = createClass $ spec $
                  then unhookOutsideClick this outsideSubscription
                  else pure unit
 
-        , componentWillUnmount = \this -> do
-            { outsideSubscription } <- readState this
-
-            case outsideSubscription of
-                 Nothing -> pure unit
-                 Just x  -> unsubscribeOutsideClick x
+        , componentWillUnmount: do
+            { outsideSubscription } <- getState this
+            maybe (pure unit) unsubscribeOutsideClick outsideSubscription
         }
 
-      where
-        renderHandler this = do
-          props@{ isDisabled } <- getProps  this
-          state@{ refSetter, isOpened } <- readState this
-          let w = wrapper refSetter $ isOpened && not isDisabled
-          pure $ renderIn w $ renderFn props state
-
-        wrapper refSetter isOpened = R.div
-          [ className $ addOpenClass "dropdown" <.> name
-          , withRef refSetter
-          ]
-          where addOpenClass x = if isOpened then x <.> "open" else x
+    wrapper refSetter isOpened = go where
+      addOpenClass x = if isOpened then x <.> "open" else x
+      go = div [ className $ addOpenClass "dropdown" <.> name
+               , ref refSetter
+               ]
 
 
 dropDownSelect
-  :: forall f a eff. Foldable f => Eq a => ReactClass (Props f a eff)
+  :: forall state action f a
+   . Foldable f
+  => Eq a
+  => ReactClass (Props state action f a)
 
 dropDownSelect = dropDownSelectRender

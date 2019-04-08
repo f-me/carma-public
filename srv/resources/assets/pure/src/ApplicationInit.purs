@@ -3,70 +3,59 @@ module ApplicationInit (runApplication) where
 import Prelude
 
 import Data.Maybe (Maybe (..))
-import Data.JSDate (LOCALE)
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Ref (REF)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Console (CONSOLE)
-import Control.Monad.Eff.Now (NOW)
-import Control.Monad.Eff.Random (RANDOM)
-import Control.Monad.Eff.Exception.Unsafe (unsafeThrow)
-import Control.Monad.Aff (launchAff_, forkAff)
-import Control.Monad.Aff.AVar (AVAR)
+import Control.Monad.Error.Class (throwError)
 
-import DOM (DOM)
-import DOM.HTML (window) as DOM
-import DOM.HTML.Window (document) as DOM
-import DOM.HTML.Types (htmlDocumentToDocument) as DOM
-import DOM.Node.NonElementParentNode (getElementById) as DOM
+import Effect (Effect)
+import Effect.Exception.Unsafe (unsafeThrow)
+import Effect.Aff (launchAff_)
+import Effect.Exception (message)
+import Effect.Console (error)
 
-import DOM.Node.Types
-     ( Element
-     , ElementId (ElementId)
-     , documentToNonElementParentNode
-     ) as DOM
+import Web.HTML (window)
+import Web.HTML.Window (document, alert)
+import Web.HTML.HTMLDocument (toDocument)
+import Web.DOM.NonElementParentNode (getElementById)
+import Web.DOM.Document (toNonElementParentNode)
+import Web.DOM (Element)
 
-import React (createElement)
+import React (createLeafElement)
 import ReactDOM (render)
-
-import Network.HTTP.Affjax (AJAX)
 
 import Router (initRouter)
 import Component.App (app)
 
-import App.Store (createAppContext, reduceLoop, dispatch)
+import App.Store (createStore, dispatch)
 import App.Store.Actions (AppAction (Navigate))
 import App.Store.Reducers (appInitialState, appReducer)
 import App.Store.HandlersSpec (subscribeHandlers)
 
 
-runApplication :: Eff ( ref     :: REF
-                      , avar    :: AVAR
-                      , dom     :: DOM
-                      , ajax    :: AJAX
-                      , now     :: NOW
-                      , locale  :: LOCALE
-                      , random  :: RANDOM
-                      , console :: CONSOLE
-                      ) Unit
-
+runApplication :: Effect Unit
 runApplication = do
-  (appDOMEl :: DOM.Element) <-
-    DOM.window
-    >>= DOM.document
-    >>= DOM.getElementById (DOM.ElementId "app")
-        <<< DOM.documentToNonElementParentNode
-        <<< DOM.htmlDocumentToDocument
+  (appDOMEl :: Element) <-
+    window
+    >>= document
+    >>= getElementById "app"
+        <<< toNonElementParentNode
+        <<< toDocument
     >>= case _ of
              Nothing -> unsafeThrow "#app element not found"
              Just el -> pure el
 
-  launchAff_ $ do
-    appContext <- createAppContext appInitialState
-    void $ forkAff $ reduceLoop appContext appReducer
-    liftEff $ initRouter $ launchAff_ <<< dispatch appContext <<< Navigate
-    subscribeHandlers appContext
-    liftEff $ void $ flip render appDOMEl $ appEl { appContext } []
+  store <- createStore reducerThreadFailureHandler appReducer appInitialState
+  initRouter $ launchAff_ <<< dispatch store <<< Navigate
+  launchAff_ $ subscribeHandlers store
+  void $ flip render appDOMEl $ appEl { store }
 
-  where appEl = createElement app
+  where
+    appEl = createLeafElement app
+
+    reducerThreadFailureHandler err = do
+      error $ "Store reducer thread is failed with exception: " <> message err
+
+      window >>= alert
+        "Что-то пошло не так! Настоятельно рекомендуется перезагрузить\
+        \ страницу для продолжения нормальной работы системы!"
+
+      throwError err

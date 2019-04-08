@@ -14,6 +14,8 @@ module AppHandlers.Users
     , chkAuthAdmin
     , chkAuthPartner
 
+    , chkUserActiveness
+
     , chkAuthRoles
     , hasAnyOfRoles
     , hasNoneOfRoles
@@ -27,14 +29,17 @@ module AppHandlers.Users
 
 where
 
-import           Control.Monad.IO.Class
 import           Data.Maybe
+import           Data.Bool
 import           Data.Text (Text)
 import qualified Data.Text           as T
 import           Data.String (fromString)
 import           Data.Time.Calendar (Day)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Vector as V
+
+import           Control.Monad
+import           Control.Monad.IO.Class
 
 import           Text.Printf
 
@@ -63,17 +68,23 @@ import Snaplet.Search.Types (mkSel)
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated users.
 chkAuth :: AppHandler () -> AppHandler ()
-chkAuth = chkAuthRoles alwaysPass
+chkAuth m = do
+  chkUserActiveness
+  chkAuthRoles alwaysPass m
 
 
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated or non-local users.
 chkAuthLocal :: AppHandler () -> AppHandler ()
-chkAuthLocal = chkAuthRoles (hasNoneOfRoles [Role.partner])
+chkAuthLocal m = do
+  chkUserActiveness
+  chkAuthRoles (hasNoneOfRoles [Role.partner]) m
 
 
 chkAuthAdmin :: AppHandler () -> AppHandler ()
-chkAuthAdmin = chkAuthRoles (hasAnyOfRoles [Role.lovAdmin])
+chkAuthAdmin m = do
+  chkUserActiveness
+  chkAuthRoles (hasAnyOfRoles [Role.lovAdmin]) m
 
 
 ------------------------------------------------------------------------------
@@ -81,10 +92,11 @@ chkAuthAdmin = chkAuthRoles (hasAnyOfRoles [Role.lovAdmin])
 --
 -- Auth checker for partner screens
 chkAuthPartner :: AppHandler () -> AppHandler ()
-chkAuthPartner f =
-  chkAuthRoles (hasAnyOfRoles [ Role.partner
-                              , Role.head
-                              , Role.supervisor]) f
+chkAuthPartner m = do
+  chkUserActiveness
+  chkAuthRoles isPartnerAccess m
+  where
+    isPartnerAccess = hasAnyOfRoles [Role.partner, Role.head, Role.supervisor]
 
 
 ------------------------------------------------------------------------------
@@ -103,7 +115,7 @@ hasAnyOfRoles authRoles = any (`elem` authRoles)
 
 
 hasNoneOfRoles :: [IdentI Role] -> RoleChecker
-hasNoneOfRoles authRoles = all (not . (`elem` authRoles))
+hasNoneOfRoles authRoles = all $ not . (`elem` authRoles)
 
 
 ------------------------------------------------------------------------------
@@ -112,18 +124,24 @@ hasNoneOfRoles authRoles = all (not . (`elem` authRoles))
 chkAuthRoles :: RoleChecker
              -- ^ Check succeeds if non-localhost user roles satisfy
              -- this predicate.
-             -> AppHandler () -> AppHandler ()
+             -> AppHandler ()
+             -> AppHandler ()
 chkAuthRoles roleCheck handler = do
   ipHeaderFilter
   req <- getRequest
-  case rqClientAddr req /= rqServerAddr req of
-    False -> handler -- No checks for requests from localhost
-    True  -> currentUserRoles >>= \case
-      Nothing -> handleError 401
-      Just roles ->
-        if roleCheck roles
-        then handler
-        else handleError 401
+  if rqClientAddr req == rqServerAddr req
+     then handler -- No checks for requests from @localhost@
+     else maybe False roleCheck <$> currentUserRoles >>=
+            handleError 401 `bool` handler
+
+
+-- | Deny requests from deactivated users.
+chkUserActiveness :: AppHandler ()
+chkUserActiveness = go where
+  forbid = handleError 403
+  isUserActive = flip Patch.get Usermeta.isActive
+  go = currentUserMeta >>= \usermeta ->
+    unless (fromMaybe False $ usermeta >>= isUserActive) forbid
 
 
 -- | True if a user is in any of given states.

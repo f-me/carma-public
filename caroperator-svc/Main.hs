@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes, ScopedTypeVariables #-}
 
 module Main where
 
@@ -12,7 +12,7 @@ import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as L
-import           Data.Time (parseTimeM, Day, fromGregorian)
+import           Data.Time (Day, defaultTimeLocale, parseTimeM)
 import qualified Data.Configurator as Config
 import qualified Data.Aeson as Aeson
 import           Data.Pool (Pool, createPool, withResource)
@@ -139,13 +139,10 @@ httpServer pgPool reqLogger cfg = do
     unless True  $ raise "Invalid VIN checksum."
     when (carMake /= 28) $ raise "Invalid carMake."
 
-    let minDay = fromGregorian 1982 3 15 :: Day
-    let maxDay = fromGregorian 2019 3 19 :: Day
-    parsedDate <- case parseTimeM True undefined "%F" $ T.unpack sellDate of
-      Nothing -> raise "Invalid sellDate format. Should be YYYY-MM-DD."
-      Just day
-        | minDay < day && day < maxDay -> return day
-        | otherwise -> raise "sellDate is out of range."
+    (parsedDate :: Day) <-
+      maybe (raise "Invalid sellDate format. Should be YYYY-MM-DD.") pure
+        $ parseTimeM True defaultTimeLocale "%F"
+        $ T.unpack sellDate
 
     [[modelOk, dealerOk]] <- liftIO $ withResource pgPool $ \c -> PG.query c
       [sql| select
@@ -185,5 +182,7 @@ httpServer pgPool reqLogger cfg = do
                       and validsince = p.validsince)
       |]
       ( vin, carMake, carModel, dealer, parsedDate
-      , cfgSubProgram cfg, not $ cfgTestMode cfg, cfgCommitter cfg)
+      , cfgSubProgram cfg, not $ cfgTestMode cfg, cfgCommitter cfg
+      )
+
     text "Ok"

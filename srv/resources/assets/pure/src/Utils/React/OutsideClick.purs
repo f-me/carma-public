@@ -1,25 +1,18 @@
 module Utils.React.OutsideClick
-     ( OutsideClick
-     , OutsideClickSubscription
+     ( OutsideClickSubscription
      , subscribeOutsideClick
      , unsubscribeOutsideClick
      ) where
 
 import Prelude
-import Control.Monad.Eff (kind Effect, Eff)
-import React (Ref)
+import Effect (Effect)
+import React (ReactRef)
 
 
-foreign import data OutsideClick :: Effect
 foreign import data OutsideClickSubscription :: Type
 
 foreign import subscribeOutsideClick
-  :: forall eff
-   . Eff (outsideClick :: OutsideClick | eff) Unit
-  -> Ref
-  -> Eff (outsideClick :: OutsideClick | eff) OutsideClickSubscription
+  :: Effect Unit -> ReactRef -> Effect OutsideClickSubscription
 
 foreign import unsubscribeOutsideClick
-  :: forall eff
-   . OutsideClickSubscription
-  -> Eff (outsideClick :: OutsideClick | eff) Unit
+  :: OutsideClickSubscription -> Effect Unit

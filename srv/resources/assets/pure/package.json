@@ -20,28 +20,26 @@
     "purs": "purs",
     "webpack": "webpack",
     "clean": "rm -rf output && rm -rf ../../static/build/pureFrontend",
-    "build": "npm run webpack -- --progress --colors",
+    "build": "npm run webpack -- --mode development --env.NODE_ENV=development",
     "clean-build": "npm run clean && npm run build",
-    "debug-build": "env NODE_ENV=debug npm run webpack -- --progress --colors",
-    "debug-clean-build": "npm run clean && npm run debug-build",
-    "prod-build": "env NODE_ENV=production npm run webpack -- --progress --colors",
+    "prod-build": "npm run webpack -- --mode production --env.NODE_ENV=production",
     "prod-clean-build": "npm run clean && npm run prod-build",
-    "watch": "npm run webpack -- --progress --colors --watch",
+    "watch": "npm run webpack -- --watch",
     "prod-release": "npm i && npm run bower i && npm run prod-clean-build",
     "postinstall": "git submodule update --init --recursive purescript-react-dropzone && git submodule update --init --recursive purescript-react-rich-text-editor"
   },
   "devDependencies": {
-    "bower": "^1.8.4",
-    "css-loader": "^0.28.11",
-    "pulp": "^12.2.0",
-    "purescript": "^0.11.7",
-    "purescript-psa": "^0.6.0",
-    "purs-loader": "^3.1.4",
-    "style-loader": "^0.21.0",
+    "bower": "^1.8.8",
+    "css-loader": "^2.1.0",
+    "pulp": "^12.3.1",
+    "purescript": "^0.12.3",
+    "purescript-psa": "^0.7.3",
+    "purs-loader": "^3.3.0",
+    "style-loader": "^0.23.1",
     "stylus": "^0.54.5",
     "stylus-loader": "^3.0.2",
-    "uglifyjs-webpack-plugin": "^1.2.5",
-    "webpack": "^3.12.0"
+    "webpack": "^4.29.5",
+    "webpack-cli": "^3.2.3"
   },
   "dependencies": {
     "array.prototype.fill": "^1.0.2",
@@ -50,6 +48,7 @@
     "react": "^16.4.0",
     "react-dom": "^16.4.0",
     "react-dropzone": "^4.2.10",
-    "react-rte": "^0.16.1"
+    "react-rte": "^0.16.1",
+    "xhr2": "^0.1.4"
   }
 }

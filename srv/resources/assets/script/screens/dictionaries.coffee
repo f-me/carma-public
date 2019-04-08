@@ -159,7 +159,7 @@ screenSetup = (viewName, args) ->
 
     majorFields = majorFieldsSetup dict, dictModel
     table = null
-    objURL = "/_/#{dictName}?limit=3000"
+    objURL = "/_/#{dictName}?limit=4000" # TODO FIXME we urged to refactor this!
 
     # func to init dict table and controls to edit selected entry
     initEditControls = (objURL) ->

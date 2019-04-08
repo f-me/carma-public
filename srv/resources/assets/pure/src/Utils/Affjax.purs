@@ -5,15 +5,15 @@ module Utils.Affjax
      , postRequest
      ) where
 
-import Prelude
-
 import Data.Maybe (Maybe (Just))
 import Data.Either (Either (Left))
 import Data.HTTP.Method (Method (GET, PUT, POST))
 import Data.MediaType.Common (applicationJSON)
 
-import Network.HTTP.Affjax as Affjax
-import Network.HTTP.RequestHeader (RequestHeader (..))
+import Affjax (URL, Request, defaultRequest)
+import Affjax.RequestHeader (RequestHeader (..))
+import Affjax.ResponseFormat (ResponseFormat)
+import Affjax.RequestBody (RequestBody)
 
 
 defaultHeaders :: Array RequestHeader
@@ -23,30 +23,30 @@ defaultHeaders =
   ]
 
 
-getRequest
-  :: Affjax.URL -> Affjax.AffjaxRequest Unit
-getRequest url = Affjax.defaultRequest
-  { url     = url
-  , method  = Left GET
-  , headers = defaultHeaders
+getRequest :: forall a. URL -> ResponseFormat a -> Request a
+getRequest url fmt = defaultRequest
+  { url            = url
+  , method         = Left GET
+  , headers        = defaultHeaders
+  , responseFormat = fmt
   }
 
 
-putRequest
-  :: forall content. Affjax.URL -> content -> Affjax.AffjaxRequest content
-putRequest url content = Affjax.defaultRequest
-  { url     = url
-  , method  = Left PUT
-  , headers = defaultHeaders
-  , content = Just content
+putRequest :: forall a. URL -> RequestBody -> ResponseFormat a -> Request a
+putRequest url content fmt = defaultRequest
+  { url            = url
+  , method         = Left PUT
+  , headers        = defaultHeaders
+  , content        = Just content
+  , responseFormat = fmt
   }
 
 
-postRequest
-  :: forall content. Affjax.URL -> content -> Affjax.AffjaxRequest content
-postRequest url content = Affjax.defaultRequest
-  { url     = url
-  , method  = Left POST
-  , headers = defaultHeaders
-  , content = Just content
+postRequest :: forall a. URL -> RequestBody -> ResponseFormat a -> Request a
+postRequest url content fmt = defaultRequest
+  { url            = url
+  , method         = Left POST
+  , headers        = defaultHeaders
+  , content        = Just content
+  , responseFormat = fmt
   }

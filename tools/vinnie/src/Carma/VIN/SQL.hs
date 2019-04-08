@@ -41,6 +41,8 @@ import           Database.PostgreSQL.Simple.ToRow
 import           Data.Model
 import           Data.Model.Types
 import           Carma.Model.Contract as C
+import           Carma.Model.CarMake as CarMake
+import           Carma.Model.CarModel as CarModel
 import           Carma.Model.Partner
 import           Carma.Model.Program
 import           Carma.Model.SubProgram
@@ -108,6 +110,10 @@ errorsTitle :: Text
 errorsTitle = "Ошибки"
 
 
+minimalValidSince :: Text
+minimalValidSince = "01-01-2009"
+
+
 -- | Produce unique internal names from a CSV header.
 mkInternalNames :: [ColumnTitle] -> [InternalName]
 mkInternalNames columns =
@@ -139,6 +145,16 @@ contractTable = PT $ tableName
 partnerTable :: PlainText
 partnerTable = PT $ tableName
                (modelInfo :: ModelInfo Partner)
+
+
+carMakeTable :: PlainText
+carMakeTable = PT $ tableName
+               (modelInfo :: ModelInfo CarMake)
+
+
+carModelTable :: PlainText
+carModelTable = PT $ tableName
+                (modelInfo :: ModelInfo CarModel)
 
 
 -- | First argument of @concat_ws@, quoted.
@@ -192,6 +208,12 @@ createCSVTables inames cnames =
                             , ");"
                             ]
 
+-- | Delete temporary pristine and proto tables for CSV data.
+deleteCSVTables :: Import ()
+deleteCSVTables =
+    execute_ "DROP TABLE IF EXISTS vinnie_pristine CASCADE;" >>
+    execute_ "DROP TABLE IF EXISTS vinnie_proto CASCADE;" >>
+    return ()
 
 -- | Read CSV into pristine table.
 copyPristineStart :: String -> [InternalName] -> Import ()
@@ -531,23 +553,14 @@ installFunctions =
     execute_
     [sql|
      CREATE OR REPLACE FUNCTION pg_temp.dateordead(text) RETURNS text AS $$
-     DECLARE f TEXT;
      DECLARE x DATE;
      BEGIN
-         f = replace($1, 'Янв', 'Jan');
-         f = replace(f, 'Фев', 'Feb');
-         f = replace(f, 'Мар', 'Mar');
-         f = replace(f, 'Апр', 'Apr');
-         f = replace(f, 'Май', 'May');
-         f = replace(f, 'Июл', 'Jun');
-         f = replace(f, 'Июн', 'Jul');
-         f = replace(f, 'Авг', 'Aug');
-         f = replace(f, 'Сен', 'Sep');
-         f = replace(f, 'Окт', 'Oct');
-         f = replace(f, 'Ноя', 'Nov');
-         f = replace(f, 'Дек', 'Dec');
-         x = f::DATE;
-         RETURN f;
+         -- check format 'dd.mm.yyyy'
+         IF $1 !~ '^(?:0[1-9]|[12][0-9]|3[0-1])\.(?:0[1-9]|1[012])\.(?:19|20)\d{2}$' THEN
+             RETURN null;
+         END IF;
+         x = $1::DATE;
+         RETURN $1;
      EXCEPTION WHEN others THEN
          RETURN null;
      END;
@@ -562,7 +575,67 @@ installFunctions =
          RETURN null;
      END;
      $$ LANGUAGE plpgsql;
-     |]
+
+     CREATE OR REPLACE FUNCTION pg_temp.mileageordead(text) RETURNS int AS $$
+     DECLARE x NUMERIC;
+     BEGIN
+         IF $1 IS NULL THEN
+             RETURN null;
+         END IF;
+
+         IF starts_with($1, '0') THEN
+             RETURN null;
+         END IF;
+
+         x = $1::INTEGER;
+         IF (x > 0) AND (x <= 1999999) THEN
+             RETURN $1;
+         ELSE
+             RETURN null;
+         END IF;
+     EXCEPTION WHEN others THEN
+         RETURN null;
+     END;
+     $$ LANGUAGE plpgsql;
+
+     CREATE OR REPLACE FUNCTION pg_temp.phoneordead(text) RETURNS text AS $$
+     BEGIN
+         IF $1 IS NULL THEN
+             RETURN null;
+         END IF;
+
+         IF $1 ~ '^\+7\d{10}$' THEN
+             RETURN $1;
+         END IF;
+         
+         IF $1 ~ '^8\d{10}$' THEN
+             RETURN '+7' || substring($1, 2);
+         END IF;
+
+         RETURN null;
+     END;
+     $$ LANGUAGE plpgsql;
+     |] >>
+    
+    execute
+    [sql|
+     CREATE OR REPLACE FUNCTION pg_temp.checkmakemodel(integer, integer)
+     RETURNS BOOLEAN AS $$
+     DECLARE
+         makeId integer = $1;
+         modelId integer = $2;
+     BEGIN
+         PERFORM *
+         FROM "?" AS maker, "?" AS model
+         WHERE ? = maker.id AND
+               makeId = maker.id AND
+               modelId = model.id;
+
+         RETURN FOUND;
+     END;
+     $$ LANGUAGE plpgsql;
+     |] ( carMakeTable, carModelTable
+        , PT $ fieldName CarModel.parent)
 
 
 -- | Create a purgatory for new contracts with schema identical to
@@ -618,6 +691,12 @@ createQueueTable =
          :* cfn C.subprogram :* cfn C.checkPeriod
          :* cfn C.subprogram :* cfn C.checkPeriod)
 
+-- | Create a purgatory for new contracts with schema identical to
+-- Contract model table.
+deleteQueueTable :: Import ()
+deleteQueueTable =
+    execute_ "DROP TABLE IF EXISTS vinnie_queue CASCADE;" >>
+    return ()
 
 -- | Set committer and subprogram (if not previously set) for
 -- contracts in queue.
@@ -693,6 +772,44 @@ markEmptyRequired =
      |]
 
 
+-- | Add error to every row where combination make/model is invalid.
+markInvalidMakeModel :: Import Int64
+markInvalidMakeModel =
+    execute
+    [sql|
+     UPDATE vinnie_queue SET errors = errors || ARRAY[?]
+     WHERE NOT pg_temp.checkmakemodel(make, model);
+    |] (Only InvalidMakeModel)
+
+
+-- | Add error to every row where invalid date in columns validSince
+-- | and validUntil.
+markInvalidDates :: Import Int64
+markInvalidDates =
+    execute
+    [sql|
+     UPDATE vinnie_queue SET errors = errors || ARRAY[?]
+     WHERE validSince IS NOT NULL AND
+           validUntil IS NOT NULL AND
+           validSince > validUntil;
+    |] (Only $ ValidSinceGreaterValidUntil
+                 (fieldDesc C.validSince)
+                 (fieldDesc C.validUntil))
+    >>
+    execute
+    [sql|
+     UPDATE vinnie_queue SET errors = errors || ARRAY[?]
+     WHERE validSince < ?::date;
+    |] ( ValidSinceLessMinimum (fieldDesc C.validSince) minimalValidSince
+       , minimalValidSince)
+    >>
+    execute
+    [sql|
+     UPDATE vinnie_queue SET errors = errors || ARRAY[?]
+     WHERE validSince > date(now());
+    |] (Only $ ValidSinceGreaterNow $ fieldDesc C.validSince)
+
+
 -- | Calculate how many erroneous rows are in queue table.
 countErrors :: Import Int64
 countErrors = do
@@ -763,6 +880,10 @@ transferContracts conn =
 data RowError = EmptyRequired Text
               | NoIdentifiers
               | NoSubprogram
+              | InvalidMakeModel
+              | ValidSinceGreaterValidUntil Text Text
+              | ValidSinceLessMinimum Text Text
+              | ValidSinceGreaterNow Text
                 deriving Show
 
 instance ToField RowError where
@@ -772,3 +893,11 @@ instance ToField RowError where
         toField $ T.concat ["Ни одно из полей-идентификаторов не распознано"]
     toField NoSubprogram =
         toField $ T.concat ["Подпрограмма не распознана"]
+    toField InvalidMakeModel =
+        toField $ T.concat ["Комбинация марка-модель указана не верно"]
+    toField (ValidSinceGreaterValidUntil vs vu) =
+        toField $ T.concat [vs, " больше ", vu]
+    toField (ValidSinceLessMinimum vs minimim) =
+        toField $ T.concat [vs, " меньше ", minimim]
+    toField (ValidSinceGreaterNow vs) =
+        toField $ T.concat [vs, " больше текущей даты"]

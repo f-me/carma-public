@@ -14,6 +14,7 @@ import           GHC.Generics
 
 import           Data.Proxy
 import           Data.Function (on)
+import           Data.Word (Word64)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T (encodeUtf8)
 import           Data.Attoparsec.ByteString.Char8 hiding (choice, string)
@@ -342,10 +343,10 @@ data AppContext
 
 data SearchByQueryResponse
    = SearchByQueryResponse
-   { place_id     :: T.Text
+   { place_id     :: Word64
    , licence      :: T.Text
    , osm_type     :: T.Text
-   , osm_id       :: T.Text
+   , osm_id       :: Word64
    , boundingbox  :: [T.Text]
    , lat          :: T.Text
    , lon          :: T.Text
@@ -401,10 +402,10 @@ instance HasRequestType SearchByCoordsResponseAddress where
 
 data SearchByCoordsResponse
    = SearchByCoordsResponse
-   { place_id     :: T.Text
+   { place_id     :: Word64
    , licence      :: T.Text
    , osm_type     :: T.Text
-   , osm_id       :: T.Text
+   , osm_id       :: Word64
    , lat          :: T.Text
    , lon          :: T.Text
    , display_name :: T.Text

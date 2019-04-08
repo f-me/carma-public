@@ -54,7 +54,7 @@ mkVinFormat  [ FF SName   Contract.name
              , FF SPlate  Contract.plateNum
              , FF SDate   Contract.validSince
              , FF SDate   Contract.validUntil
-             , FF SNumber Contract.startMileage
+             , FF SMileage Contract.startMileage
              , FF SDict   Contract.make
              , FF SDict   Contract.model
              , FF SDict   Contract.generation
@@ -108,6 +108,7 @@ ffaTitles (FFAcc _ sTag _ _ _ tAcc) vf =
         proj = case sTag of
                  SRaw        -> textProj
                  SNumber     -> textProj
+                 SMileage    -> textProj
                  SVIN        -> textProj
                  SEmail      -> textProj
                  SPlate      -> textProj

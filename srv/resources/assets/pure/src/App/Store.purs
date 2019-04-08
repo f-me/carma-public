@@ -1,38 +1,34 @@
 -- This implementation mostly inspired by redux.js library, so you could find
--- parallels to understand it faster if you already met the redux.
+-- parallels to understand it faster if you already met the redux.js library.
 --
 -- Some usage steps:
 --
---   1. Create a store by `createAppContext` passing initial state to it;
+--   1. Create a store by `createStore` function passing reducer function to it
+--      (which maps old state to new one looking at received action, it will be
+--      called every time an action is triggered) and initial state value;
 --
---   2. Run `Aff` thread with started `reduceLoop` to update state by actions
---      and notify subscribers when state change (n.b. strict subscribers will
---      be notified even if state haven't changed), only one thread with started
---      `reduceLoop` is allowed;
---
---   3. Subscribe to the store updates by `subscribe`
+--   2. Subscribe to the store updates by `subscribe`
 --      (e.g. inside `componentWillMount`), it returns unique
 --      `StoreSubscription` which you could use to `unsubscribe`
 --      (e.g. inside `componentWillUnmount`).
---      To `subscribe` you need a `StoreListener`,
---      to make one use `toStoreListener`
---      (it wraps some `Eff` monad that takes an update context as an argument).
 --      Subscriber will be notified only if state is changed by a reducer
 --      (use `subscribe'` to get notifications every time action is raised,
---      notwithstanding if state changes or not);
+--      notwithstanding if state is changed or not);
 --
---   4. `dispatch` some actions any time you want, store reducer passed in 2st
+--   3. `dispatch` some actions any time you want, store reducer passed in 1st
 --      step handles state updates looking at actions you dispatch, and
 --      subscribers can trigger some side-effect such as API requests looking at
---      actions you dispatch and they could dispatch another actions with some
---      response data;
+--      actions you dispatch (handling the same action at the same time in
+--      reducer you could set `isLoading` flag in store for example) and they
+--      could dispatch another actions with some response data (to save a result
+--      in the store for example);
 --
---   5. Do not forget to `unsubscribe` using `StoreSubscription` in
+--   4. Do not forget to `unsubscribe` using `StoreSubscription` in
 --      `componentWillUnmount`.
 --
 -- The purpuse of this is to create efficient state storage. You supposed to use
 -- some HOC (High-Order Component) to bind to specific values from store and
--- pass them as properties to a component, so when state is updated component
+-- pass them as properties to a component, so when state updates a component
 -- will rerender but in this case parent component isn't urged to be rerendered,
 -- `shouldComponentUpdate` (of parent component) could return `false` and child
 -- component that attached to the store is still able to update any time. This
@@ -41,260 +37,215 @@
 -- P.S. By "rerendering" I meant even just constructing virtual-dom that still
 -- wastes CPU time a lot.
 --
--- This store implementation is attached to `AppState`, so it isn't polymorphic
--- for different state types, just for now, because we don't need more, but with
--- some modifications this store implementation could be separated and
--- generalized, so you could have different stores.
+-- TODO Separate this store implementation to own PureScript package.
 
 module App.Store
-     ( AppContext
+     ( Store
+     , StoreReducer
      , StoreSubscription
-     , StoreListener
      , StoreUpdateContext
+     , StoreListener
 
-     , createAppContext
-     , reduceLoop
-
-     , getAppState
+     , createStore
+     , getStoreState
      , dispatch
-     , toStoreListener
      , subscribe
      , subscribe'
      , unsubscribe
      ) where
 
 import Prelude
-import Unsafe.Coerce (unsafeCoerce)
 
 import Data.Map (Map, empty, insert, delete, filter)
-import Data.Tuple (Tuple (Tuple), fst)
 import Data.Maybe (Maybe (..), fromMaybe)
-import Data.Foldable (foldM)
+import Data.Either (Either (..))
+import Data.Foldable (class Foldable, traverse_)
 
 import Control.Monad.Rec.Class (forever)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Now (NOW)
-import Control.Monad.Eff.Random (RANDOM)
-import Control.Monad.Eff.Exception.Unsafe (unsafeThrow)
-import Control.Monad.Aff (Aff)
-import Control.Monad.Aff.AVar (AVAR, AVar, makeEmptyVar, takeVar, putVar)
 
-import Control.Monad.Eff.Ref
-     ( Ref, REF
-     , newRef, readRef, writeRef, modifyRef, modifyRef'
-     )
+import Effect (Effect)
+import Effect.Class (liftEffect)
+import Effect.Aff (Aff, runAff_)
+import Effect.Aff.AVar (put, take) as AffAVar
+import Effect.AVar (AVar, empty) as AVar
+import Effect.Ref (Ref, new, read, write, modify_, modify') as Ref
+import Effect.Exception (Error)
 
-import App.Store.Actions (AppAction)
-import App.Store.Reducers (AppState)
 import Utils.SubscriberId (SubscriberId, newSubscriberId)
 
 
 -- An identity of a subscrition that could be used to `unsubscribe`.
 -- A `Ref` indicate is subscription alive or not (unsubscribed),
 -- this fixes triggering after unsubscribing.
-newtype StoreSubscription =
-  StoreSubscription (Tuple SubscriberId (Ref Boolean))
+data StoreSubscription
+   = StoreSubscription SubscriberId (Ref.Ref Boolean) (Effect Unit)
+
 instance eqStoreSubscription :: Eq StoreSubscription where
-  eq (StoreSubscription (Tuple a _)) (StoreSubscription (Tuple b _)) = eq a b
+  eq (StoreSubscription a _ _) (StoreSubscription b _ _) = eq a b
 
 
--- An abstraction for a foreign subscriber which is an `Eff` monad
-foreign import data StoreListener :: Type
+type StoreListener state action = StoreUpdateContext state action -> Effect Unit
 
--- This is an abstraction for `StoreListener` with `Boolean` mark
--- that indicates if a subscriber strict or not that means
--- will it be notified even if state wasn't changed.
--- A `Ref` indicate is subscription alive or not (unsubscribed),
--- this fixes triggering after unsubscribing.
-type Subscriber = Tuple Boolean (Tuple StoreListener (Ref Boolean))
+type StoreUpdateContext state action =
+   { prevState :: state
+   , nextState :: Maybe state
+   , action    :: action
+   }
 
--- Converts foreign `Eff` monad to an abstract `StoreListener`
-toStoreListener
-  :: forall eff . (StoreUpdateContext -> Eff eff Unit) -> StoreListener
-toStoreListener = unsafeCoerce
+type StoreReducer state action
+   = state
+  -> action
+  -> Maybe state
+  -- ^ `Maybe` here to be able to avoid notifying subscribers
+  --   (when state isn't changed for example).
 
-callStoreListener
-  :: forall eff . StoreListener -> StoreUpdateContext -> Eff eff Unit
-callStoreListener = unsafeCoerce
+data StoreSubscriber state action = StoreSubscriber
+     Boolean
+     -- ^ Indicates whether a subscriber is strict or not that means
+     --   it will be notified even if state wasn't changed (strict subscriber)
+     --   or only in case something is changed (lazy/not strict subscriber).
+     (StoreListener state action)
+     -- ^ A handler which is called when store state is changed
+     --   or even if just an action is raised but state kept unchanged
+     --   (if a subscriber is strict). It receives raised action,
+     --   previous store state (before action was raised) and new updated state
+     --   (but `Nothing` instead if state kept unchanged, which means new state
+     --   equals to old state).
+     (Ref.Ref Boolean)
+     -- ^ Indicates whether subscription is alive or not (unsubscribed),
+     --   this fixes triggering after unsubscribing (there's was some issues).
 
-
-type StoreUpdateContext =
-  { prevState :: AppState
-  , nextState :: Maybe AppState
-  , action    :: AppAction
-  }
-
-
-type SubscribersMap = Map SubscriberId Subscriber
-
-
-newtype AppContext
-  = AppContext
-  { store       :: Ref AppState
-  , subscribers :: Ref SubscribersMap
-  , actionsBus  :: AVar AppAction
-
-  -- Only one reducer loop is allowed!
-  , isReduceLoopStarted :: Ref Boolean
-  }
+type SubscribersMap state action
+   = Map SubscriberId (StoreSubscriber state action)
 
 
-createAppContext
-  :: forall eff
-   . AppState
-  -> Aff ( ref    :: REF
-         , avar   :: AVAR
-         , now    :: NOW
-         , random :: RANDOM
-         | eff
-         ) AppContext
-
-createAppContext initialState = do
-  (store               :: Ref AppState)       <- liftEff $ newRef initialState
-  (subscribers         :: Ref SubscribersMap) <- liftEff $ newRef empty
-  (isReduceLoopStarted :: Ref Boolean)        <- liftEff $ newRef false
-  (actionsBus          :: AVar AppAction)     <- makeEmptyVar
-
-  pure $ AppContext
-       { store
-       , subscribers
-       , actionsBus
-       , isReduceLoopStarted
-       }
+newtype Store state action
+      = Store
+      { store       :: Ref.Ref state
+      , subscribers :: Ref.Ref (SubscribersMap state action)
+      , actionsBus  :: AVar.AVar action
+      }
 
 
-reduceLoop
-  :: forall eff
-   . AppContext
-  -> (
-       AppState
-       -> AppAction
-       -> Maybe AppState
-       -- ^ `Maybe` here to be able to avoid notifying subscribers
-       --   (when state isn't changed for example).
-     )
-  -> Aff (ref :: REF, avar :: AVAR | eff) Unit
+createStore
+  :: forall state action
+   . (Error -> Effect Unit) -- ^ Reducer thread failure handler
+  -> StoreReducer state action
+  -> state -- ^ Initial state value
+  -> Effect (Store state action)
 
-reduceLoop appCtx@(AppContext ctx) appReducer = reactToAction \action -> do
+createStore reducerThreadFailureHandler storeReducer initState = go where
+  go = do
+    (store       :: Ref.Ref state)                         <- Ref.new initState
+    (subscribers :: Ref.Ref (SubscribersMap state action)) <- Ref.new empty
+    (actionsBus  :: AVar.AVar action)                      <- AVar.empty
 
-  subscriberData <-
-    modifyRef' ctx.store $ \state ->
-      let
-        reduced = appReducer state action
-      in
-        { state: fromMaybe state reduced
-        , value: { prevState: state, nextState: reduced, action }
-        }
+    -- Running store reducing thread.
+    runAff_ reducerFailureHandler
+      $ reduce actionsBus
+      $ actionHandler store subscribers
 
-  subscribersMap <- readRef ctx.subscribers
+    pure $ Store { store, subscribers, actionsBus }
 
-  notify subscriberData $
-    case subscriberData.nextState of
-         -- State wasn't changed, notifying only strict subscribers
-         Nothing -> filter fst subscribersMap
-         -- State was changed, notifying all subscribers
-         Just _  -> subscribersMap
+  reducerFailureHandler (Right _)  = pure unit
+  reducerFailureHandler (Left err) = reducerThreadFailureHandler err
 
-  where
-    notify updateCtx = foldM (\_ (Tuple _ x) -> f x) unit
-      where
-        f (Tuple x aliveRef) = do
-          isAlive <- readRef aliveRef
-          if isAlive then callStoreListener x updateCtx else pure unit
+  reduce actionsBus actionHandler' = forever reactToAction where
+    reactToAction = AffAVar.take actionsBus >>= liftEffect <<< actionHandler'
 
-    guardOnlyOneInstance = do
-      isReduceLoopStarted <- readRef ctx.isReduceLoopStarted
+  actionHandler store subscribers action = do
+    subscriberData <-
+      let f state = go' where
+            reduced = storeReducer state action
+            go' = { state: fromMaybe state reduced
+                  , value: { prevState: state, nextState: reduced, action }
+                  }
 
-      if isReduceLoopStarted -- `when` here would fail because of strictness
-         then unsafeThrow "Only one reduce loop is allowed"
-         else pure unit
+       in f `Ref.modify'` store
 
-      writeRef ctx.isReduceLoopStarted true
+    subscribersMap <- Ref.read subscribers
 
-    reactToAction m = do
-      liftEff guardOnlyOneInstance
-      forever $ takeVar ctx.actionsBus >>= liftEff <<< m
+    notify subscriberData $
+      case subscriberData.nextState of
+           -- State wasn't changed, notifying only strict subscribers
+           Nothing -> filter isStoreSubscriberStrict subscribersMap
+           -- State was changed, notifying all subscribers
+           Just _  -> subscribersMap
 
+  notify
+    :: forall f. Foldable f
+    => StoreUpdateContext state action
+    -> f (StoreSubscriber state action)
+    -> Effect Unit
 
-getAppState
-  :: forall eff
-   . AppContext
-  -> Eff (ref :: REF | eff) AppState
-
-getAppState (AppContext { store }) = readRef store
+  notify updateCtx = traverse_ notifyListener where
+    notifyListener (StoreSubscriber _ storeListener aliveRef) = do
+      isAlive <- Ref.read aliveRef
+      if isAlive then storeListener updateCtx else pure unit
 
 
-dispatch
-  :: forall eff
-   . AppContext
-  -> AppAction
-  -> Aff (avar :: AVAR | eff) Unit
+getStoreState :: forall state action. Store state action -> Effect state
+getStoreState (Store { store }) = Ref.read store
 
-dispatch (AppContext { actionsBus }) action = putVar action actionsBus
+
+dispatch :: forall state action. Store state action -> action -> Aff Unit
+dispatch (Store { actionsBus }) action = AffAVar.put action actionsBus
 
 
 -- See `subscribeInternal` for details.
 subscribe
-  :: forall eff
-   . AppContext
-  -> StoreListener
-  -> Eff ( ref    :: REF
-         , now    :: NOW
-         , random :: RANDOM
-         | eff
-         ) StoreSubscription
+  :: forall state action
+   . Store state action
+  -> StoreListener state action
+  -> Effect StoreSubscription
 
 subscribe = subscribeInternal false
 
 -- Strict version of `subscribe`, it means that subscriber will be notified
 -- notwithstanding if state change or not (useful for side-effects handlers).
 subscribe'
-  :: forall eff
-   . AppContext
-  -> StoreListener
-  -> Eff ( ref    :: REF
-         , now    :: NOW
-         , random :: RANDOM
-         | eff
-         ) StoreSubscription
+  :: forall state action
+   . Store state action
+  -> StoreListener state action
+  -> Effect StoreSubscription
 
 subscribe' = subscribeInternal true
 
 
 -- Attempt to `unsubscribe` multiple times for same subscriber
 -- will case NO errors, we take it as okay.
-unsubscribe
-  :: forall eff
-   . AppContext
-  -> StoreSubscription
-  -> Eff (ref :: REF | eff) Unit
-
-unsubscribe (AppContext { subscribers })
-            (StoreSubscription (Tuple subscriberId aliveRef)) = do
-
-  writeRef aliveRef false
-  modifyRef subscribers $ delete subscriberId
+unsubscribe :: StoreSubscription -> Effect Unit
+unsubscribe (StoreSubscription _ _ unsubscriber) = unsubscriber
 
 
 subscribeInternal
-  :: forall eff
+  :: forall state action
    . Boolean
-  -> AppContext
-  -> StoreListener
-  -> Eff ( ref    :: REF
-         , now    :: NOW
-         , random :: RANDOM
-         | eff
-         ) StoreSubscription
+  -> Store state action
+  -> StoreListener state action
+  -> Effect StoreSubscription
 
-subscribeInternal isStrict (AppContext { subscribers }) storeListener = do
+subscribeInternal isStrict (Store { subscribers }) storeListener = do
   subscriberId <- newSubscriberId
-  aliveRef     <- newRef true
+  aliveRef     <- Ref.new true
 
-  modifyRef' subscribers \subscribersMap ->
-    { value: StoreSubscription $ Tuple subscriberId aliveRef
-    , state: insert subscriberId
-               (Tuple isStrict (Tuple storeListener aliveRef))
-               subscribersMap
-    }
+  let unsubscriber = do
+        false `Ref.write` aliveRef
+        delete subscriberId `Ref.modify_` subscribers
+
+  let f subscribersMap =
+        { value: StoreSubscription subscriberId aliveRef unsubscriber
+        , state: insert subscriberId
+                   (StoreSubscriber isStrict storeListener aliveRef)
+                   subscribersMap
+        }
+
+  f `Ref.modify'` subscribers
+
+
+isStoreSubscriberStrict
+  :: forall state action
+   . StoreSubscriber state action
+  -> Boolean
+
+isStoreSubscriberStrict (StoreSubscriber isStrict _ _) = isStrict

@@ -6,17 +6,18 @@ module App.Store.DiagTree.Editor.Handlers.SharedUtils.BackendAction
      ) where
 
 import Prelude
-
-import Control.MonadZero (guard)
+import Prim.Row (class Cons)
 
 import Data.Tuple (Tuple (Tuple))
 import Data.Maybe (Maybe)
-import Data.StrMap as StrMap
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Argonaut.Core as A
-import Data.Record (get)
 import Data.Symbol (SProxy (SProxy), class IsSymbol)
+import Foreign.Object as FObj
+import Record (get)
+
+import Control.MonadZero (guard)
 
 
 type BackendActionFields = (label :: String, service :: String)
@@ -26,7 +27,7 @@ type BackendAction = Record BackendActionFields
 class ActionKeyToBackendKey k where
   actionKeyToBackendKey
     :: forall a r'
-     . RowCons k a r' BackendActionFields
+     . Cons k a r' BackendActionFields
     => IsSymbol k
     => SProxy k -> String
 
@@ -48,15 +49,15 @@ backendActionValidKeys = Set.fromFoldable
 fromBackendAction :: A.Json -> Maybe BackendAction
 fromBackendAction json = do
   obj <- A.toObject json
-  guard $ Set.fromFoldable (StrMap.keys obj) `Set.subset` backendActionValidKeys
+  guard $ Set.fromFoldable (FObj.keys obj) `Set.subset` backendActionValidKeys
 
   let l :: forall k a r'
-         . RowCons k a r' BackendActionFields
+         . Cons k a r' BackendActionFields
         => IsSymbol k
         => ActionKeyToBackendKey k
         => SProxy k -> Maybe A.Json
 
-      l key = actionKeyToBackendKey key `StrMap.lookup` obj
+      l key = actionKeyToBackendKey key `FObj.lookup` obj
 
   label   <- l (SProxy :: SProxy "label")   >>= A.toString
   service <- l (SProxy :: SProxy "service") >>= A.toString
@@ -65,14 +66,14 @@ fromBackendAction json = do
 
 
 toBackendAction :: BackendAction -> A.Json
-toBackendAction x = A.fromObject $ StrMap.fromFoldable
+toBackendAction x = A.fromObject $ FObj.fromFoldable
   [ f x (SProxy :: SProxy "label")   A.fromString
   , f x (SProxy :: SProxy "service") A.fromString
   ]
 
   where
     f :: forall k a r'
-       . RowCons k a r' BackendActionFields
+       . Cons k a r' BackendActionFields
       => IsSymbol k
       => ActionKeyToBackendKey k
       => BackendAction -> SProxy k -> (a -> A.Json) -> Tuple String A.Json
