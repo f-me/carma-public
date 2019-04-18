@@ -583,7 +583,7 @@ installFunctions =
              RETURN null;
          END IF;
 
-         IF starts_with($1, '0') THEN
+         IF $1 LIKE '0%' THEN
              RETURN null;
          END IF;
 
