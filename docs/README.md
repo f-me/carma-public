@@ -6,4 +6,4 @@ file.
 # Sections
 
 - [Mobile HTTP API](Mobile-API/Spec.md)
-- __TODO__s: [Wannado.md](Wannado.md) document
+- **TODO**s: [Wannado.md](Wannado.md) document
