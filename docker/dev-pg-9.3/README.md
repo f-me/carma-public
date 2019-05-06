@@ -1,6 +1,6 @@
 # dev-pg-9.3
 
-Dockerized fixed PostgreSQL version which CaRMa uses.
+Dockerized fixed PostgreSQL version which __CaRMa__ uses.
 
 `/var/lib/postgresql/data` directory of this container is supposed to be binded
 to some directory on host machine and [initialized](#how-to-deploy)
@@ -50,6 +50,9 @@ docker run --rm --entrypoint=/reinit -it -v carma-db-data:/var/lib/postgresql/da
 
 ### How to just patch PostgreSQL config
 
+__CaRMa__ requires some customizations for localization and date/time formats
+(see [patch-pg-config.sh](patch-pg-config.sh) for details).
+
 ```bash
 docker run --rm -it --entrypoint=/patch-pg-config -v carma-db-data:/var/lib/postgresql/data --name carma-db carma-db
 ```
@@ -66,7 +69,7 @@ docker run -d -p 127.0.0.1:5432:5432 -v carma-db-data:/var/lib/postgresql/data -
 
 By using `--rm` flag and `-it` instead of `-d` to make it being not daemonized
 but being interactive (`Ctrl-C` interruption will remove the container but not
-mounted database, so data will continue live, you will be able to start new
+mounted database, so data will continue to live, you will be able to start new
 container at any time with the same data).
 
 ```bash
