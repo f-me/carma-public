@@ -4,7 +4,7 @@ Dockerized fixed PostgreSQL version which CaRMa uses.
 
 `/var/lib/postgresql/data` directory of this container is supposed to be binded
 to some directory on host machine and [initialized](#how-to-deploy)
-before [starting `postgres` daemon](#running)
+before [starting `postgres` daemon](#running-container)
 (to make database being persistent).
 
 ## <a name="how-to-deploy"></a>How to deploy this container
@@ -54,7 +54,7 @@ docker run --rm --entrypoint=/reinit -it -v carma-db-data:/var/lib/postgresql/da
 docker run --rm -it --entrypoint=/patch-pg-config -v carma-db-data:/var/lib/postgresql/data --name carma-db carma-db
 ```
 
-## Running a container
+## <a name="running-container"></a>Running a container
 
 ### How to run a container
 
