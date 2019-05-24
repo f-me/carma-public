@@ -51,7 +51,7 @@ import Carma.Model.ContractRegistrationReason (ContractRegistrationReason)
 -- module (original name is hidden: @Data.Time.Calendar.Days.Day@).
 newtype WDay = WDay { unWDay :: Day } deriving (Eq, FromField, ToField,
                                                 FromJSON, ToJSON,
-                                                Show, Typeable)
+                                                Show, Typeable, Ord)
 
 instance DefaultFieldView WDay where
   defaultFieldView (_ :: m -> FF WDay n d a) =

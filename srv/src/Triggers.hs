@@ -113,6 +113,9 @@ import           Util (Priority(..), syslogJSON, (.=))
 import           Data.Model.Utils.PostgreSQL.MSqlQQ hiding (parseQuery)
 
 
+minValidSince :: WDay
+minValidSince = WDay { unWDay = fromGregorian 2009 1 1}
+
 -- TODO: rename
 --   - trigOnModel -> onModel :: ModelCtr m c => c -> Free (Dsl m) res
 --   - trigOnField -> onField
@@ -377,6 +380,16 @@ beforeUpdate = Map.unionsWith (++) $
           case (sub, until) of
             (Just (Just s'), Nothing) ->
               when (oldSince /= Just newSince) $ fillValidUntil s' newSince
+            (_, Just (Just until')) -> do
+              when (newSince > until') $
+                   modifyPatch $ Patch.put Contract.validSince oldSince
+              when (newSince < minValidSince) $
+                   modifyPatch $ Patch.put Contract.validSince
+                               $ Just minValidSince
+              now <- getNow
+              when (UTCTime (Contract.unWDay newSince) 0 > now) $
+                   modifyPatch $ Patch.put Contract.validSince
+                               $ Just $ WDay $ utctDay now
             _ -> return ()
 
 
