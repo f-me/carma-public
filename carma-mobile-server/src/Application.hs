@@ -31,7 +31,7 @@ import           Data.List (find)
 import           Data.Aeson as Aeson
 import           Data.Aeson.Types (emptyArray)
 import qualified Data.HashMap.Strict as HM
-import           Data.Scientific (toRealFloat, toBoundedInteger)
+import           Data.Scientific (Scientific, toRealFloat, toBoundedInteger)
 
 import           Data.Attoparsec.ByteString.Char8
 
@@ -268,9 +268,13 @@ newCase = do
                -- Partner title is successfully obtained.
                pure $ Just partnerTitle
 
-  let -- Do not enforce typing on values when reading JSON
-      Just (Object jsonRq0) = Aeson.decode rqb
-      coords' = (,) <$> HM.lookup "lon" jsonRq0 <*> HM.lookup "lat" jsonRq0
+  jsonRq0 <-
+    -- Do not enforce typing on values when reading JSON
+    case Aeson.decode rqb of
+         Just (Object x) -> pure x
+         _               -> failBadRequest "Malformed request body!"
+
+  let coords' = (,) <$> HM.lookup "lon" jsonRq0 <*> HM.lookup "lat" jsonRq0
       isAccident  = HM.lookup "isAccident" jsonRq0
       program'    = HM.lookup (fieldName Case.program) jsonRq0
       subprogram' = HM.lookup (fieldName Case.subprogram) jsonRq0
@@ -342,24 +346,42 @@ newCase = do
           caseBody
     _ -> return caseBody
 
-  let numberToIdent :: Maybe Value -> Maybe (IdentI n)
-      numberToIdent (Just (Number n)) = Ident <$> toBoundedInteger n
-      numberToIdent _                 = Nothing
+  -- Set default program/subprogram (if not provided by client)
+  (progValue, subProgValue) <-
+    let
+      numberToIdent :: Scientific -> Maybe (IdentI n)
+      numberToIdent = fmap Ident . toBoundedInteger
+    in
+      case (program', subprogram') of
+           (Just (Aeson.Number x), Nothing) ->
+             let failure = failBadRequest "Failed to parse program identity."
+              in maybe failure (pure . (,Nothing)) $ numberToIdent x
 
-      -- Set default program/subprogram (if not provided by client)
-      (progValue, subProgValue) =
-          case (program', subprogram') of
-            (Just (Aeson.String "Cadillac"), _) ->
-                (Just Program.gm, Just SubProgram.cad2012)
-            (a, b) -> (numberToIdent a, numberToIdent b)
+           (Just (Aeson.String "Cadillac"), Nothing) ->
+             pure (Program.gm, Just SubProgram.cad2012)
 
-      -- TODO Check that subprogram.parent = program
-      caseBody'' = Patch.put Case.program
-                   (fromMaybe Program.ramc progValue) $
-                   Patch.put Case.subprogram
-                   (Just
-                    (fromMaybe SubProgram.ramc subProgValue))
-                   caseBody'
+           (Just (Number x), Just (Number y)) ->
+             let
+               failure =
+                 failBadRequest "Failed to parse program/subprogram identities."
+             in
+               maybe failure pure $
+                 (,) <$> numberToIdent x <*> fmap Just (numberToIdent y)
+
+           (Nothing, Nothing) -> pure (Program.ramc, Just SubProgram.ramc)
+
+           (Nothing, Just _) ->
+              failBadRequest
+                "It's not allowed to set subprogram without setting its program"
+
+           (_, _) -> failBadRequest "Incorrect program/subprogram values."
+
+  let -- | TODO FIXME Check that subprogram.parent = program.
+      --              Currently it allows to set "subprogram" which
+      --              isn't belongs to "program".
+      caseBody''
+        = Patch.put Case.program    progValue
+        $ Patch.put Case.subprogram subProgValue caseBody'
 
   -- Check if there has been a recent case from this number. If so, do
   -- not create a new case but serve the old id.
@@ -535,13 +557,19 @@ cleanSSLCertificate :: ByteString -> ByteString
 cleanSSLCertificate = BS.filter (`notElem` ("\t\r\n " :: [Char]))
 
 
-------------------------------------------------------------------------------
 -- | Parse "52.32,3.45" (no spaces) into pair of doubles.
 coords :: Parser (Double, Double)
 coords = (,) <$> double <* anyChar <*> double
 
 
-------------------------------------------------------------------------------
 -- | Parse "true" or "false" into boolean.
 bool :: Parser Bool
 bool = (string "true" >> return True) <|> (string "false" >> return False)
+
+
+-- | A helper to throw Bad Request HTTP errors.
+failBadRequest :: MonadSnap m => ByteString -> m a
+failBadRequest failureMessage = do
+  modifyResponse $ setResponseStatus 400 "Bad Request"
+  writeBS failureMessage
+  getResponse >>= finishWith
