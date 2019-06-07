@@ -253,6 +253,7 @@ commonMeta =
     , regexp regexpPhone phone
     , regexp regexpPlateNum plateNum
     , regexp regexpVIN vin
+    , regexp regexpMileage startMileage
     , widget "checkbutton" dixi
     , widget "contract_isActive" isActive
     ]

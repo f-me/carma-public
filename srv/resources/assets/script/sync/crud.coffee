@@ -96,9 +96,27 @@ class CrudQueue extends MetaQueue
       @kvm["#{fname}Sync"] true
 
   hideSyncAnim: (jqXHR, status) =>
+    # clean errors from date fields
+    _.each (_.keys @qbackup), (fname) =>
+      if "#{fname}InvalidDate" of @kvm
+        @kvm["#{fname}InvalidDate"] false
+
     if status
-      $.notify "Данные не были сохранены.
-                Попробуйте сохранить изменения ещё раз."
+      if 'responseJSON' of jqXHR and 'validationFailure' of jqXHR.responseJSON
+        for k, v of jqXHR.responseJSON.validationFields
+          $.notify "Ошибка ввода данных: #{v}"
+          console.log("#{k}InvalidDate: " + ("#{k}InvalidDate" of @kvm))
+          if "#{k}InvalidDate" of @kvm
+            @kvm["#{k}InvalidDate"] true
+          else
+            @kvm["#{k}InvalidDate"] false
+
+        _.each (_.keys @qbackup), (fname) =>
+          @kvm["#{fname}Sync"] false
+
+      else
+        $.notify "Данные не были сохранены.
+                  Попробуйте сохранить изменения ещё раз."
     else
       _.each (_.keys @qbackup), (fname) =>
         @kvm["#{fname}Sync"] false
