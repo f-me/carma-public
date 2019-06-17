@@ -4,25 +4,29 @@ module App.Store.DiagTree.Editor.Handlers.SaveSlide
 
 import Prelude
 
-import Control.Monad.Aff (Aff)
-import Control.Monad.Aff.AVar (AVAR)
-import Control.Monad.Aff.Class (liftAff)
-import Control.Monad.Eff.Console (CONSOLE)
-import Control.Monad.Eff.Exception (error, message, stack)
-import Control.Monad.Error.Class (catchError, throwError)
-import Control.Parallel (sequential, parallel)
-
 import Data.Array (snoc, zipWith, concat)
 import Data.Maybe (Maybe (..), maybe)
 import Data.Either (Either (..), either)
 import Data.Foldable (foldl, foldM)
-import Data.Foreign (Foreign, unsafeFromForeign)
 import Data.Argonaut.Core as A
 
-import Network.HTTP.Affjax (AJAX, AffjaxResponse, affjax)
+import Control.Monad.Error.Class (catchError, throwError)
+import Control.Parallel.Class (sequential, parallel)
+
+import Effect.Aff (Aff)
+import Effect.Aff.Class (liftAff)
+import Effect.Exception (error, message, stack)
+
+import Affjax (request)
+import Affjax.RequestBody as RequestBody
+
+import Affjax.ResponseFormat
+     ( ResponseFormatError, printResponseFormatError, json, ignore
+     )
 
 import Utils.Affjax (postRequest, putRequest)
-import App.Store (AppContext)
+import App.Store (Store)
+import App.Store.Actions (AppAction)
 import App.Store.DiagTree.Editor.Handlers.Helpers (errLog, sendAction)
 
 import App.Store.DiagTree.Editor.Types
@@ -48,19 +52,20 @@ import App.Store.DiagTree.Editor.Actions
 
 
 saveSlide
-  :: forall eff
-   . AppContext
+  :: forall state
+   . Store state AppAction
   -> Array DiagTreeSlideId
   -> DiagTreeSlide
   -> Array { header     :: String
            , text       :: String
            , attachment :: Maybe DiagTreeSlideAttachment
            }
-  -> Aff (avar :: AVAR, console :: CONSOLE, ajax :: AJAX | eff) Unit
+  -> Aff Unit
 
-saveSlide appCtx slidePath slide@(DiagTreeSlide s) newAnswers =
-  flip catchError handleError $ do
+saveSlide store slidePath slide@(DiagTreeSlide s) newAnswers = go where
+  go = catchError process handleError
 
+  process = do
     (completeNewAnswers :: Array BackendAnswer) <-
       newSlides <#> flip zipWith newAnswers \a nextSlide ->
         { nextSlide
@@ -82,24 +87,24 @@ saveSlide appCtx slidePath slide@(DiagTreeSlide s) newAnswers =
           let x = extractPartialBackendSlideFromSlide slide
            in x { answers = x.answers <#> \y -> concat [y, completeNewAnswers] }
 
-    (_ :: AffjaxResponse Foreign) <-
-      affjax $ putRequest ("/_/DiagSlide/" <> show s.id) $
-        toBackendSlideFromPartial slideForBackend
+    _ <-
+      let reqBody = RequestBody.Json $ toBackendSlideFromPartial slideForBackend
+       in request $ putRequest ("/_/DiagSlide/" <> show s.id) reqBody ignore
 
     act $ SaveSlideSuccess slidePath
     act LoadSlidesRequest -- Reloading updated slides
 
-  where
-    act = sendAction appCtx
-    handleError err = reportErr err *> act (SaveSlideFailure slidePath)
+  act = sendAction store
+  handleError err = reportErr err *> act (SaveSlideFailure slidePath)
 
-    reportErr err = errLog $
-      "Saving slide (" <> show slidePath <> ") failed: " <> message err
-      # \x -> maybe x (\y -> x <> "\nStack trace:\n" <> y) (stack err)
+  reportErr err = errLog $
+    "Saving slide (" <> show slidePath <> ") failed: " <> message err
+    # \x -> maybe x (\y -> x <> "\nStack trace:\n" <> y) (stack err)
 
-    newSlide = do
-      (newSlideRes :: AffjaxResponse Foreign) <-
-        liftAff $ affjax $ postRequest "/_/DiagSlide" $
+  newSlide = do
+    (newSlideResponse :: Either ResponseFormatError A.Json) <-
+      let
+        reqBody = RequestBody.Json $
           toBackendSlideFromPartial $ defaultPartialBackendSlide
             { isRoot    = Just false
             , header    = Just "…"
@@ -108,20 +113,31 @@ saveSlide appCtx slidePath slide@(DiagTreeSlide s) newAnswers =
             , actions   = Just []
             , answers   = Just []
             }
+      in
+        liftAff $ map _.body $ request $
+          postRequest "/_/DiagSlide" reqBody json
 
-      let newSlideJson = unsafeFromForeign newSlideRes.response :: A.Json
+    case newSlideResponse of
+         Right newSlideJson ->
+           case getBackendSlideId newSlideJson of
+                Just  x -> pure x
+                Nothing ->
+                  throwError $ error $
+                    "Extracting slide id from server response is failed\
+                    \ (response body: " <> A.stringify newSlideJson <> ")"
 
-      case getBackendSlideId newSlideJson of
-           Nothing -> throwError $ error "Parsing new created slide failed"
-           Just x  -> pure x
+         Left formatErr ->
+           throwError $ error $
+             "Parsing new created slide failed (error: " <>
+             printResponseFormatError formatErr <> ")"
 
-    newSlides =
+  newSlides = go' where
+    go' =
       extractParResult $
         sequential $ foldl (\acc x -> snoc <$> acc <*> x) (pure []) $
           (const $ parallel $ catchPar newSlide) <$> newAnswers
 
-      where
-        catchPar m = catchError (Right <$> m) (Left >>> pure)
+    catchPar m = catchError (Right <$> m) (Left >>> pure)
 
-        extractParResult =
-          (_ >>= foldM (\acc x -> x # either throwError pure <#> snoc acc) [])
+    extractParResult =
+      (_ >>= foldM (\acc x -> x # either throwError pure <#> snoc acc) [])

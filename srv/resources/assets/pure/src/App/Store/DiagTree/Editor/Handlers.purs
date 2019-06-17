@@ -4,7 +4,12 @@ module App.Store.DiagTree.Editor.Handlers
 
 import Prelude
 
-import App.Store (AppContext)
+import Data.Maybe (Maybe, fromMaybe)
+
+import Effect.Aff (Aff)
+
+import App.Store (Store)
+import App.Store.Actions (AppAction)
 import App.Store.DiagTree.Editor.Actions (DiagTreeEditorAction (..))
 import App.Store.DiagTree.Editor.Handlers.CopySlide (copySlide)
 import App.Store.DiagTree.Editor.Handlers.CutSlide (cutSlide)
@@ -14,67 +19,56 @@ import App.Store.DiagTree.Editor.Handlers.LoadSlides (loadSlides)
 import App.Store.DiagTree.Editor.Handlers.NewSlide (newSlide)
 import App.Store.DiagTree.Editor.Handlers.SaveSlide (saveSlide)
 import App.Store.DiagTree.Editor.Reducers (DiagTreeEditorState)
-import Control.Monad.Aff (Aff)
-import Control.Monad.Aff.AVar (AVAR)
-import Control.Monad.Eff.Console (CONSOLE)
-import Data.JSDate (LOCALE)
-import Data.Maybe (Maybe, fromMaybe)
-import Network.HTTP.Affjax (AJAX)
 
 
 diagTreeEditorHandler
-  :: forall eff
-   . AppContext
+  :: forall state
+   . Store state AppAction
   -> DiagTreeEditorState
   -> Maybe DiagTreeEditorState
   -> DiagTreeEditorAction
-  -> Aff ( ajax    :: AJAX
-         , avar    :: AVAR
-         , locale  :: LOCALE
-         , console :: CONSOLE
-         | eff
-         ) Unit
+  -> Aff Unit
 
-diagTreeEditorHandler appCtx prevState nextState action = case action of
+diagTreeEditorHandler store prevState nextState = case _ of
 
   LoadSlidesRequest ->
     if isProcessing
        then ignore
-       else loadSlides appCtx
+       else loadSlides store
 
   NewSlideRequest ->
     if isProcessing
        then ignore
-       else newSlide appCtx
+       else newSlide store
 
   DeleteSlideRequest slidePath ->
     if isProcessing
        then ignore
        else let state = fromMaybe prevState nextState
-             in deleteSlide appCtx state.slides slidePath
+             in deleteSlide store state.slides slidePath
 
   CopySlideRequest slidePath ->
     if isProcessing
        then ignore
        else let state = fromMaybe prevState nextState
-            in copySlide appCtx state
+             in copySlide store state
 
   CutSlideRequest slidePath ->
     if isProcessing
        then ignore
        else let state = fromMaybe prevState nextState
-            in cutSlide appCtx state
+             in cutSlide store state
 
   PasteSlideRequest slidePath ->
     if isProcessing
        then ignore
        else let state = fromMaybe prevState nextState
-            in pasteSlide appCtx prevState slidePath
+             in pasteSlide store prevState slidePath
 
   SaveSlideRequest slidePath { slide, newAnswers } ->
     if isProcessing
        then ignore
-       else saveSlide appCtx slidePath slide newAnswers
+       else saveSlide store slidePath slide newAnswers
 
   _ -> ignore
 

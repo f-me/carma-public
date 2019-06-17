@@ -13,8 +13,8 @@ BEGIN;
 ALTER  USER postgres      WITH           PASSWORD \'pass\';
 CREATE USER carma         WITH SUPERUSER PASSWORD \'pass\';
 CREATE USER carma_db_sync WITH SUPERUSER PASSWORD \'pass\';
+CREATE USER carma_geo     WITH           PASSWORD \'pass\';
 
-CREATE USER carma_geo;
 CREATE USER carma_sms;
 CREATE USER mail_svc;
 CREATE USER fmuser;

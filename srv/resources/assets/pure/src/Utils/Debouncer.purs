@@ -35,42 +35,39 @@ import Data.Maybe (Maybe (..))
 import Data.Foldable (traverse_)
 import Data.Map (Map, empty, insert, delete)
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
-import Control.Monad.Eff.Timer (TIMER, TimeoutId, setTimeout, clearTimeout)
-import Control.Monad.Eff.Ref (REF, Ref, newRef, readRef, writeRef, modifyRef)
-import Control.Monad.Eff.Now (NOW)
-import Control.Monad.Eff.Random (RANDOM)
-import Control.Monad.Aff (launchAff_)
-import Control.Monad.Aff.AVar (AVAR, AVar, makeEmptyVar, putVar, takeVar)
 import Control.Monad.Rec.Class (forever)
+import Control.Monad.Error.Class (catchError, throwError)
+
+import Effect (Effect)
+import Effect.Class (liftEffect)
+import Effect.Timer (TimeoutId, setTimeout, clearTimeout)
+import Effect.Ref (Ref, new, read, write, modify_) as Ref
+import Effect.AVar (AVar, empty, kill) as AVar
+import Effect.Aff.AVar (put, take) as AffAVar
+import Effect.Aff (launchAff_)
+import Effect.Exception (error, message) as Exception
 
 import Utils.SubscriberId (SubscriberId, newSubscriberId)
 
 
 type DebouceTimeInMS = Int
-
-newtype DebouncerSubscription = DebouncerSubscription SubscriberId
-derive instance eqDebouncerSubscription  :: Eq DebouncerSubscription
-derive instance ordDebouncerSubscription :: Ord DebouncerSubscription
+data DebouncerSubscription = DebouncerSubscription SubscriberId (Effect Unit)
 
 data Debouncer a
    = Debouncer
    { delay       :: DebouceTimeInMS
-   , timerId     :: Ref (Maybe TimeoutId)
-   , subscribers :: Ref (Map DebouncerSubscription (AVar a))
+   , timerId     :: Ref.Ref (Maybe TimeoutId)
+   , subscribers :: Ref.Ref (Map SubscriberId (AVar.AVar a))
    }
 
 
 -- Creating new `Debouncer` reference with specified delay time in milliseconds.
 -- A `Debouncer` will be ate by garbage collector, so you only need to
 -- unsubscribe from it your listeners.
-newDebouncer
-  :: forall eff a. DebouceTimeInMS -> Eff (ref :: REF | eff) (Debouncer a)
+newDebouncer :: forall a. DebouceTimeInMS -> Effect (Debouncer a)
 newDebouncer delay = do
-  timerId     <- newRef Nothing
-  subscribers <- newRef empty
+  timerId     <- Ref.new Nothing
+  subscribers <- Ref.new empty
   pure $ Debouncer { delay, timerId, subscribers }
 
 
@@ -78,56 +75,55 @@ newDebouncer delay = do
 -- specified delay (specified while creating new `Debouncer` by `newDebouncer`).
 -- This will remove previous delayed trigger if it exists and will start again
 -- waiting for whole delay time. After that time it will notify all subscribers.
-sendToDebouncer
-  :: forall eff a
-   . Debouncer a
-  -> a
-  -> Eff (ref :: REF, timer :: TIMER, avar :: AVAR | eff) Unit
-
+sendToDebouncer :: forall a. Debouncer a -> a -> Effect Unit
 sendToDebouncer (Debouncer { delay, timerId, subscribers }) newValue = do
-  readRef timerId
+  -- Clear previous timeout if has one.
+  Ref.read timerId
     >>= case _ of
              Nothing -> pure unit
              Just x  -> clearTimeout x
 
-  let delayedHandler = do
-        writeRef timerId Nothing
-        readRef subscribers >>= traverse_ (launchAff_ <<< putVar newValue)
+  let -- Notifying subscribers about received value.
+      delayedHandler = do
+        Nothing `Ref.write` timerId
+        Ref.read subscribers >>= traverse_ (launchAff_ <<< AffAVar.put newValue)
 
-  setTimeout delay delayedHandler >>= Just >>> writeRef timerId
+  -- Delaying notification and storing delayed timer id in `Ref`
+  -- so when we receive a new value before previous timer is done
+  -- we could kill previous timer and start new one (to "debounce").
+  setTimeout delay delayedHandler >>= Just >>> flip Ref.write timerId
 
 
 -- Adding a listener to `Debouncer` which will be called when a debouncer will
 -- get a value and some gap of time is up after that (debounced).
 subscribeToDebouncer
-  :: forall eff a
-   . Debouncer a
-  -> (a -> Eff (ref :: REF, avar :: AVAR | eff) Unit)
-  -> Eff ( ref    :: REF
-         , avar   :: AVAR
-         , now    :: NOW
-         , random :: RANDOM
-         | eff
-         ) DebouncerSubscription
+  :: forall a. Debouncer a -> (a -> Effect Unit) -> Effect DebouncerSubscription
 
 subscribeToDebouncer (Debouncer { subscribers }) listener = do
-  subscription <- newSubscriberId <#> DebouncerSubscription
+  subscriberId <- newSubscriberId
+  var <- AVar.empty -- new `AVar`
 
-  launchAff_ $ do
-    var <- makeEmptyVar
-    liftEff $ subscribers `modifyRef` insert subscription var
-    forever $ takeVar var >>= liftEff <<< unsafeCoerceEff <<< listener
+  -- Add a subscriber to subscribers list
+  -- and start listening with provided subscriber.
+  insert subscriberId var `Ref.modify_` subscribers
 
-  pure subscription
+  launchAff_ $
+    forever (AffAVar.take var >>= liftEffect <<< listener) `catchError` \e ->
+      if Exception.message e /= unsubscribedExceptionMessage
+         then throwError e
+         else pure unit
+
+  -- Construct subscription of subscriber identity and `unsubscribe` action.
+  pure $ DebouncerSubscription subscriberId
+       $ do delete subscriberId `Ref.modify_` subscribers
+            Exception.error unsubscribedExceptionMessage `AVar.kill` var
 
 
 -- Unsubscribe a listener from `Debouncer` so it will no longer be called by new
 -- value sent to a debouncer.
-unsubscribeFromDebouncer
-  :: forall eff a
-   . Debouncer a
-  -> DebouncerSubscription
-  -> Eff (ref :: REF | eff) Unit
+unsubscribeFromDebouncer :: DebouncerSubscription -> Effect Unit
+unsubscribeFromDebouncer (DebouncerSubscription _ unsubscribe) = unsubscribe
 
-unsubscribeFromDebouncer (Debouncer { subscribers }) subscription =
-  subscribers `modifyRef` delete subscription
+
+unsubscribedExceptionMessage :: String
+unsubscribedExceptionMessage = "Unsubscribed from debouncer."

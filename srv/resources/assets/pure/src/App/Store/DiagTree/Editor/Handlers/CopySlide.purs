@@ -3,17 +3,19 @@ module App.Store.DiagTree.Editor.Handlers.CopySlide
      ) where
 
 import Prelude
-import Control.Monad.Aff (Aff)
-import Control.Monad.Aff.AVar (AVAR)
-import Control.Monad.Eff.Console (CONSOLE)
-import Control.Monad.Eff.Exception (error, message, stack)
-import Control.Monad.Error.Class (catchError, throwError)
-import Network.HTTP.Affjax (AJAX)
+
 import Data.Maybe (maybe, fromMaybe)
 
-import App.Store (AppContext)
+import Control.Monad.Error.Class (catchError, throwError)
+
+import Effect.Aff (Aff)
+import Effect.Exception (error, message, stack)
+
+import App.Store (Store)
+import App.Store.Actions (AppAction)
 import App.Store.DiagTree.Editor.Handlers.Helpers (errLog, sendAction)
 import App.Store.DiagTree.Editor.Reducers (DiagTreeEditorState)
+
 import App.Store.DiagTree.Editor.Actions
      ( DiagTreeEditorAction ( CopySlideSuccess
                             , CopySlideFailure
@@ -22,25 +24,24 @@ import App.Store.DiagTree.Editor.Actions
 
 
 copySlide
-  :: forall eff
-   . AppContext
+  :: forall state
+   . Store state AppAction
   -> DiagTreeEditorState
-  -> Aff (avar :: AVAR, console :: CONSOLE, ajax :: AJAX | eff) Unit
+  -> Aff Unit
 
-copySlide appCtx state = flip catchError handleError $ do
-  case slidePath of
-    [ ] -> throwError $ error "Slide path is empty"
-    _   -> act $ CopySlideSuccess slidePath
+copySlide store state = catchError go handleError where
+  go =
+    case slidePath of
+      [ ] -> throwError $ error "Slide path is empty"
+      _   -> act $ CopySlideSuccess slidePath
 
-  where
-    slidePath = fromMaybe [] state.copyPasteBuffer.branch
+  slidePath = fromMaybe [] state.copyPasteBuffer.branch
+  act = sendAction store
 
-    act = sendAction appCtx
+  reportErr err = errLog $
+    "Copyng slide " <> show slidePath <> " failed: " <> message err
+    # \x -> maybe x (\y -> x <> "\nStacktrace:\n" <> y) (stack err)
 
-    reportErr err = errLog $
-      "Copyng slide " <> show slidePath <> " failed: " <> message err
-      # \x -> maybe x (\y -> x <> "\nStacktrace:\n" <> y) (stack err)
-
-    handleError err = do
-      reportErr err
-      act $ CopySlideFailure slidePath
+  handleError err = do
+    reportErr err
+    act $ CopySlideFailure slidePath

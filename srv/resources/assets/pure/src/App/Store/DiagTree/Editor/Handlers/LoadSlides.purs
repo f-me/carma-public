@@ -2,33 +2,36 @@ module App.Store.DiagTree.Editor.Handlers.LoadSlides
      ( loadSlides
      ) where
 
-import Prelude hiding (id)
+import Prelude
 
-import Control.Monad.Error.Class (catchError, throwError)
-import Control.Monad.Eff.Exception (error, message)
-import Control.Monad.Eff.Console (CONSOLE)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Aff (Aff)
-import Control.Monad.Aff.AVar (AVAR)
-import Control.Monad.Maybe.Trans (MaybeT, runMaybeT)
-
+import Data.Either (Either (..))
 import Data.Maybe (Maybe (..))
 import Data.Tuple (Tuple (Tuple), fst, snd)
 import Data.Array (snoc)
 import Data.Foldable (foldM, foldl)
-import Data.StrMap as StrMap
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Foreign (Foreign, unsafeFromForeign)
-import Data.JSDate (LOCALE)
 import Data.Argonaut.Core as A
+import Foreign.Object as FObj
 
-import Network.HTTP.Affjax (AJAX, AffjaxResponse, affjax)
+import Control.Monad.Error.Class (catchError, throwError)
+import Control.Monad.Maybe.Trans (MaybeT, runMaybeT)
+
+import Effect.Aff (Aff)
+import Effect (Effect)
+import Effect.Class (liftEffect)
+import Effect.Exception (error, message)
+
+import Affjax (request)
+
+import Affjax.ResponseFormat
+     ( ResponseFormatError, printResponseFormatError, json
+     )
 
 import Utils (toMaybeT)
 import Utils.Affjax (getRequest)
-import App.Store (AppContext)
+import App.Store (Store)
+import App.Store.Actions (AppAction)
 import App.Store.DiagTree.Editor.Handlers.Helpers (errLog, sendAction)
 import App.Store.DiagTree.Editor.Types (DiagTreeSlides, DiagTreeSlideId)
 import App.Store.DiagTree.Editor.Handlers.SharedUtils.Slide (getSlide)
@@ -43,99 +46,94 @@ import App.Store.DiagTree.Editor.Actions
      )
 
 
-loadSlides
-  :: forall eff
-   . AppContext
-  -> Aff ( ajax    :: AJAX
-         , avar    :: AVAR
-         , locale  :: LOCALE
-         , console :: CONSOLE
-         | eff
-         ) Unit
+loadSlides :: forall state. Store state AppAction -> Aff Unit
+loadSlides store = catchError go handleError where
+  go = do
+    (res :: Either ResponseFormatError A.Json) <-
+      map _.body $ request $ getRequest "/_/DiagSlide" json
 
-loadSlides appCtx = flip catchError handleError $ do
-  (res :: AffjaxResponse Foreign) <- affjax $ getRequest "/_/DiagSlide"
+    json' <-
+      case res of
+           Right x -> pure x
+           Left  e -> reportParseError e
 
-  parsed <- flip catchError handleParseError $ do
-    let json = unsafeFromForeign res.response :: A.Json
+    parsed <- flip catchError handleParseError $ do
+      let -- Parsing single element (called "flat slide" or "backend slide").
+          -- Not `DiagTreeSlide` yet, just a record of a slide for flat map.
+          parseFlatElem acc x = do
+            flatSlide@{ id, isRoot } <- fromBackendSlideObj x
 
-        -- Parsing single element (called "flat slide" or "backend slide").
-        -- Not `DiagTreeSlide` yet, just a record of a slide for flat map.
-        parseFlatElem acc x = do
-          flatSlide@{ id, isRoot } <- fromBackendSlideObj x
+            let newAcc = if isRoot && fst acc == Nothing
+                            then Tuple (Just id) $ snd acc
+                            else acc
 
-          let newAcc = if isRoot && fst acc == Nothing
-                          then Tuple (Just id) $ snd acc
-                          else acc
+            pure $ flip map newAcc $ Map.insert id flatSlide
 
-          pure $ flip map newAcc $ Map.insert id flatSlide
+          -- Building flat slides map
+          reduceFlat acc jsonItem = do
+            x        <- A.toObject jsonItem
+            isActive <- FObj.lookup "isActive" x >>= A.toBoolean
 
-        -- Building flat slides map
-        reduceFlat acc jsonItem = do
-          x        <- A.toObject jsonItem
-          isActive <- StrMap.lookup "isActive" x >>= A.toBoolean
+            if not isActive
+               then pure acc -- Ignore inactive slides
+               else parseFlatElem acc x
 
-          if not isActive
-             then pure acc -- Ignore inactive slides
-             else parseFlatElem acc x
-
-        parsedFlat =
-          A.toArray json
-          >>= foldM reduceFlat (Tuple Nothing Map.empty)
-          >>= \(Tuple rootSlide flatSlides) ->
-                case rootSlide of
-                     Just x  -> Just $ Tuple x flatSlides
-                     Nothing -> Nothing
+          parsedFlat =
+            A.toArray json'
+            >>= foldM reduceFlat (Tuple Nothing Map.empty)
+            >>= \(Tuple rootSlide flatSlides) ->
+                  case rootSlide of
+                       Just x  -> Just $ Tuple x flatSlides
+                       Nothing -> Nothing
 
 
-        reduceTree
-          :: forall reduceTreeEff
-           . Map DiagTreeSlideId BackendSlide
-          -> DiagTreeSlides
-          -> DiagTreeSlideId
-          -> MaybeT (Eff (locale :: LOCALE | reduceTreeEff)) DiagTreeSlides
+          reduceTree
+            :: Map DiagTreeSlideId BackendSlide
+            -> DiagTreeSlides
+            -> DiagTreeSlideId
+            -> MaybeT Effect DiagTreeSlides
 
-        reduceTree flatSlides acc slideId =
-          getSlide flatSlides slideId <#> flip (Map.insert slideId) acc
-
-
-        -- `Eff` is required to parse date.
-        -- It builds a tree of `DiagTreeSlides` from flat map of all slides.
-        parseTree :: forall parseTreeEff.
-          MaybeT (Eff (locale :: LOCALE | parseTreeEff))
-                 (Tuple DiagTreeSlideId DiagTreeSlides)
-
-        parseTree = do
-          Tuple rootSlide flatSlides <- toMaybeT parsedFlat
-
-          let reduce acc { id, isRoot } = if isRoot then snoc acc id else acc
-              flatIds = foldl reduce [] flatSlides
-
-          Tuple rootSlide <$> foldM (reduceTree flatSlides) Map.empty flatIds
+          reduceTree flatSlides acc slideId =
+            getSlide flatSlides slideId <#> flip (Map.insert slideId) acc
 
 
-    tree <- liftEff $ runMaybeT parseTree
+          -- `Effect` is required to parse date.
+          -- It builds a tree of `DiagTreeSlides` from flat map of all slides.
+          parseTree :: MaybeT Effect (Tuple DiagTreeSlideId DiagTreeSlides)
+          parseTree = do
+            Tuple rootSlide flatSlides <- toMaybeT parsedFlat
 
-    case tree of
-         Just (Tuple rootSlide slides) -> pure { slides, rootSlide }
-         Nothing -> throwError $ error dataParseFailMsg
+            let reduce acc { id, isRoot } = if isRoot then snoc acc id else acc
+                flatIds = foldl reduce [] flatSlides
 
-  act $ LoadSlidesSuccess parsed
+            Tuple rootSlide <$> foldM (reduceTree flatSlides) Map.empty flatIds
 
-  where
-    act = sendAction appCtx
-    dataParseFailMsg = "parsing data failed"
 
-    handleError err =
-      if message err == dataParseFailMsg
-         then do errLog $ "Parsing data failed: " <> message err
-                 act $ LoadSlidesFailure ParsingSlidesDataFailed
-         else do errLog $ "Request failed: " <> message err
-                 act $ LoadSlidesFailure LoadingSlidesFailed
+      tree <- liftEffect $ runMaybeT parseTree
 
-    handleParseError err = do
-      if message err == dataParseFailMsg
-         then throwError err -- Raise upper
-         else do errLog $ "Parsing data unexpectedly failed: " <> message err
-                 act $ LoadSlidesFailure ParsingSlidesDataFailed
-                 throwError $ error dataParseFailMsg
+      case tree of
+           Just (Tuple rootSlide slides) -> pure { slides, rootSlide }
+           Nothing -> throwError $ error dataParseFailMsg
+
+    act $ LoadSlidesSuccess parsed
+
+  act = sendAction store
+  dataParseFailMsg = "parsing data failed"
+
+  handleError err =
+    if message err == dataParseFailMsg
+       then do errLog $ "Parsing data is failed: " <> message err
+               act $ LoadSlidesFailure ParsingSlidesDataFailed
+       else do errLog $ "Request is failed: " <> message err
+               act $ LoadSlidesFailure LoadingSlidesFailed
+
+  handleParseError err = do
+    if message err == dataParseFailMsg
+       then throwError err -- Raise upper
+       else do errLog $ "Parsing data is unexpectedly failed: " <> message err
+               act $ LoadSlidesFailure ParsingSlidesDataFailed
+               throwError $ error dataParseFailMsg
+
+  reportParseError formatErr = liftEffect $ throwError $ error $
+    "Parsing response of loading slides is failed " <>
+    "(error: " <> printResponseFormatError formatErr <> ")!"
