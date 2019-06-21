@@ -61,15 +61,15 @@ import           Snap.Snaplet
 import           Snap.Snaplet.PostgresqlSimple
 
 import           Carma.Utils.Operators
-import           Carma.Model.Types       (Coords(..))
-import           Carma.Model.LegacyTypes (PickerField(..), Phone(..))
+import           Carma.Model.Types       (Coords (..))
+import           Carma.Model.LegacyTypes (PickerField (..), Phone (..))
 import           Data.Model              as Model
 import qualified Data.Model.Patch        as Patch
 import           Data.Model.Utils.PostgreSQL.MSqlQQ hiding (parseQuery)
 import qualified Carma.Model.Case        as Case
 import qualified Carma.Model.CaseStatus  as CS
 import qualified Carma.Model.CarMake     as CarMake
-import           Carma.Model.CarMake     (CarMake)
+import           Carma.Model.CarMake      ( CarMake )
 import qualified Carma.Model.City        as City
 import qualified Carma.Model.Partner     as Partner
 import qualified Carma.Model.Program     as Program
@@ -419,10 +419,24 @@ newCase = do
 
            (_, _) -> failBadRequest "Incorrect program/subprogram values."
 
-  let -- | TODO FIXME Check that subprogram.parent = program.
-      --              Currently it allows to set "subprogram" which
-      --              isn't belongs to "program".
-      caseBody''
+  -- Validating that provided @SubProgram@ belongs to provided @Program@
+  -- (in case @SubProgram@ is provided along with @Program@).
+  flip (maybe $ pure ()) subProgValue $ \subprogramIdent ->
+    runCarma (readInstance subprogramIdent)
+      <&> flip Patch.get SubProgram.parent
+      >>= \case Just parentProgramIdent ->
+                  when (parentProgramIdent /= progValue) $
+                    failBadRequest $
+                      "SubProgram id " <> fromString (show subprogramIdent) <>
+                      " does not belong to Program id " <>
+                      fromString (show progValue)
+
+                Nothing ->
+                  failBadRequest $
+                    "Failed to obtain subprogram by id " <>
+                    fromString (show subprogramIdent)
+
+  let caseBody''
         = caseBody'
         & Patch.put Case.program    progValue
         & Patch.put Case.subprogram subProgValue
