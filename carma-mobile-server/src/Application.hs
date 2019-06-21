@@ -49,6 +49,8 @@ import           Control.Lens hiding ((.=), (<&>))
 import           Control.Monad
 import           Control.Monad.Reader
 import           Control.Monad.State hiding (ap)
+import           Control.Monad.Catch (catch)
+import           Control.Exception (Exception, SomeException)
 
 import           Database.PostgreSQL.Simple.FromRow
 import           Database.PostgreSQL.Simple.SqlQQ
@@ -119,6 +121,19 @@ runCarma :: CarmaIO a -> Handler b GeoApp a
 runCarma action = do
   co <- gets carmaOptions
   liftIO $ CH.runCarma co action
+
+
+runFailProofCarma
+  :: Exception e
+  => CarmaIO a
+  -> (e -> Handler b GeoApp a)
+  -> Handler b GeoApp a
+
+runFailProofCarma action errHandler = do
+  co <- gets carmaOptions
+
+  either errHandler pure =<<
+    liftIO ((Right <$> CH.runCarma co action) `catch` (Left ? pure))
 
 
 ------------------------------------------------------------------------------
@@ -422,19 +437,23 @@ newCase = do
   -- Validating that provided @SubProgram@ belongs to provided @Program@
   -- (in case @SubProgram@ is provided along with @Program@).
   flip (maybe $ pure ()) subProgValue $ \subprogramIdent ->
-    runCarma (readInstance subprogramIdent)
-      <&> flip Patch.get SubProgram.parent
-      >>= \case Just parentProgramIdent ->
-                  when (parentProgramIdent /= progValue) $
-                    failBadRequest $
-                      "SubProgram id " <> fromString (show subprogramIdent) <>
-                      " does not belong to Program id " <>
-                      fromString (show progValue)
+    let
+      getParentProgramOfSubProgram =
+        runFailProofCarma
+          (readInstance subprogramIdent <&> flip Patch.get SubProgram.parent)
+          (\(_ :: SomeException) -> pure Nothing)
 
-                Nothing ->
-                  failBadRequest $
-                    "Failed to obtain subprogram by id " <>
-                    fromString (show subprogramIdent)
+      resolve = \case
+        Just parentProgramIdent ->
+          when (parentProgramIdent /= progValue) $
+            failBadRequest $
+              "Subprogram by " <> fromString (show subprogramIdent) <>
+              " does not belong to program by " <> fromString (show progValue)
+
+        Nothing ->
+          fail $ "Failed to obtain subprogram by " <> show subprogramIdent
+    in
+      getParentProgramOfSubProgram >>= resolve
 
   let caseBody''
         = caseBody'

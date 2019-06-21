@@ -34,6 +34,7 @@ Executable carma-mobile-server
     carma-models,
     carma-utils,
     configurator,
+    exceptions,
     HTTP,
     lens,
     mtl,
