@@ -38,6 +38,7 @@ import           Data.Dict.New
 import           Data.Maybe
 import           Data.Text (Text)
 import qualified Data.Text as T (concat, pack, unpack)
+import           Data.String (fromString)
 
 import           Data.Configurator
 
@@ -64,8 +65,11 @@ import           Carma.Model.Types       (Coords(..))
 import           Carma.Model.LegacyTypes (PickerField(..), Phone(..))
 import           Data.Model              as Model
 import qualified Data.Model.Patch        as Patch
+import           Data.Model.Utils.PostgreSQL.MSqlQQ hiding (parseQuery)
 import qualified Carma.Model.Case        as Case
 import qualified Carma.Model.CaseStatus  as CS
+import qualified Carma.Model.CarMake     as CarMake
+import           Carma.Model.CarMake     (CarMake)
 import qualified Carma.Model.City        as City
 import qualified Carma.Model.Partner     as Partner
 import qualified Carma.Model.Program     as Program
@@ -310,24 +314,40 @@ newCase = do
                           -- partner's mark as suffix inside parenthesis.
                           HM.insert fieldKey (v <> " (" <> p <> ")") l
 
-  let car_make = HM.lookup "car_make" jsonRq
-
   let -- | Add a text field from the request to a patch
       putFromRequest acc = Patch.put acc $ fieldName acc `HM.lookup` jsonRq
 
-  carMakeId
-    <- (\case { [[makeId]] -> Just makeId; _ -> Nothing })
-    <$> query [sql|select id from "CarMake" where value = ?|] [car_make]
+  (carMakeId :: Maybe (IdentI CarMake)) <-
+    let
+      fieldName' = fieldName Case.car_make
+
+      q code =
+        uncurry query
+          [msql| SELECT $(F|CarMake.ident)$
+                 FROM   $(T|CarMake)$
+                 WHERE  $(F|CarMake.value)$ = $(V|code)$ |]
+
+      resolve _ [[makeId]] = pure $ Just makeId
+
+      resolve code _ = failBadRequest $
+        "Car make with '" <> fromString (T.unpack code) <> "' code from '" <>
+        fromString (T.unpack fieldName') <> "' field not found"
+    in
+      case HM.lookup fieldName' jsonRq of
+           Nothing -> pure Nothing
+           Just x  -> q x >>= resolve x
 
   -- Start building a JSON for CaRMa
   let caseBody
         = Patch.empty
 
-        & Patch.put Case.contractIdentifier
+        & -- @\"cardNumber_cardNumber"@ isn't exists in any model,
+          -- it is only for this mobile API spec.
+          Patch.put Case.contractIdentifier
             (HM.lookup "cardNumber_cardNumber" jsonRq)
 
-        & putFromRequest Case.contact_email
         & putFromRequest Case.contact_name
+        & putFromRequest Case.contact_email
 
         & Patch.put Case.contact_phone1
             (Phone <$> HM.lookup (fieldName Case.contact_phone1) jsonRq)
@@ -404,8 +424,8 @@ newCase = do
       --              isn't belongs to "program".
       caseBody''
         = caseBody'
-        & Patch.put Case.subprogram subProgValue
         & Patch.put Case.program    progValue
+        & Patch.put Case.subprogram subProgValue
 
   -- Check if there has been a recent case from this number. If so, do
   -- not create a new case but serve the old id.

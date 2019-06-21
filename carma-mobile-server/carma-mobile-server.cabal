@@ -30,6 +30,7 @@ Executable carma-mobile-server
     bytestring,
     carma-dict,
     carma-http,
+    carma-model-utils,
     carma-models,
     carma-utils,
     configurator,
