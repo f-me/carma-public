@@ -175,7 +175,7 @@ instanceRequest rid rm row = do
                       -- Fail when it's not a list
                       Nothing -> throw CouldNotReadCaRMaResponse
 
-                      Just (xs :: container (Patch m)) ->
+                      Just (xs :: container itemParsed) ->
                         let
                           reducer acc x =
                             case Patch.get x idAcc of
@@ -188,7 +188,7 @@ instanceRequest rid rm row = do
                       -- Fail if no id provided and could not read response
                       Nothing -> throw CouldNotReadCaRMaResponse
 
-                      Just (x :: Patch m) ->
+                      Just (x :: itemParsed) ->
                         case Patch.get x idAcc of
                              Just id' -> pure $ pure (id', Just x)
                              Nothing  -> throw NoIdFieldInCaRMaResponse
