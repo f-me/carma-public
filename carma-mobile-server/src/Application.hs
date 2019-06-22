@@ -6,6 +6,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 {-|
 
@@ -50,7 +51,7 @@ import           Control.Monad
 import           Control.Monad.Reader
 import           Control.Monad.State hiding (ap)
 import           Control.Monad.Catch (catch)
-import           Control.Exception (Exception, SomeException)
+import           Control.Exception (Exception)
 
 import           Database.PostgreSQL.Simple.FromRow
 import           Database.PostgreSQL.Simple.SqlQQ
@@ -72,6 +73,8 @@ import qualified Carma.Model.Case        as Case
 import qualified Carma.Model.CaseStatus  as CS
 import qualified Carma.Model.CarMake     as CarMake
 import           Carma.Model.CarMake      ( CarMake )
+import qualified Carma.Model.CarModel    as CarModel
+import           Carma.Model.CarModel     ( CarModel )
 import qualified Carma.Model.City        as City
 import qualified Carma.Model.Partner     as Partner
 import qualified Carma.Model.Program     as Program
@@ -207,10 +210,10 @@ updatePartnerData
 
 updatePartnerData pid lon lat free addr mtime = go where
   body
-    = Patch.put Partner.coords (Just $ Coords (lon, lat))
-    $ Patch.put Partner.isFree free
-    $ Patch.put Partner.mtime mtime
-      Patch.empty
+    = Patch.empty
+    & Patch.put Partner.coords (Just $ Coords (lon, lat))
+    & Patch.put Partner.isFree free
+    & Patch.put Partner.mtime mtime
 
   go = do
     -- Update addrs with new "fact" address. Not thread-safe.
@@ -332,7 +335,7 @@ newCase = do
   let -- | Add a text field from the request to a patch
       putFromRequest acc = Patch.put acc $ fieldName acc `HM.lookup` jsonRq
 
-  (carMakeId :: Maybe (IdentI CarMake)) <-
+  (carMake :: Maybe (IdentI CarMake, Text)) <-
     let
       fieldName' = fieldName Case.car_make
 
@@ -342,7 +345,7 @@ newCase = do
                  FROM   $(T|CarMake)$
                  WHERE  $(F|CarMake.value)$ = $(V|code)$ |]
 
-      resolve _ [[makeId]] = pure $ Just makeId
+      resolve code [[makeId]] = pure (makeId, code)
 
       resolve code _ = failBadRequest $
         "Car make with '" <> fromString (T.unpack code) <> "' code from '" <>
@@ -350,7 +353,48 @@ newCase = do
     in
       case HM.lookup fieldName' jsonRq of
            Nothing -> pure Nothing
-           Just x  -> q x >>= resolve x
+           Just x  -> (q x >>= resolve x) <&> Just
+
+  (carModelId :: Maybe (IdentI CarModel)) <-
+    let
+      fieldName' = fieldName Case.car_model
+
+      req carMakeId carModelCode
+        = searchByFilter
+        ( Patch.empty
+        & Patch.put CarModel.value  carModelCode
+        & Patch.put CarModel.parent carMakeId
+        )
+
+      getCarModelId carMakeId carModelCode
+        = runFailProofCarma (Right . fmap fst <$> req carMakeId carModelCode)
+        $ \(e :: CarmaHTTPReqException) -> pure $ Left $ show e
+
+      errorMsgPrefix carMakeCode carModelCode =
+        "Failed to get car model id by '" <>
+        fromString (T.unpack carModelCode) <>
+        "' code from '" <> fromString (T.unpack fieldName') <>
+        "' field which belongs to car make by '" <>
+        fromString (T.unpack carMakeCode) <>
+        "' code, "
+
+      resolve carMakeCode carModelCode = go where
+        errPfx = mappend $ errorMsgPrefix carMakeCode carModelCode
+
+        go = \case
+          Right [carModelId] -> pure $ Just carModelId
+          Right [] -> failBadRequest $ errPfx $ "such car model not found"
+
+          Right xs -> fail $ errPfx $
+            "unexpectedly received more than one car model id:" <> show xs
+
+          Left e -> fail $ errPfx $ "it failed with exception: " <> fromString e
+    in
+      case (,) <$> carMake <*> HM.lookup fieldName' jsonRq of
+           Nothing -> pure Nothing
+           Just ((carMakeId, carMakeCode), carModelCode) ->
+             getCarModelId carMakeId carModelCode >>=
+             resolve carMakeCode carModelCode
 
   -- Start building a JSON for CaRMa
   let caseBody
@@ -369,7 +413,8 @@ newCase = do
 
         & putFromRequest Case.car_vin
         & putFromRequest Case.car_plateNum
-        & Patch.put Case.car_make carMakeId
+        & Patch.put Case.car_make (carMake <&> fst)
+        & Patch.put Case.car_model carModelId
 
   dict <- gets cityDict
 
@@ -377,7 +422,7 @@ newCase = do
     -- Reverse geocode coordinates from lon/lat
     Just (Number lon', Number lat') ->
       let
-        (lon, lat) = (toRealFloat lon', toRealFloat lat')
+        (lon, lat) = (toRealFloat lon' :: Double, toRealFloat lat' :: Double)
       in
         revGeocode lon lat <&> \case
           (city, addr) -> caseBody
@@ -438,20 +483,24 @@ newCase = do
   -- (in case @SubProgram@ is provided along with @Program@).
   flip (maybe $ pure ()) subProgValue $ \subprogramIdent ->
     let
-      getParentProgramOfSubProgram =
-        runFailProofCarma
-          (readInstance subprogramIdent <&> flip Patch.get SubProgram.parent)
-          (\(_ :: SomeException) -> pure Nothing)
+      getParentProgramOfSubProgram
+        = runFailProofCarma
+          ( readInstance subprogramIdent
+            <&> flip Patch.get SubProgram.parent
+            <&> maybe (Left "Result is unexpectedly empty (Nothing)") Right
+          )
+        $ \(e :: CarmaHTTPReqException) -> pure $ Left $ show e
 
       resolve = \case
-        Just parentProgramIdent ->
+        Right parentProgramIdent ->
           when (parentProgramIdent /= progValue) $
             failBadRequest $
               "Subprogram by " <> fromString (show subprogramIdent) <>
               " does not belong to program by " <> fromString (show progValue)
 
-        Nothing ->
-          fail $ "Failed to obtain subprogram by " <> show subprogramIdent
+        Left e -> fail $
+          "Failed to obtain subprogram by " <> show subprogramIdent <>
+          ", error message: " <> e
     in
       getParentProgramOfSubProgram >>= resolve
 
