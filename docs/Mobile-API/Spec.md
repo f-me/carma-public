@@ -132,6 +132,7 @@ Each **Car Maker** has own limited possible values for `car_model` field.
 See [Car Models](#car-models) section for details.
 
 [//]: # (#CAR_MAKERS_TABLE# -- separator for automation scripts)
+
 | Label (human-readable) | Value (used in requests) | Car Models                                        |
 | -                      | -                        | -                                                 |
 | Alfa Romeo             | `alfa`                   | [Dictionary](#car-models-of-alfa-car-maker)       |
@@ -185,6 +186,7 @@ This list may be extended in the future.
 
 [//]: # (WARNING! This list is produced automatically, see README.md for details, do not edit it manually!)
 [//]: # (#CAR_MODELS_BEGIN# -- separator for automation scripts)
+
 #### <a name="car-models-of-alfa-car-maker"></a>Car Models of "Alfa Romeo" Car Maker
 
 | Label (human-readable) | Value (used in requests) |
@@ -1597,6 +1599,7 @@ This list may be extended in the future.
 | Priora                 | priora                   |
 | Vesta                  | vesta                    |
 | X-Ray                  | xray                     |
+
 [//]: # (#CAR_MODELS_END# -- separator for automation scripts)
 
 ## Notes
