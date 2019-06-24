@@ -441,6 +441,25 @@ beforeUpdate = Map.unionsWith (++) $
                                           ]
             _ -> return ()
 
+  , trigOn Contract.validUntil $ \case
+      Nothing -> return ()
+      Just newValidUntil -> do
+        cp <- getIdent >>= dbRead
+        validSince <- getPatchField Contract.validSince
+        let nize (Just Nothing) = Nothing
+            nize v              = v
+            validSince' =
+              nize validSince <|> (Just $ cp `get'` Contract.validSince)
+        case (validSince', newValidUntil) of
+          (Just (Just validSince''), _) ->
+              when (validSince'' > newValidUntil) $ doApp $
+                   validationFailure Contract.validUntil $
+                                     T.concat
+                                          [ Model.fieldDesc Contract.validSince
+                                          , " не может быть больше "
+                                          , Model.fieldDesc Contract.validUntil
+                                          ]
+          _ -> return ()
 
   -- Copy some data form prev contract
   , trigOn Contract.vin $ \case
