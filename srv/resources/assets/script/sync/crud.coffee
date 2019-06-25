@@ -105,7 +105,6 @@ class CrudQueue extends MetaQueue
       if 'responseJSON' of jqXHR and 'validationFailure' of jqXHR.responseJSON
         for k, v of jqXHR.responseJSON.validationFields
           $.notify "Ошибка ввода данных: #{v}"
-          console.log("#{k}InvalidDate: " + ("#{k}InvalidDate" of @kvm))
           if "#{k}InvalidDate" of @kvm
             @kvm["#{k}InvalidDate"] true
           else
