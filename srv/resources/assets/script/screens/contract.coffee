@@ -114,6 +114,9 @@ module.exports =
 
       kvm["id"].subscribe (i) -> redirect "contract/#{subprogram}/#{i}"
 
+      kvm["make"].subscribe (v) ->
+          kvm["model"]?("")
+
       # Role-specific permissions
       kvm['isActiveDisableDixi'](true)
       is_partner = _.find(window.global.user.roles,
