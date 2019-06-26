@@ -22,7 +22,7 @@ import           Control.Monad.Trans
 import           Control.Monad.Trans.Reader
 
 import qualified Data.Aeson as Aeson
-import           Data.Char (isDigit)
+import           Data.Char (isDigit, toUpper)
 import           Data.Singletons
 import           Data.Dynamic
 import           Data.List
@@ -120,6 +120,12 @@ import           AppHandlers.Util (writeJSON)
 vinLength :: Int
 vinLength = 17
 
+vinChars :: String
+vinChars = ['A'..'H'] ++ ['J'..'N'] ++ ('P':['R'..'Z']) ++ ['0'..'9']
+
+isValidVIN :: Text -> Bool
+isValidVIN vin = T.length vin == vinLength &&
+                 T.all (`elem` vinChars) (T.map toUpper vin)
 
 minValidSince :: WDay
 minValidSince = WDay { unWDay = fromGregorian 2009 1 1}
@@ -366,7 +372,8 @@ beforeUpdate = Map.unionsWith (++) $
         -- Use server time for actual endDate
         modifyPatch $ Patch.put Call.endDate $ Just now
         -- Close all associated call actions
-        getIdent >>= callActionIds >>= mapM_ (closeAction ActionResult.callEnded)
+        getIdent >>= callActionIds
+                 >>= mapM_ (closeAction ActionResult.callEnded)
 
   , trigOn ActionType.priority $
       \n -> modPut ActionType.priority $
@@ -437,7 +444,8 @@ beforeUpdate = Map.unionsWith (++) $
                    validationFailure Contract.validSince $
                                      T.concat
                                           [ Model.fieldDesc Contract.validSince
-                                          , " не может быть больше сегодняшней даты"
+                                          , " не может быть больше"
+                                          , " сегодняшней даты"
                                           ]
             _ -> return ()
 
@@ -463,7 +471,7 @@ beforeUpdate = Map.unionsWith (++) $
 
   -- Copy some data form prev contract
   , trigOn Contract.vin $ \case
-      Just vin | T.length vin == vinLength -> do
+      Just vin | isValidVIN vin -> do
           cId <- getIdent
           prototypeId <- doApp $ liftPG' $ \pg -> uncurry (PG.query pg)
             [sql|
@@ -487,7 +495,8 @@ beforeUpdate = Map.unionsWith (++) $
                                    , Model.fieldDesc Contract.vin
                                    , " должно содержать "
                                    , T.pack $ show vinLength
-                                   , " символов"
+                                   , " символов из набора "
+                                   , T.pack vinChars
                                    ]
       _ -> return ()
 
