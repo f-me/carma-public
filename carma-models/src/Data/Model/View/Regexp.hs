@@ -38,3 +38,7 @@ regexpVIN = "^[0-9a-hA-Hj-nJ-NpPr-zR-Z]{17}$"
 
 regexpYear :: Text
 regexpYear = "^[12][09][0-9]{2}$"
+
+-- from 1 to 1'999'999
+regexpMileage :: Text
+regexpMileage = "^([1-9][0-9]{0,5}|1[0-9]{6})$"

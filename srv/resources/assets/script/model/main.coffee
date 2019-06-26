@@ -169,6 +169,7 @@ buildKVM = (model, options = {}) ->
 
       # Determines the sync state with the server
       kvm["#{n}Sync"] = ko.observable false
+      kvm["#{n}InvalidDate"] = ko.observable false
 
       # Handler for clicking on "upload" button
       if f.meta?.widget is "inline-uploader"

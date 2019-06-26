@@ -59,7 +59,7 @@ mixin rawDateInput(nameMod, dataBinds, change)
   `)
     +defaultInput(
       nameMod,
-      dataBinds + 'datepicker: !{{name}}Disabled(),',
+      dataBinds + 'datepicker: !{{name}}Disabled(),' + 'css: { \'date-failed\': {{name}}InvalidDate}',
       change)&attributes(attributes)
     block
 

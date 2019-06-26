@@ -45,7 +45,7 @@
 set MD_SPEC_FILE "Spec.md"
 set CAR_MAKERS_TBL {"CarMake"}
 set CAR_MODELS_TBL {"CarModel"}
-set CAR_MAKERS_SEPARATOR "#CAR_MAKERS_TABLE#"
+set CAR_MAKERS_MARKER "#CAR_MAKERS_TABLE#"
 set CAR_MODELS_BEGIN_SEPARATOR "#CAR_MODELS_BEGIN#"
 set CAR_MODELS_END_SEPARATOR "#CAR_MODELS_END#"
 
@@ -121,7 +121,7 @@ proc sql_query q {
 # parses markdown of the spec and extracts predefined car makers.
 # returns list of associated arrays (keys are "label" and "value").
 proc parse_car_makers_dict spec_file {
-    global CAR_MAKERS_SEPARATOR
+    global CAR_MAKERS_MARKER
     set f [open $spec_file r]
     fconfigure $f -blocking 1 -buffering line
     set result [list]
@@ -141,8 +141,15 @@ proc parse_car_makers_dict spec_file {
     while {[gets $f line] >= 0} {
         # in case we haven't found table yet, looking for separator
         if !$car_makers_found {
-            if [regexp $CAR_MAKERS_SEPARATOR $line] {
+            if [regexp $CAR_MAKERS_MARKER $line] {
                 set car_makers_found 1
+
+                # there must be an empty line after separator
+                gets $f line
+                if {$line ne ""} {
+                    set e "$spec_file: There must be an empty line after"
+                    error "$e $CAR_MAKERS_MARKER marker"
+                }
 
                 # next two lines are table head
                 gets $f heading; gets $f separator
@@ -181,7 +188,7 @@ proc parse_car_makers_dict spec_file {
 
     if !$car_makers_found {
         set e "Failed to parse Car Makers from $spec_file,"
-        error "$e $CAR_MAKERS_SEPARATOR separator not found"
+        error "$e $CAR_MAKERS_MARKER marker not found"
     }
 
     close $f
@@ -273,7 +280,7 @@ while {[gets $f line] >= 0} {
         if [regexp $CAR_MODELS_END_SEPARATOR $line] {
             set is_car_models_opened 0
             set new_spec_contents \
-                "${new_spec_contents}${all_rendered_car_models}\n"
+                "${new_spec_contents}\n${all_rendered_car_models}\n\n"
             set new_spec_contents "${new_spec_contents}${line}\n"
         }
     } else {

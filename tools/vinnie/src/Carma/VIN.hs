@@ -317,6 +317,8 @@ process psid enc mapping = do
   setSpecialDefaults uid (snd psid) arcVal (takeFileName input)
 
   markMissingIdentifiers
+  markInvalidMakeModel
+  markInvalidDates
 
   -- Finally, write new contracts to live table, omitting those
   -- already present and duplicate contracts in the queue
@@ -386,6 +388,9 @@ processField (pid, _) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
             protoNullizeEmptyStrings cn >>
             pass
           , sqlCast cn "int")
+      SMileage ->
+          ( void $ protoUpdateWithFun cn "pg_temp.mileageordead" [cn']
+          , sqlCast cn "int")
       SVIN ->
           -- We don't use protoUpdateWithFun here because it breaks
           -- encoding of function arguments
@@ -414,8 +419,7 @@ processField (pid, _) (FM iname (FFAcc (FA c) stag _ _ defAcc _) cols) =
             pass
           , sqlCast cn "int2")
       SPhone ->
-          ( void $ protoUpdateWithFun cn
-            "'+'||regexp_replace" [iname, "'\\D'", "''", "'g'"]
+          ( void $ protoUpdateWithFun cn "pg_temp.phoneordead" [cn']
           , sqlCast cn "text")
       SName ->
           ( case cols of

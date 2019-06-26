@@ -22,6 +22,7 @@ import           Control.Monad.Trans
 import           Control.Monad.Trans.Reader
 
 import qualified Data.Aeson as Aeson
+import           Data.Char (isDigit, toUpper)
 import           Data.Singletons
 import           Data.Dynamic
 import           Data.List
@@ -37,6 +38,8 @@ import qualified Data.Vector as Vector
 import           Text.Printf
 
 import           GHC.TypeLits
+
+import           Snap.Core
 
 import           Database.PostgreSQL.Simple.SqlQQ.Alt
 import           Database.PostgreSQL.Simple as PG
@@ -111,7 +114,50 @@ import           Triggers.DSL as Dsl
 
 import           Util (Priority(..), syslogJSON, (.=))
 import           Data.Model.Utils.PostgreSQL.MSqlQQ hiding (parseQuery)
+import           AppHandlers.Util (writeJSON)
 
+
+vinLength :: Int
+vinLength = 17
+
+vinChars :: String
+vinChars = ['A'..'H'] ++ ['J'..'N'] ++ ('P':['R'..'Z']) ++ ['0'..'9']
+
+isValidVIN :: Text -> Bool
+isValidVIN vin = T.length vin == vinLength &&
+                 T.all (`elem` vinChars) (T.map toUpper vin)
+
+minValidSince :: WDay
+minValidSince = WDay { unWDay = fromGregorian 2009 1 1}
+
+
+maxStartMileage, minStartMileage :: Int
+minStartMileage = 1
+maxStartMileage = 1999999
+
+
+validPhonePrefixes :: [Text]
+validPhonePrefixes = ["+7"]
+
+isValidPhone :: Text -> Bool
+isValidPhone phone = prefix `elem` validPhonePrefixes &&
+                     T.all isDigit number
+    where (prefix, number) = T.splitAt 2 phone
+
+
+validationFailure :: (KnownSymbol name, Aeson.ToJSON v) =>
+                    (m -> Field t (FOpt name desc app))
+                    -> v
+                    -> AppHandler ()
+validationFailure field errorMessage = do
+  modifyResponse $ setResponseStatus 400 "Validation Failure"
+  writeJSON
+    $ Aeson.object
+        [ "validationFailure" .= True
+        , "validationFields"  .= Aeson.object
+            [ Model.fieldName field .= errorMessage ]
+        ]
+  getResponse >>= finishWith
 
 -- TODO: rename
 --   - trigOnModel -> onModel :: ModelCtr m c => c -> Free (Dsl m) res
@@ -326,7 +372,8 @@ beforeUpdate = Map.unionsWith (++) $
         -- Use server time for actual endDate
         modifyPatch $ Patch.put Call.endDate $ Just now
         -- Close all associated call actions
-        getIdent >>= callActionIds >>= mapM_ (closeAction ActionResult.callEnded)
+        getIdent >>= callActionIds
+                 >>= mapM_ (closeAction ActionResult.callEnded)
 
   , trigOn ActionType.priority $
       \n -> modPut ActionType.priority $
@@ -377,29 +424,80 @@ beforeUpdate = Map.unionsWith (++) $
           case (sub, until) of
             (Just (Just s'), Nothing) ->
               when (oldSince /= Just newSince) $ fillValidUntil s' newSince
+            (_, Just (Just until')) -> do
+              when (newSince > until') $ doApp $
+                   validationFailure Contract.validSince $
+                                     T.concat
+                                          [ Model.fieldDesc Contract.validSince
+                                          , " не может быть больше "
+                                          , Model.fieldDesc Contract.validUntil
+                                          ]
+              when (newSince < minValidSince) $ doApp $
+                   validationFailure Contract.validSince $
+                                     T.concat
+                                          [ Model.fieldDesc Contract.validSince
+                                          , " не может быть меньше "
+                                          , T.pack $ show $ unWDay minValidSince
+                                          ]
+              now <- getNow
+              when (UTCTime (Contract.unWDay newSince) 0 > now) $ doApp $
+                   validationFailure Contract.validSince $
+                                     T.concat
+                                          [ Model.fieldDesc Contract.validSince
+                                          , " не может быть больше"
+                                          , " сегодняшней даты"
+                                          ]
             _ -> return ()
 
+  , trigOn Contract.validUntil $ \case
+      Nothing -> return ()
+      Just newValidUntil -> do
+        cp <- getIdent >>= dbRead
+        validSince <- getPatchField Contract.validSince
+        let nize (Just Nothing) = Nothing
+            nize v              = v
+            validSince' =
+              nize validSince <|> (Just $ cp `get'` Contract.validSince)
+        case (validSince', newValidUntil) of
+          (Just (Just validSince''), _) ->
+              when (validSince'' > newValidUntil) $ doApp $
+                   validationFailure Contract.validUntil $
+                                     T.concat
+                                          [ Model.fieldDesc Contract.validSince
+                                          , " не может быть больше "
+                                          , Model.fieldDesc Contract.validUntil
+                                          ]
+          _ -> return ()
 
   -- Copy some data form prev contract
   , trigOn Contract.vin $ \case
-      Just vin | T.length vin >= 17 -> do
-        cId <- getIdent
-        prototypeId <- doApp $ liftPG' $ \pg -> uncurry (PG.query pg)
-          [sql|
-            select c2.id
-              from
-                "Contract" c1, "Contract" c2, "SubProgram" s1, "SubProgram" s2
-              where c2.dixi
-                and c1.subprogram = s1.id
-                and c2.subprogram = s2.id
-                and s1.parent = s2.parent
-                and c1.id <> c2.id
-                and c1.id = $(cId)$
-                and c2.vin = upper($(vin)$)
-              order by c2.ctime desc
-              limit 1
-          |]
-        mapM_ (copyFromContract . head) prototypeId
+      Just vin | isValidVIN vin -> do
+          cId <- getIdent
+          prototypeId <- doApp $ liftPG' $ \pg -> uncurry (PG.query pg)
+            [sql|
+              select c2.id
+                from
+                  "Contract" c1, "Contract" c2, "SubProgram" s1, "SubProgram" s2
+                where c2.dixi
+                  and c1.subprogram = s1.id
+                  and c2.subprogram = s2.id
+                  and s1.parent = s2.parent
+                  and c1.id <> c2.id
+                  and c1.id = $(cId)$
+                  and c2.vin = upper($(vin)$)
+                order by c2.ctime desc
+                limit 1
+            |]
+          mapM_ (copyFromContract . head) prototypeId
+      Just _ -> doApp $
+        validationFailure Contract.vin $
+                          T.concat [ "Поле "
+                                   , Model.fieldDesc Contract.vin
+                                   , " должно содержать "
+                                   , T.pack $ show vinLength
+                                   , " символов из набора "
+                                   , T.pack vinChars
+                                   ]
       _ -> return ()
 
   , trigOn Contract.isActive $ \v -> do
@@ -422,6 +520,31 @@ beforeUpdate = Map.unionsWith (++) $
         modifyPatch
           $ Patch.put Contract.isActive
           $ get' currentCtr Contract.isActive
+
+  , trigOn Contract.phone $ \case
+      Just phone ->
+        if T.length phone == 12
+        then when (not $ isValidPhone phone) $ doApp invalidPhone
+        else doApp invalidPhone
+            where invalidPhone = validationFailure Contract.phone $
+                                 T.concat [ Model.fieldDesc Contract.phone
+                                          , " должен быть в формате "
+                                          , " +7 AAA BBB CC DD"
+                                          ]
+
+      _ -> return ()
+
+  , trigOn Contract.startMileage $ \case
+      Nothing -> return ()
+      Just val ->
+        when (val < minStartMileage || val > maxStartMileage) $ doApp $
+          validationFailure Contract.startMileage $
+                            T.concat [ Model.fieldDesc Contract.startMileage
+                                     , " должен быть в диапазоне от "
+                                     , T.pack $ show minStartMileage
+                                     , " до "
+                                     , T.pack $ show maxStartMileage
+                                     ]
 
   , trigOn Case.car_plateNum $ \case
       Nothing -> return ()
