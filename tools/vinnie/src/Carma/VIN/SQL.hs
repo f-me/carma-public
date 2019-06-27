@@ -583,7 +583,7 @@ installFunctions =
              RETURN null;
          END IF;
 
-         IF starts_with($1, '0') THEN
+         IF $1 LIKE '0%' THEN
              RETURN null;
          END IF;
 
@@ -778,7 +778,9 @@ markInvalidMakeModel =
     execute
     [sql|
      UPDATE vinnie_queue SET errors = errors || ARRAY[?]
-     WHERE NOT pg_temp.checkmakemodel(make, model);
+     WHERE make IS NOT NULL AND
+           model IS NOT NULL AND
+           NOT pg_temp.checkmakemodel(make, model);
     |] (Only InvalidMakeModel)
 
 
