@@ -26,7 +26,7 @@ import           Carma.Monad.MVar
 import           Carma.Monad.Delay
 import           Carma.Monad.Thread
 import           Carma.Monad.PersistentSql
-import           Carma.EraGlonass.Types
+import           Carma.EraGlonass.Types.AppContext
                    ( AppContext (dbConnection)
                    , DBConnection (..)
                    )

@@ -9,38 +9,34 @@ import           Data.Typeable
 import           Data.Model
 import           Data.Model.View
 import           Data.Time.Clock
-import           Data.Text
 
 import           Carma.Model.Case (Case)
 import           Carma.Model.Types ()
 import           Carma.Model.PgTypes ()
-import           Carma.EraGlonass.Types.RequestId (RequestId)
-import           Carma.EraGlonass.Types.EGCallCardId (EGCallCardId)
-import           Carma.EraGlonass.Types.EGCreateCallCardRequest
-                   (EGCreateCallCardRequest)
+import           Carma.EraGlonass.Types.EGRequestId (EGRequestId)
+import           Carma.EraGlonass.Types.EGRequestForServiceRequest
+                   (EGRequestForServiceRequest)
 
 
 data CaseEraGlonassCreateRequest
    = CaseEraGlonassCreateRequest
    { ident
-     :: PK Int CaseEraGlonassCreateRequest
-        "Дополнительные данные о поступлении Карточки Вызова из ЭРА-ГЛОНАСС"
+       :: PK Int CaseEraGlonassCreateRequest
+          "Фиксация поступления запроса на оказание услуги от ЭРА-ГЛОНАСС"
+
    , ctime
-     :: F UTCTime "ctime" "Дата поступления Карточки Вызова"
+       :: F UTCTime "ctime" "Дата поступления запроса на оказание услуги"
+
    , associatedCase
-     :: F (IdentI Case) "caseId" "Связанный кейс"
+       :: F (IdentI Case) "caseId" "Связанный кейс"
+
    , requestId
-     :: F RequestId
-          "requestId"
-          "Идентификатор запроса поступления Карточки Вызова"
-   , callCardId
-     :: F EGCallCardId "callCardId" "Идентификатор Карточки Вызова"
-   , responseId
-     :: F Text "responseId" "Идентификатор ответа, отданный ЭГ"
+       :: F EGRequestId "requestId" "Идентификатор запроса на оказание услуги"
+
    , requestBody
-     :: F EGCreateCallCardRequest
-          "requestBody"
-          "Полученные данные при поступлении Карточки Вызова"
+       :: F EGRequestForServiceRequest
+            "requestBody"
+            "Полученные данные при поступлении запроса на оказание услуги"
    } deriving Typeable
 
 

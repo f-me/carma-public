@@ -18,7 +18,7 @@ import           System.Log.FastLogger (fromLogStr)
 import           Database.Persist.Sql (SqlBackend)
 
 import           Carma.EraGlonass.Logger.LoggerForward
-import           Carma.EraGlonass.Types (AppContext (loggerBus))
+import           Carma.EraGlonass.Types.AppContext (AppContext (loggerBus))
 import           Carma.Monad.LoggerBus.Helpers (formatTime)
 import           Carma.Monad.LoggerBus.Types
 import           Carma.Monad.LoggerBus as LB

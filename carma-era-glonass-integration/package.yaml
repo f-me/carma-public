@@ -21,6 +21,7 @@ dependencies:
   - carma-utils
   - configurator
   - containers
+  - deepseq
   - directory
   - either
   - exceptions
@@ -82,17 +83,6 @@ executables:
     ghc-options: [-threaded]
 
 tests:
-  # "carma-era-glonass-integration" server must be run to simulate request.
-  # It simulates request from Era Glonass' side.
-  carma-era-glonass-integration-simulate-create-call-card:
-    source-dirs: test
-    main: SimulateCreateCallCard.hs
-    dependencies:
-      - carma-era-glonass-integration
-      - hspec
-      - HUnit
-      - process
-
   carma-era-glonass-integration-types:
     source-dirs: test
     main: Types.hs

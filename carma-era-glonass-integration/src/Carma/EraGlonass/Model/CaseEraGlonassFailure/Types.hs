@@ -31,16 +31,14 @@ import           Data.Model
 import           Data.Model.Types
 
 
+-- | Be careful changing constructors here,
+--   automatically derived @Show@ instance used to match SQL ENUM.
 data EGIntegrationPoint
-   = EgCrm01
-   | CrmEg02
-   | CrmEg03
-     deriving (Eq, Enum, Bounded)
-
-instance Show EGIntegrationPoint where
-  show EgCrm01 = "EG.CRM.01"
-  show CrmEg02 = "CRM.EG.02"
-  show CrmEg03 = "CRM.EG.03"
+   = RequestForService
+   | BindVehicles
+   | ChangeProcessingStatus
+   | ChangeRequestStatus
+     deriving (Show, Eq, Enum, Bounded)
 
 instance PgTypeable EGIntegrationPoint where
   pgTypeOf _ = PgType "text" True

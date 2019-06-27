@@ -33,34 +33,16 @@ INSERT INTO "FieldPermission"
   );
 
 
--- Adding new car engine types to CaRMa "Engine" model
--- which could be provided by EG side.
-INSERT INTO "Engine"
-  (id, label)
-  VALUES -- Hydrogen
-         (3, 'Водород')
-       , -- Electricity
-         (4, 'Электричество')
-       , -- LPG - Liquefied Petroleum Gas (propane)
-         -- See https://ru.wikipedia.org/wiki/Сжиженные_углеводородные_газы
-         --     (about Russian abbreviation).
-         (5, 'СУГ')
-       , -- LNG - Liquefied Natural Gas
-         -- See https://ru.wikipedia.org/wiki/Сжиженный_природный_газ
-         --     (about Russian abbreviation).
-         (6, 'СПГ')
-       ;
-
-
 -- Adding "Era Glonass" "Case" source to use it when accepting EG Call Card.
 INSERT INTO "CaseSource" (id, label) VALUES (4, 'ЭРА-ГЛОНАСС');
 
 
 -- Creating table for "CaseEraGlonassFailure" model.
 CREATE TYPE "EraGlonassIntegrationPoint"
-  AS ENUM( 'EG.CRM.01'
-         , 'CRM.EG.02'
-         , 'CRM.EG.03'
+  AS ENUM( 'RequestForService'
+         , 'BindVehicles'
+         , 'ChangeProcessingStatus'
+         , 'ChangeRequestStatus'
          );
 CREATE TABLE "CaseEraGlonassFailure"
   ( id               SERIAL PRIMARY KEY
@@ -77,11 +59,9 @@ GRANT ALL ON "CaseEraGlonassFailure_id_seq" TO carma_db_sync;
 -- Creating table for "CaseEraGlonassCreateRequest" model.
 CREATE TABLE "CaseEraGlonassCreateRequest"
   ( id               SERIAL PRIMARY KEY
-  , ctime            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+  , ctime            TIMESTAMP WITH TIME ZONE NOT NULL
   , caseId           INTEGER NOT NULL
   , requestId        TEXT NOT NULL
-  , callCardId       TEXT NOT NULL
-  , responseId       TEXT NOT NULL
   , requestBody      JSON NOT NULL
   , FOREIGN KEY (caseId) REFERENCES "casetbl" (id)
   );
@@ -99,6 +79,7 @@ CREATE TABLE "EraGlonassSynchronizedContract"
   , lastStatusChangeTime
                      TIMESTAMP WITH TIME ZONE NULL DEFAULT CURRENT_TIMESTAMP
   , FOREIGN KEY (contractId) REFERENCES "Contract" (id)
+  , UNIQUE (contractId)
   );
 GRANT ALL ON "EraGlonassSynchronizedContract" TO carma_db_sync;
 GRANT ALL ON "EraGlonassSynchronizedContract_id_seq" TO carma_db_sync;

@@ -1,39 +1,45 @@
--- Client requests to Era Glonass implementation.
-module Carma.EraGlonass.Client where
+{-# LANGUAGE ExplicitNamespaces #-}
+
+-- | Client requests to Era Glonass implementation.
+module Carma.EraGlonass.Client
+     ( bindVehicles
+     , changeProcessingStatusRequest
+     , changeRequestStatusRequest
+     ) where
 
 import           Data.Proxy
 
-import           Servant
-import           Servant.Client
+import           Servant (type (:<|>) ((:<|>)))
+import           Servant.Client (type ClientM, client)
 
-import           Carma.EraGlonass.Types
-import           Carma.EraGlonass.Routes
-
-
--- | TODO Support HTTP Basic Auth
-crmEG02Delete
-  :: EGDeleteVinRequest -> ClientM EGDeleteVinResponse
-
--- | TODO Support HTTP Basic Auth
-crmEG02Put
-  :: EGAddVinRequest -> ClientM EGAddVinResponse
-
--- | TODO Support HTTP Basic Auth
-crmEG02Post
-  :: EGCheckVinRequest -> ClientM EGCheckVinResponse
+import           Carma.EraGlonass.Routes (type OutcomingAPI)
+import           Carma.EraGlonass.Types.EGBindVehiclesRequest
+                   ( type EGBindVehiclesRequest
+                   , type EGBindVehiclesResponse
+                   )
+import           Carma.EraGlonass.Types.EGChangeProcessingStatusRequest
+                   ( type EGChangeProcessingStatusRequest
+                   , type EGChangeProcessingStatusResponse
+                   )
+import           Carma.EraGlonass.Types.EGChangeRequestStatusRequest
+                   ( type EGChangeRequestStatusRequest
+                   )
 
 
--- | TODO Support HTTP Basic Auth
-crmEG03Post
-  :: EGUpdateCallCardStatusRequest -> ClientM EGUpdateCallCardStatusResponse
+bindVehicles
+  :: EGBindVehiclesRequest
+  -> ClientM EGBindVehiclesResponse
 
+changeProcessingStatusRequest
+  :: [EGChangeProcessingStatusRequest]
+  -> ClientM EGChangeProcessingStatusResponse
 
-(
-  (    crmEG02Delete
-  :<|> crmEG02Put
-  :<|> crmEG02Post
+changeRequestStatusRequest
+  :: [EGChangeRequestStatusRequest]
+  -> ClientM EGChangeProcessingStatusResponse
+
+( bindVehicles
+  :<|> changeProcessingStatusRequest
+  :<|> changeRequestStatusRequest
   )
-
-  :<|> crmEG03Post
-
-  ) = client (Proxy :: Proxy OutcomingAPI)
+  = client (Proxy :: Proxy OutcomingAPI)

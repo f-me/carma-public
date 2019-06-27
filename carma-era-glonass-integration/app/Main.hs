@@ -1,8 +1,7 @@
+{-# LANGUAGE BangPatterns, LambdaCase, RecordWildCards, QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE BangPatterns, LambdaCase, RecordWildCards #-}
-{-# LANGUAGE QuasiQuotes #-}
 
--- | Production server implementation
+-- | Production server implementation.
 module Main (main) where
 
 import           Data.Pool (Pool)
@@ -14,7 +13,7 @@ import           Control.Monad.Reader
 import           Database.Persist.Postgresql
 
 import           Carma.Monad.LoggerBus
-import           Carma.EraGlonass.Types
+import           Carma.EraGlonass.Types.AppContext
 import           Carma.EraGlonass.App
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Logger.LoggerForward (runLoggerForward)

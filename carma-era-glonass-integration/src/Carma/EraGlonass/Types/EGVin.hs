@@ -1,90 +1,31 @@
-{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
-{-# LANGUAGE DeriveGeneric, ScopedTypeVariables, TypeFamilies, InstanceSigs #-}
-
 module Carma.EraGlonass.Types.EGVin
-     ( EGVin (..)
-     , stringToProofedEGVin
-     , textToProofedEGVin
+     ( Internal.EGVin
+     , Internal.egVinParser
+     , Internal.textToProvedEGVin
+     , stringToProvedEGVin
+     , egVinToString
      ) where
 
-import           GHC.Generics
-
-import           Data.Proxy
-import           Data.Text (Text)
-import           Data.Text.Encoding (encodeUtf8, decodeUtf8)
+import           Data.ByteString.Char8 (unpack)
+import           Data.Attoparsec.ByteString.Char8
+import           Text.Printf (PrintfArg, printf)
 import           Data.String (IsString (fromString))
-import           Text.InterpolatedString.QM
-import           Data.Aeson
-import           Data.Aeson.Types (Parser, typeMismatch, parseEither)
-import           Data.Swagger hiding (delete)
-import           Data.Swagger.Declare (Declare)
-import           Data.Attoparsec.ByteString.Char8 hiding (Parser)
-import           Data.ByteString.Char8 (ByteString)
-import           Data.List (delete)
-import           Data.Char (toUpper)
-import           Data.Monoid ((<>))
+import           Data.Either.Combinators (mapLeft)
 
 import           Carma.Utils.Operators
-import           Carma.Utils.TypeSafe.Generic.DataType
+import qualified Carma.EraGlonass.Types.EGVin.Internal as Internal
 
 
--- You could read about VIN here:
--- https://en.wikipedia.org/wiki/Vehicle_identification_number
--- So it is alphanumeric of 17 characters excluding O/o, I/i and Q/q.
-newtype EGVin
-      = EGVin { fromEGVin :: ByteString }
-        deriving (Show, Eq, Generic)
+stringToProvedEGVin
+  :: (PrintfArg src, IsString src, IsString err)
+  => src
+  -> Either err Internal.EGVin
 
-instance IsString EGVin where
-  fromString = EGVin . fromString
+stringToProvedEGVin
+  = mapLeft fromString
+  . parseOnly Internal.egVinParser
+  . fromString . printf "%s"
 
-stringToProofedEGVin :: String -> Either String EGVin
-stringToProofedEGVin = textToProofedEGVin . fromString
 
-textToProofedEGVin :: Text -> Either String EGVin
-textToProofedEGVin = parseEither parseJSON . String
-
-instance FromJSON EGVin where
-  -- | Type annotation added here to provide type-variable @t@ inside
-  -- (for type-safety reasons).
-  parseJSON :: forall t. t ~ EGVin => Value -> Parser t
-
-  parseJSON j@(String x) =
-    case parseOnly parser (encodeUtf8 x) of
-         Left  _ -> typeMismatch (typeName (Proxy :: Proxy t)) j
-         Right y -> pure y
-
-    where -- It isn't exhaustive constraint but we don't have to be that smart
-          -- here. Also keeping result case-sensitive (but not constraint) to
-          -- keep value as original as possible.
-          parser = EGVin . fromString
-            <$> count 17 (satisfy isVinChar)
-            <*  endOfInput
-
-            where -- Also correct: ['A'..'H']<>['J'..'N']<>('P':['R'..'Z'])
-                  vinChars =
-                    foldr delete ['A'..'Z'] ("IOQ" :: String) <> ['0'..'9']
-
-                  isVinChar = toUpper ? (`elem` vinChars)
-
-  parseJSON x = typeMismatch (typeName (Proxy :: Proxy t)) x
-
-instance ToJSON EGVin where
-  toJSON (EGVin x) = toJSON $ decodeUtf8 x
-
-instance ToSchema EGVin where
-  -- | Type annotation added here to provide type-variable @t@ inside
-  -- (for type-safety reasons).
-  declareNamedSchema
-    :: forall proxy t. t ~ EGVin
-    => proxy t
-    -> Declare (Definitions Schema) NamedSchema
-
-  declareNamedSchema _ = pure
-    $ NamedSchema (Just $ typeName (Proxy :: Proxy t)) mempty
-    { _schemaParamSchema = mempty
-        { _paramSchemaType    = SwaggerString
-        , _paramSchemaFormat  = Just "VIN"
-        , _paramSchemaPattern = Just [qn| ^[A-HJ-NPR-Z0-9]{17}$ |]
-        }
-    }
+egVinToString :: IsString a => Internal.EGVin -> a
+egVinToString = Internal.fromEGVin ? unpack ? fromString

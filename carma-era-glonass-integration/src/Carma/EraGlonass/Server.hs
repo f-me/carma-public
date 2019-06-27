@@ -6,14 +6,13 @@
 {-# LANGUAGE QuasiQuotes #-}
 
 -- | Incoming server implementation to provide an API for Era Glonass side
--- and also some debug stuff for internal usage.
+--   and also some debug stuff for internal usage.
 module Carma.EraGlonass.Server
      ( serverApplicaton
      ) where
 
 import           Data.Proxy
 import           Data.Swagger (Swagger)
-import           Data.Aeson
 import           Text.InterpolatedString.QM
 
 import           Control.Monad.Reader (MonadReader, asks, runReaderT, ReaderT)
@@ -21,13 +20,11 @@ import           Control.Monad.Error.Class (MonadError, throwError)
 import           Control.Monad.Random.Class (MonadRandom)
 import           Control.Concurrent.STM.TVar
 
+import           Database.Persist.Types
+
 import           Servant
 import           Servant.Swagger (toSwagger)
 
-import           Database.Persist.Types
-import           Database.Persist.Sql (fromSqlKey)
-
-import           Carma.Model.Case.Persistent
 import           Carma.Monad.STM
 import           Carma.Monad.MVar
 import           Carma.Monad.Clock
@@ -36,44 +33,42 @@ import           Carma.Monad.LoggerBus
 import           Carma.Monad.PersistentSql
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Routes
-import           Carma.EraGlonass.Types
+import           Carma.EraGlonass.Types.AppContext (AppContext (..))
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
 import           Carma.EraGlonass.Server.Helpers
-import           Carma.EraGlonass.Server.EgCrm01
+import           Carma.EraGlonass.Server.ReceiveRequestForServiceRequest
+
+
+type (#) = (:<|>); (#) = (:<|>); (#) :: a -> b -> (:<|>) a b; infixr 3 #
+{-# INLINE (#) #-}
 
 
 type FaliuresAPI
-  =    -- GET /debug/failures/count.json
-       "count.json" :> Get '[JSON] Word
+   = -- GET /debug/failures/count.json
+     "count.json" :> Get '[JSON] Word
 
-  :<|> -- GET /debug/failures/list.json?limit=10
-       "list.json"
-       :> QueryParam "limit" Word
-       :> Get '[JSON] [Entity CaseEraGlonassFailure]
+   # -- GET /debug/failures/list.json?limit=10
+     "list.json"
+     :> QueryParam "limit" Word
+     :> Get '[JSON] [Entity CaseEraGlonassFailure]
 
 
 type ServerAPI
-  =    IncomingAPI
+   = IncomingAPI
 
-  :<|> "debug" :> (    "swagger"
-                       :> (    -- GET /debug/swagger/incoming.json
-                               "incoming.json" :> Get '[JSON] Swagger
+   # "debug" :> ( "swagger"
+                  :> ( -- GET /debug/swagger/incoming.json
+                       "incoming.json" :> Get '[JSON] Swagger
 
-                          :<|> -- GET /debug/swagger/outcoming.json
-                               "outcoming.json" :> Get '[JSON] Swagger
-                          )
+                     # -- GET /debug/swagger/outcoming.json
+                       "outcoming.json" :> Get '[JSON] Swagger
+                     )
 
-                  :<|> "failures" :> FaliuresAPI
+                # "failures" :> FaliuresAPI
 
-                  :<|> -- GET /debug/background-tasks/count.json
-                       "background-tasks" :> "count.json" :> Get '[JSON] Word
-
-                  :<|> -- GET /debug/case/:caseid/get.json
-                       "case"
-                       :> Capture "caseid" CaseId
-                       :> "get.json"
-                       :> Get '[JSON] Value
-                  )
+                # -- GET /debug/background-tasks/count.json
+                  "background-tasks" :> "count.json" :> Get '[JSON] Word
+                )
 
 
 -- | All monads constraints of all handlers.
@@ -106,12 +101,11 @@ serverApplicaton appContext =
 
 server :: ServerMonad m => ServerT ServerAPI m
 server
-  =    egCRM01
-  :<|> (    (incomingSwagger :<|> outcomingSwagger)
-       :<|> (getFailuresCount :<|> getFailuresList)
-       :<|> getBackgroundTasksCount
-       :<|> getCase
-       )
+  = receiveRequestForServiceRequest
+  # ( (incomingSwagger  # outcomingSwagger)
+    # (getFailuresCount # getFailuresList)
+    # getBackgroundTasksCount
+    )
 
 
 incomingSwagger :: Applicative m => m Swagger
@@ -122,11 +116,12 @@ outcomingSwagger = pure $ toSwagger (Proxy :: Proxy OutcomingAPI)
 
 
 getFailuresCount
-  :: ( MonadReader AppContext m
-     , MonadLoggerBus m
-     , MonadError ServantErr m
-     , MonadPersistentSql m
-     )
+  ::
+   ( MonadReader AppContext m
+   , MonadLoggerBus m
+   , MonadError ServantErr m
+   , MonadPersistentSql m
+   )
   => m Word
 
 getFailuresCount = do
@@ -143,11 +138,12 @@ getFailuresCount = do
 
 
 getFailuresList
-  :: ( MonadReader AppContext m
-     , MonadLoggerBus m
-     , MonadError ServantErr m
-     , MonadPersistentSql m
-     )
+  ::
+   ( MonadReader AppContext m
+   , MonadLoggerBus m
+   , MonadError ServantErr m
+   , MonadPersistentSql m
+   )
   => Maybe Word
   -> m [Entity CaseEraGlonassFailure]
 
@@ -173,10 +169,11 @@ getFailuresList (Just n) = do
 
 
 getBackgroundTasksCount
-  :: ( MonadReader AppContext m
-     , MonadLoggerBus m
-     , MonadSTM m
-     )
+  ::
+   ( MonadReader AppContext m
+   , MonadLoggerBus m
+   , MonadSTM m
+   )
   => m Word
 
 getBackgroundTasksCount = do
@@ -184,38 +181,3 @@ getBackgroundTasksCount = do
   result <- asks backgroundTasksCounter >>= atomically . readTVar
   logDebug [qm| Background tasks count: {result} |]
   pure result
-
-
-getCase
-  :: ( MonadReader AppContext m
-     , MonadLoggerBus m
-     , MonadPersistentSql m
-     , MonadError ServantErr m
-     )
-  => CaseId
-  -> m Value
-
-getCase caseId = do
-  logDebug [qm| Getting "Case" by id {fromSqlKey caseId}... |]
-
-  result <-
-    runSqlProtected
-      [qm| Failed to obtain "Case" by id {fromSqlKey caseId}! |]
-      $ get caseId
-
-  case result of
-       Nothing -> do
-         let logMsg = [qm| "Case" by id {fromSqlKey caseId} not found! |]
-         logError [qm| {logMsg} |]
-         throwError err404 { errBody = logMsg }
-
-       Just Case {..} -> do
-         let x = object
-               [ "city"             .= caseCity
-               , "caseAddress_city" .= caseCaseAddress_city
-               ]
-
-         x <$ logDebug [qms|
-           "Case" by id {fromSqlKey caseId} is successfully obtained,
-           returning JSON of fields used in tests: {encode x}
-         |]

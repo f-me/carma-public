@@ -1,10 +1,12 @@
 {-# LANGUAGE DataKinds, PolyKinds, TypeFamilies, TypeOperators #-}
-{-# LANGUAGE ExplicitNamespaces #-}
+{-# LANGUAGE ExplicitNamespaces, UndecidableInstances #-}
 
 module Carma.Utils.TypeSafe.TypeFamilies
      ( type If
      , type Unless
 
+     , type FromMaybe
+     , type FmapMaybe
      , type MaybeAlternative
 
      , type MaybePair
@@ -26,7 +28,11 @@ module Carma.Utils.TypeSafe.TypeFamilies
      , type MaybeMaybeCons
      , type Concat
      , type MaybeMaybeConcat
+     , type Length
+     , type Reverse
      ) where
+
+import           GHC.TypeLits (type Nat, type (+))
 
 
 -- | Type-level \"if" condition
@@ -50,6 +56,16 @@ type family Not (k1 :: Bool) :: Bool where
   Not 'True  = 'False
   Not 'False = 'True
 
+
+-- | Just like "fromMaybe" term-level function.
+type family FromMaybe (k1 :: k) (k2 :: Maybe k) :: k where
+  FromMaybe x 'Nothing  = x
+  FromMaybe _ ('Just x) = x
+
+-- | Just like "fmap" but only for "Maybe".
+type family FmapMaybe (fn :: a -> b) (x :: Maybe a) :: Maybe b where
+  FmapMaybe fn ('Just x) = 'Just (fn x)
+  FmapMaybe _ 'Nothing = 'Nothing
 
 -- | Just like @(<|>)@ operator of "Alternative" instance for "Maybe" only on
 -- type-level.
@@ -183,3 +199,16 @@ type family MaybeMaybeConcat (k1 :: Maybe [a])
   MaybeMaybeConcat _ 'Nothing = 'Nothing
   MaybeMaybeConcat ('Just '[]) ('Just ys) = 'Just ys
   MaybeMaybeConcat ('Just (x ': xs)) ('Just ys) = 'Just (x ': Concat xs ys)
+
+-- | Type-level list length function.
+type family Length (k1 :: [a]) :: Nat where
+  Length '[] = 0
+  Length (_ ': xs) = 1 + (Length xs)
+
+-- | Type-level list reverse function.
+type family Reverse (k1 :: [a]) :: [a] where
+  Reverse xs = ReverseInternal xs '[]
+
+type family ReverseInternal (k1 :: [a]) (k2 :: [a]) :: [a] where
+  ReverseInternal '[]       acc = acc
+  ReverseInternal (x ': xs) acc = ReverseInternal xs (x ': acc)

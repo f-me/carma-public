@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings, QuasiQuotes, DuplicateRecordFields #-}
-{-# LANGUAGE BangPatterns, LambdaCase #-}
+{-# LANGUAGE BangPatterns, LambdaCase, DeriveAnyClass #-}
 {-# LANGUAGE ScopedTypeVariables, FlexibleContexts #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
@@ -13,7 +13,6 @@ import           Data.Typeable
 import           Data.Time.LocalTime (getCurrentTimeZone)
 import qualified Data.Configurator as Conf
 import           Data.String (fromString)
-import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 
 import           Control.Applicative
@@ -58,7 +57,8 @@ import           Carma.Monad.Thread
 import           Carma.Monad.Delay
 import           Carma.Monad.STM
 import           Carma.Monad.Concurrently
-import           Carma.EraGlonass.Types
+import           Carma.EraGlonass.Types.AppContext
+import           Carma.EraGlonass.Types.EGContractId (EGContractId)
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Server (serverApplicaton)
 import           Carma.EraGlonass.VinSynchronizer (runVinSynchronizer)
@@ -80,16 +80,19 @@ data AppConfig
 -- connection to the server. Server runner constructs @AppContext@ with provided
 -- database connection and runs a server.
 --
--- About monad constraint: top-level abstract IO monad,
--- all sub-systems has explicit monads set abstracted from any IO.
+-- About monad constraint: top-level abstract @IO@ monad,
+-- all sub-systems has explicit monads set abstracted from any @IO@
+-- (they mustn't have any @IO@, @MonadIO@ or @MonadBaseControl IO@ in their
+-- dependencies).
 app
-  :: ( MonadIO m
-     , MonadBaseControl IO m
-     , MonadRandom m
-     , MonadThrow m
-     , MonadCatch m
-     , MonadMask m
-     )
+  ::
+   ( MonadIO m
+   , MonadBaseControl IO m
+   , MonadRandom m
+   , MonadThrow m
+   , MonadCatch m
+   , MonadMask m
+   )
   => AppMode
   -> ( AppConfig
        -> (DBConnection -> ReaderT (TQueue LogMessage) m ())
@@ -111,7 +114,7 @@ app appMode' withDbConnection = do
   -- It required to construct @ClientEnv@ alongwith @BaseUrl@.
   !(manager :: Manager) <- liftIO $ newManager tlsManagerSettings
 
-  !(carmaEgServiceCode' :: Text) <-
+  !(carmaEgServiceCode' :: EGContractId) <-
     liftIO $ Conf.require cfg "carma-service-code"
 
   !pgConf' <- liftIO $ PostgresConf
@@ -278,18 +281,17 @@ app appMode' withDbConnection = do
 
 
 runIncomingServer :: AppContext -> Warp.Port -> Warp.HostPreference -> IO ()
-runIncomingServer appContext port host
-  = Warp.runSettings warpSettings
-  $ serverApplicaton appContext
+runIncomingServer appContext port host = go where
+  go
+    = Warp.runSettings warpSettings
+    $ serverApplicaton appContext
 
-  where warpSettings
-          = Warp.defaultSettings
-          & Warp.setPort port
-          & Warp.setHost host
+  warpSettings
+    = Warp.defaultSettings
+    & Warp.setPort port
+    & Warp.setHost host
 
 
 data KillWorkersException
    = KillWorkersException
-     deriving (Show, Typeable)
-
-instance Exception KillWorkersException
+     deriving (Show, Typeable, Exception)

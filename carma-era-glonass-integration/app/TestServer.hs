@@ -1,8 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings, QuasiQuotes, FlexibleContexts #-}
 
--- | Testing server implementation (with in-memory SQLite database)
+-- | Testing server implementation (with in-memory SQLite database).
 module Main (main) where
 
 import           Data.Proxy
@@ -28,7 +26,7 @@ import           Carma.Model.CaseSource.Persistent as CaseSource
 import           Carma.Model.CaseStatus.Persistent as CaseStatus
 import           Carma.Model.CarMake.Persistent as CarMake
 import           Carma.Model.Engine.Persistent as Engine
-import           Carma.EraGlonass.Types
+import           Carma.EraGlonass.Types.AppContext
 import           Carma.EraGlonass.App
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Logger.LoggerForward (runLoggerForward)

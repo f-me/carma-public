@@ -1,74 +1,43 @@
 {-# LANGUAGE ConstraintKinds, FlexibleContexts, DeriveDataTypeable #-}
+{-# LANGUAGE ExplicitNamespaces #-}
 
 -- To add docs for every type or function defined in the module.
 {-# OPTIONS_HADDOCK ignore-exports #-}
 
 -- | Additional types for VIN synchronizer.
 module Carma.EraGlonass.VinSynchronizer.Types
-     ( VinSynchronizerMonad
+     ( type VinSynchronizerMonad
 
-     , UnmarkingVinType (..)
-     , EGRequestException (..)
-
-     , OneOrTwoNonEmptyLists (..)
+     , type OneOrTwoNonEmptyLists (..)
      , getFirstNonEmptyList
      , getSecondNonEmptyList
      ) where
 
-import           Data.Typeable
-import           Data.List.NonEmpty (NonEmpty)
-import           Data.Aeson
+import           Data.List.NonEmpty (type NonEmpty)
 
-import           Control.Exception
-import           Control.Monad.Reader (MonadReader)
-import           Control.Monad.Random.Class (MonadRandom)
-import           Control.Monad.Catch (MonadThrow)
-
-import           Servant.Client (ServantError)
+import           Control.Monad.Reader (type MonadReader)
+import           Control.Monad.Random.Class (type MonadRandom)
+import           Control.Monad.Catch (type MonadThrow)
 
 import           Carma.Monad
-import           Carma.EraGlonass.Types (AppContext)
-import           Carma.EraGlonass.Types.EGDeleteVinRequest (EGDeleteVinRequest)
-import           Carma.EraGlonass.Types.EGCheckVinRequest (EGCheckVinRequest)
-import           Carma.EraGlonass.Types.EGAddVinRequest (EGAddVinRequest)
-import           Carma.EraGlonass.Types.EGVin (EGVin)
+import           Carma.EraGlonass.Types.AppContext (type AppContext)
 
 
 -- | VIN synchronizer monad constraint.
 type VinSynchronizerMonad m =
    ( MonadReader AppContext m
    , MonadLoggerBus m
-   , MonadClock m
-   , MonadDelay m
+
+   , MonadClock m -- For creating new @EGRequestId@.
+                  -- To calc intervals before synchronizations.
+
+   , MonadDelay m -- To wait before synchronizations.
    , MonadPersistentSql m
    , MonadThrow m
-   , MonadRandom m -- For creating new @RequestId@
+   , MonadRandom m -- For creating new @EGRequestId@.
    , MonadConcurrently m
    , MonadServantClient m
    )
-
-
-data UnmarkingVinType
-   = UnmarkingContractVinType
-   | UnmarkingEphemeralVinType
-     deriving (Show, Eq, Typeable)
-
-data EGRequestException
-   = EGCheckVinRequestIsFailed ServantError EGCheckVinRequest
-     -- ^ When request to EG is failed
-   | EGCheckVinResponseIsFailed String Value
-     -- ^ When for instance parsing response from EG is failed
-   | EGDeleteVinRequestIsFailed ServantError EGDeleteVinRequest
-     -- ^ When request to EG is failed
-   | EGDeleteVinResponseIsFailed String Value
-     -- ^ When for instance parsing response from EG is failed
-   | EGDeleteVinIncorrectFormat UnmarkingVinType EGVin (Maybe String)
-     -- ^ When some of VINs in response resolved to @INCORRECT_FORMAT@
-   | EGAddVinRequestIsFailed ServantError EGAddVinRequest
-     -- ^ When request to EG is failed
-     deriving (Show, Eq, Typeable)
-
-instance Exception EGRequestException
 
 
 -- | Helper type for VINs unmarking.

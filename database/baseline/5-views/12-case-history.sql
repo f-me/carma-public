@@ -289,3 +289,4 @@ CREATE VIEW "CaseHistory" AS
 GRANT SELECT ON "CaseHistory" TO carma_db_sync;
 
 COMMIT;
+-- bump

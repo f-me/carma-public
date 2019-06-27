@@ -9,7 +9,7 @@ import           Test.Hspec
 import           Data.Aeson
 import           Data.Aeson.Types
 
-import           Carma.EraGlonass.Types.EGVin (EGVin (EGVin))
+import           Carma.EraGlonass.Types.EGVin.Internal (EGVin (EGVin))
 
 
 spec :: Spec

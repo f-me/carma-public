@@ -1,6 +1,4 @@
-{-# LANGUAGE ExplicitNamespaces #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE ExplicitNamespaces, TypeOperators, DataKinds #-}
 
 module Carma.EraGlonass.Routes
      ( type IncomingAPI
@@ -9,75 +7,87 @@ module Carma.EraGlonass.Routes
 
 import           Servant
 
-import           Carma.EraGlonass.Types
+import           Carma.EraGlonass.Types.EGRequestForServiceRequest
+                   ( type EGRequestForServiceRequest
+                   )
+import           Carma.EraGlonass.Types.EGBindVehiclesRequest
+                   ( type EGBindVehiclesRequest
+                   , type EGBindVehiclesResponse
+                   )
+import           Carma.EraGlonass.Types.EGChangeProcessingStatusRequest
+                   ( type EGChangeProcessingStatusRequest
+                   , type EGChangeProcessingStatusResponse
+                   )
+import           Carma.EraGlonass.Types.EGChangeRequestStatusRequest
+                   ( type EGChangeRequestStatusRequest
+                   )
+
+
+type (#) = (:<|>); infixr 3 #
 
 
 {-|
-Routes which CaRMa provides for outside requests by Era Glonass.
+Routes which CaRMa provides for requests came from Era Glonass outside world.
 
-* Integration point with code __EG.CRM.01__.
+* @POST \<url>/requestForService@
 
-  @POST \/calls/status@
-
-  Era Glonass supposed to upload data about its \"call card" to this
-  route. Route path written this way to look just as their route used for
-  working with \"call cards".
+  Era Glonass is supposed to upload data about its \"call card" to this
+  route. CaRMa is supposed to create its 'Carma.Model.Case.Persistent.Case'
+  filling its fields with data from received \"call card" or \"request for
+  commercial service formed by call card".
 
   Triggered at any time (when related action happens) by Era Glonass.
+
+  It serves two purposes:
+    1. Request for commercial service;
+    2. Update attributes of previous service request.
+
+  This route supposed to answer only with HTTP status code,
+  without any response body.
 -}
 type IncomingAPI
-   = -- EG.CRM.01
-     -- POST /calls/status
-     "calls" :> "status" :> ReqBody '[JSON] EGCreateCallCardRequest
-                         :> Post    '[JSON] EGCreateCallCardResponse
+   = -- POST <url>/requestForService
+     "requestForService" :> ReqBody '[JSON] EGRequestForServiceRequest
+                         :> Post    '[JSON] ()
 
 
 {-|
 Routes which CaRMa uses to make requests to Era Glonass.
 
-* Integration point with code __CRM.EG.02__.
-
-  * @DELETE \/providers/vehicles@ -
-      To delete a VIN from list of VINs handled by CaRMa;
-
-  * @PUT \/providers/vehicles@ -
-      To add a VIN to list of VINs handled by CaRMa;
-
-  * @POST \/providers/vehicles@ -
-      To check if VIN is added and handled by CaRMa.
+* * @POST \<url>/bindVehicles@ -
+      To bind or unbind VIN(s) from list of VINs handled by CaRMa;
 
   Uploading CaRMa 'Carma.Model.Contract.Persistent.Contract's to Era Glonass.
-  Only those that are have 'Carma.Model.SubProgram.Persistent.SubProgram'
+  Only those which have 'Carma.Model.SubProgram.Persistent.SubProgram'
   which is __/@eraGlonassParticipant@/__.
 
   Triggered daily on schedule by CaRMa.
 
-* Integration point with code __CRM.EG.03__.
+* * @POST \<url>/changeProcessingStatus@ -
+      To close a service in processing.
 
-  * @PUT \/calls/status@ - To add data about customer, to close a Call Card
-                           (currently not implemented);
-
-  * @POST \/calls/status@ - To update status of a Call Card.
+  * @POST \<url>/changeRequestStatus@ -
+      To update a status of a request for service.
 
   Uploading new CaRMa 'Carma.Model.Case.Persistent.Case' data
   (for \"call card" of Era Glonass service).
 
   Triggered at any time (when related action happens) by CaRMa.
+
+  Keep in mind that @EGChangeRequestStatusRequest@ shares
+  @EGChangeProcessingStatusResponse@ type with @EGChangeProcessingStatusRequest@
+  because they have the same response scheme.
 -}
 type OutcomingAPI
-    =  -- CRM.EG.02
-       -- DELETE, PUT, POST /providers/vehicles
-       "providers" :> "vehicles" :> (    ReqBody   '[JSON] EGDeleteVinRequest
-                                         :> Delete '[JSON] EGDeleteVinResponse
+   = -- POST <url>/bindVehicles
+     "bindVehicles" :> ReqBody '[JSON] EGBindVehiclesRequest
+                    :> Post    '[JSON] EGBindVehiclesResponse
 
-                                    :<|> ReqBody '[JSON] EGAddVinRequest
-                                         :> Put  '[JSON] EGAddVinResponse
+   # -- POST <url>/changeProcessingStatus
+     "changeProcessingStatus"
+       :> ReqBody '[JSON] [EGChangeProcessingStatusRequest]
+       :> Post    '[JSON] EGChangeProcessingStatusResponse
 
-                                    :<|> ReqBody '[JSON] EGCheckVinRequest
-                                         :> Post '[JSON] EGCheckVinResponse
-                                    )
-
-  :<|> -- CRM.EG.03
-       -- PUT, POST /calls/status
-       "calls" :> "status" :> ReqBody '[JSON] EGUpdateCallCardStatusRequest
-                           :> Post    '[JSON] EGUpdateCallCardStatusResponse
+   # -- POST <url>/changeRequestStatus
+     "changeRequestStatus" :> ReqBody '[JSON] [EGChangeRequestStatusRequest]
+                           :> Post    '[JSON] EGChangeProcessingStatusResponse

@@ -849,7 +849,6 @@ backend_test_era_glonass_integration_task() {
 
     local test_tasks=(
         :carma-era-glonass-integration-types
-        :carma-era-glonass-integration-simulate-create-call-card
     )
     local app_name="stack test ${test_tasks[*]}"
     task_log "$task_name" step "$app_name"

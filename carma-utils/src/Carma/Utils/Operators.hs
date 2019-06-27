@@ -1,11 +1,17 @@
 module Carma.Utils.Operators
-     ( (?), (<&>), (<&!>)
+     ( (!), (?), (<&>), (<&!>)
      , module Data.Function
      , module Control.Monad
      ) where
 
 import           Data.Function ((&))
 import           Control.Monad ((<$!>))
+
+
+(!) :: a -> b -> b
+(!) = seq
+{-# INLINE (!) #-}
+infixr 0 !
 
 
 (?) :: (a -> b) -> (b -> c) -> (a -> c)

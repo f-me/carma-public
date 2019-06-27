@@ -10,6 +10,7 @@ import           GHC.Generics
 
 import           Data.Proxy
 import           Data.Int
+import           Data.String (IsString (fromString))
 import           Data.Aeson
 import           Data.Aeson.Types (Parser, typeMismatch)
 import           Data.Swagger
@@ -19,18 +20,20 @@ import           Text.InterpolatedString.QM
 import           Carma.Utils.TypeSafe.Generic.DataType
 
 
-newtype EGLatitude
-      = EGLatitude { fromEGLatitude :: Int32 }
-        deriving (Show, Eq, Generic)
+newtype EGLatitude = EGLatitude Int32 deriving (Show, Eq, Ord, Generic)
 
-toEGLatitude :: forall t. t ~ EGLatitude => Int32 -> t
-toEGLatitude x
-  | x >= fromEGLatitude minBound &&
-    x <= fromEGLatitude maxBound = EGLatitude x
-  | otherwise = error [qms|
-      A value {x} is out of {typeName (Proxy :: Proxy t) :: String}'s bounds:
-      {fromEGLatitude minBound}..{fromEGLatitude maxBound}
-    |]
+fromEGLatitude :: EGLatitude -> Int32
+fromEGLatitude (EGLatitude x) = x
+
+toEGLatitude :: forall t e. (t ~ EGLatitude, IsString e) => Int32 -> Either e t
+toEGLatitude x = go where
+  go | x >= min' && x <= max' = Right $ EGLatitude x
+     | otherwise = Left $ fromString
+         [qm| A value {x} is out of {typeName''}'s bounds: {min'}..{max'} |]
+
+  typeName'' = typeName (Proxy :: Proxy t) :: String
+  min' = fromEGLatitude (minBound :: t)
+  max' = fromEGLatitude (maxBound :: t)
 
 instance Bounded EGLatitude where
   minBound = EGLatitude (-648000000)
@@ -38,13 +41,10 @@ instance Bounded EGLatitude where
 
 instance FromJSON EGLatitude where
   -- | Type annotation added here to provide type-variable @t@ inside
-  -- (for type-safety reasons).
+  --   (for type-safety reasons).
   parseJSON :: forall t. t ~ EGLatitude => Value -> Parser t
-  parseJSON j@(Number x)
-    | x >= fromIntegral (fromEGLatitude minBound) &&
-      x <= fromIntegral (fromEGLatitude maxBound) =
-        pure $ toEGLatitude $ fst $ properFraction x
-    | otherwise = typeMismatch (typeName (Proxy :: Proxy t)) j
+  parseJSON (Number x) =
+    either fail pure $ toEGLatitude $ fst $ properFraction x
   parseJSON x = typeMismatch (typeName (Proxy :: Proxy t)) x
 
 instance ToJSON EGLatitude where
@@ -52,34 +52,41 @@ instance ToJSON EGLatitude where
 
 instance ToSchema EGLatitude where
   -- | Type annotation added here to provide type-variable @t@ inside
-  -- (for type-safety reasons).
+  --   (for type-safety reasons).
   declareNamedSchema
-    :: forall proxy t. (t ~ EGLatitude)
+    :: forall proxy t. t ~ EGLatitude
     => proxy t
     -> Declare (Definitions Schema) NamedSchema
 
-  declareNamedSchema _ = pure $ NamedSchema (Just typeName'') mempty
-    { _schemaParamSchema = mempty
-        { _paramSchemaType    = SwaggerInteger
-        , _paramSchemaMinimum = Just $ fromIntegral $ fromEGLatitude minBound
-        , _paramSchemaMaximum = Just $ fromIntegral $ fromEGLatitude maxBound
-        }
-    }
-    where typeName'' = typeName (Proxy :: Proxy t)
+  declareNamedSchema _ = pure go where
+    typeName'' = typeName (Proxy :: Proxy t)
+
+    go
+      = NamedSchema (Just typeName'') mempty
+      { _schemaParamSchema = mempty
+          { _paramSchemaType    = SwaggerInteger
+          , _paramSchemaMinimum = Just $ fromIntegral $ fromEGLatitude minBound
+          , _paramSchemaMaximum = Just $ fromIntegral $ fromEGLatitude maxBound
+          }
+      }
 
 
-newtype EGLongitude
-      = EGLongitude { fromEGLongitude :: Int32 }
-        deriving (Show, Eq, Generic)
+newtype EGLongitude = EGLongitude Int32 deriving (Show, Eq, Ord, Generic)
 
-toEGLongitude :: forall t. t ~ EGLongitude => Int32 -> t
-toEGLongitude x
-  | x >= fromEGLongitude minBound &&
-    x <= fromEGLongitude maxBound = EGLongitude x
-  | otherwise = error [qms|
-      A value {x} is out of {typeName (Proxy :: Proxy t) :: String}'s bounds:
-      {fromEGLongitude minBound}..{fromEGLongitude maxBound}
-    |]
+fromEGLongitude :: EGLongitude -> Int32
+fromEGLongitude (EGLongitude x) = x
+
+toEGLongitude
+  :: forall t e. (t ~ EGLongitude, IsString e) => Int32 -> Either e t
+
+toEGLongitude x = go where
+  go | x >= min' && x <= max' = Right $ EGLongitude x
+     | otherwise = Left $ fromString
+         [qm| A value {x} is out of {typeName''}'s bounds: {min'}..{max'} |]
+
+  typeName'' = typeName (Proxy :: Proxy t) :: String
+  min' = fromEGLongitude (minBound :: t)
+  max' = fromEGLongitude (maxBound :: t)
 
 instance Bounded EGLongitude where
   minBound = EGLongitude (-324000000)
@@ -87,13 +94,10 @@ instance Bounded EGLongitude where
 
 instance FromJSON EGLongitude where
   -- | Type annotation added here to provide type-variable @t@ inside
-  -- (for type-safety reasons).
+  --   (for type-safety reasons).
   parseJSON :: forall t. t ~ EGLongitude => Value -> Parser t
-  parseJSON j@(Number x)
-    | x >= fromIntegral (fromEGLongitude minBound) &&
-      x <= fromIntegral (fromEGLongitude maxBound) =
-        pure $ toEGLongitude $ fst $ properFraction x
-    | otherwise = typeMismatch (typeName (Proxy :: Proxy t)) j
+  parseJSON (Number x) =
+    either fail pure $ toEGLongitude $ fst $ properFraction x
   parseJSON x = typeMismatch (typeName (Proxy :: Proxy t)) x
 
 instance ToJSON EGLongitude where
@@ -101,17 +105,20 @@ instance ToJSON EGLongitude where
 
 instance ToSchema EGLongitude where
   -- | Type annotation added here to provide type-variable @t@ inside
-  -- (for type-safety reasons).
+  --   (for type-safety reasons).
   declareNamedSchema
-    :: forall proxy t. (t ~ EGLongitude)
+    :: forall proxy t. t ~ EGLongitude
     => proxy t
     -> Declare (Definitions Schema) NamedSchema
 
-  declareNamedSchema _ = pure $ NamedSchema (Just typeName'') mempty
-    { _schemaParamSchema = mempty
-        { _paramSchemaType    = SwaggerInteger
-        , _paramSchemaMinimum = Just $ fromIntegral $ fromEGLongitude minBound
-        , _paramSchemaMaximum = Just $ fromIntegral $ fromEGLongitude maxBound
-        }
-    }
-    where typeName'' = typeName (Proxy :: Proxy t)
+  declareNamedSchema _ = pure go where
+    typeName'' = typeName (Proxy :: Proxy t)
+
+    go
+      = NamedSchema (Just typeName'') mempty
+      { _schemaParamSchema = mempty
+          { _paramSchemaType    = SwaggerInteger
+          , _paramSchemaMinimum = Just $ fromIntegral $ fromEGLongitude minBound
+          , _paramSchemaMaximum = Just $ fromIntegral $ fromEGLongitude maxBound
+          }
+      }
