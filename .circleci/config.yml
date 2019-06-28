@@ -91,7 +91,6 @@ jobs:
               -t ruamc/carma-bundle:${CIRCLE_BRANCH/\//-} \
               -t ruamc/carma-bundle:$CIRCLE_SHA1 \
               .
-
       - run:
           name: Push to Docker Hub
           command: |
@@ -101,7 +100,7 @@ jobs:
             docker push ruamc/carma-bundle:$CIRCLE_SHA1
             docker logout
 
-  build_all_in_parallel:
+  build_client_in_parallel:
     <<: *defaults
     <<: *nodejs
     steps:
@@ -122,7 +121,11 @@ workflows:
     jobs:
       - build_client
       - build_server
-      - build_all_in_parallel
+
+      - build_client_in_parallel:
+          requires:
+            - build_client
+
       - build_bundle:
           requires:
             - build_client
