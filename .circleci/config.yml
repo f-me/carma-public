@@ -100,32 +100,12 @@ jobs:
             docker push ruamc/carma-bundle:$CIRCLE_SHA1
             docker logout
 
-  build_client_in_parallel:
-    <<: *defaults
-    <<: *nodejs
-    steps:
-      - checkout
-      - run:
-          name: Node.js and NPM version
-          command: |
-            printf 'node: %s, npm: %s\n' "`node --version`" "`npm --version`"
-      - run:
-          name: Build all CaRMa frontend in parallel
-          no_output_timeout: 30m # default 10 minutes isn't enough
-          command: |
-            tools/builder.sh --ci --clean --production --parallel frontend
-
 workflows:
   version: 2
   build_all:
     jobs:
       - build_client
       - build_server
-
-      - build_client_in_parallel:
-          requires:
-            - build_client
-
       - build_bundle:
           requires:
             - build_client
