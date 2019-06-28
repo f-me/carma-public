@@ -13,6 +13,7 @@ import           Servant (type (:<|>) ((:<|>)))
 import           Servant.Client (type ClientM, client)
 
 import           Carma.EraGlonass.Routes (type OutcomingAPI)
+import           Carma.EraGlonass.Types.EGMayFailToParse (type EGMayFailToParse)
 import           Carma.EraGlonass.Types.EGBindVehiclesRequest
                    ( type EGBindVehiclesRequest
                    , type EGBindVehiclesResponse
@@ -28,15 +29,15 @@ import           Carma.EraGlonass.Types.EGChangeRequestStatusRequest
 
 bindVehicles
   :: EGBindVehiclesRequest
-  -> ClientM EGBindVehiclesResponse
+  -> ClientM (EGMayFailToParse EGBindVehiclesResponse)
 
 changeProcessingStatusRequest
   :: [EGChangeProcessingStatusRequest]
-  -> ClientM EGChangeProcessingStatusResponse
+  -> ClientM (EGMayFailToParse EGChangeProcessingStatusResponse)
 
 changeRequestStatusRequest
   :: [EGChangeRequestStatusRequest]
-  -> ClientM EGChangeProcessingStatusResponse
+  -> ClientM (EGMayFailToParse EGChangeProcessingStatusResponse)
 
 ( bindVehicles
   :<|> changeProcessingStatusRequest

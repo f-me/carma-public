@@ -7,6 +7,7 @@ module Carma.EraGlonass.Routes
 
 import           Servant
 
+import           Carma.EraGlonass.Types.EGMayFailToParse (type EGMayFailToParse)
 import           Carma.EraGlonass.Types.EGRequestForServiceRequest
                    ( type EGRequestForServiceRequest
                    )
@@ -47,8 +48,9 @@ Routes which CaRMa provides for requests came from Era Glonass outside world.
 -}
 type IncomingAPI
    = -- POST <url>/requestForService
-     "requestForService" :> ReqBody '[JSON] EGRequestForServiceRequest
-                         :> Post    '[JSON] ()
+     "requestForService"
+       :> ReqBody '[JSON] (EGMayFailToParse EGRequestForServiceRequest)
+       :> Post    '[JSON] ()
 
 
 {-|
@@ -81,13 +83,14 @@ Routes which CaRMa uses to make requests to Era Glonass.
 type OutcomingAPI
    = -- POST <url>/bindVehicles
      "bindVehicles" :> ReqBody '[JSON] EGBindVehiclesRequest
-                    :> Post    '[JSON] EGBindVehiclesResponse
+                    :> Post    '[JSON] (EGMayFailToParse EGBindVehiclesResponse)
 
    # -- POST <url>/changeProcessingStatus
      "changeProcessingStatus"
        :> ReqBody '[JSON] [EGChangeProcessingStatusRequest]
-       :> Post    '[JSON] EGChangeProcessingStatusResponse
+       :> Post    '[JSON] (EGMayFailToParse EGChangeProcessingStatusResponse)
 
    # -- POST <url>/changeRequestStatus
-     "changeRequestStatus" :> ReqBody '[JSON] [EGChangeRequestStatusRequest]
-                           :> Post    '[JSON] EGChangeProcessingStatusResponse
+     "changeRequestStatus"
+       :> ReqBody '[JSON] [EGChangeRequestStatusRequest]
+       :> Post    '[JSON] (EGMayFailToParse EGChangeProcessingStatusResponse)

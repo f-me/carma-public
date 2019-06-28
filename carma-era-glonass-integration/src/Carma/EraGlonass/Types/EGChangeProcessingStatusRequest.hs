@@ -22,9 +22,8 @@ module Carma.EraGlonass.Types.EGChangeProcessingStatusRequest
 import           GHC.Generics
 
 import           Data.Proxy
-import           Data.Text (Text)
 import           Data.Aeson
-import           Data.Aeson.Types (Parser, parseEither)
+import           Data.Aeson.Types (Parser)
 import qualified Data.HashMap.Lazy as HM
 import           Data.Swagger hiding (description)
 import           Data.Swagger.Internal.Schema
@@ -37,7 +36,6 @@ import           Carma.Utils.StringyEnum.SwaggerSchema
 import           Carma.Utils.TypeSafe.Proxy
 import           Carma.Utils.TypeSafe.Generic.Aeson
 import           Carma.Utils.TypeSafe.Generic.Record
-import           Carma.Utils.TypeSafe.Generic.DataType.Operations.RemoveConstructor
 import           Carma.Utils.TypeSafe.Generic.DataType.Operations.MapConstructor
 import           Carma.EraGlonass.Types.Helpers.Proof
 import           Carma.EraGlonass.Types.Helpers.Aeson
@@ -133,14 +131,6 @@ instance ToSchema EGChangeProcessingStatusRequestStatusCode where
 
 
 data EGChangeProcessingStatusResponse
-   -- | When data doesn't match our model
-   = EGChangeProcessingStatusResponseIncorrect
-   { errorMessage          :: String
-   , incorrectResponseBody :: Value
-       -- ^ JSON value of incorrect request body
-       --   (which mismatched our data model).
-   }
-
    -- | When @resultCode@ equals to @\"OK"@.
    --
    -- @errors@ could be empty list or I believe (but not sure) could be not
@@ -148,7 +138,7 @@ data EGChangeProcessingStatusResponse
    -- @FromJSON@ instance. We could add @Maybe@ but we already have empty list
    -- as an indicator of having no /errors/, so it would be a redundant
    -- wrapper.
-   | EGChangeProcessingStatusResponseOk
+   = EGChangeProcessingStatusResponseOk
    { errors :: [EGChangeProcessingStatusResponseError]
    }
 
@@ -167,23 +157,15 @@ instance FromJSON EGChangeProcessingStatusResponse where
     :: forall t final okConstructor failureConstructor errorsListType
      .
      ( t ~ EGChangeProcessingStatusResponse
+     , final ~ Rep t
      , okConstructor ~ "EGChangeProcessingStatusResponseOk"
      , failureConstructor ~ "EGChangeProcessingStatusResponseFailure"
      , 'Just errorsListType ~ ConstructorFieldType final okConstructor "errors"
-
-     , 'Just final ~
-         RemoveConstructorByName (Rep t)
-           "EGChangeProcessingStatusResponseIncorrect"
      )
     => Value
     -> Parser t
 
-  parseJSON src = pure go where
-    -- | Parsing here to extract parsing error message.
-    go = case parseEither (const parse) src of
-              Left msg -> EGChangeProcessingStatusResponseIncorrect msg src
-              Right x  -> x
-
+  parseJSON src = parse where
     resultCodeKey = fieldName' (Proxy :: Proxy '(final, "resultCode"))
 
     okConstructorProxy      = Proxy :: Proxy '(final, okConstructor)
@@ -211,26 +193,6 @@ instance FromJSON EGChangeProcessingStatusResponse where
 
 instance ToJSON EGChangeProcessingStatusResponse where
   toJSON :: forall t. t ~ EGChangeProcessingStatusResponse => t -> Value
-
-  toJSON
-    EGChangeProcessingStatusResponseIncorrect
-      { errorMessage, incorrectResponseBody } = object result where
-
-    tConstructorProxy =
-      Proxy :: Proxy '(t, "EGChangeProcessingStatusResponseIncorrect")
-
-    result =
-      [ "status" .= ("error" :: Text)
-
-      , constructorFieldName
-          (proxyPair2Triplet tConstructorProxy
-                             (Proxy :: Proxy "errorMessage")) .= errorMessage
-
-      , constructorFieldName
-          (proxyPair2Triplet tConstructorProxy
-                             (Proxy :: Proxy "incorrectResponseBody")) .=
-          incorrectResponseBody
-      ]
 
   toJSON EGChangeProcessingStatusResponseOk { errors } = object result where
     tConstructorProxy =
@@ -264,22 +226,16 @@ instance ToSchema EGChangeProcessingStatusResponse where
   -- | Cutting off failure constructor and appending @\"resultCode"@ field
   --   (which is always @\"OK"@) to successful constructor.
   declareNamedSchema
-    :: forall proxy t withoutIncorrectConstructor
+    :: forall proxy t typeRep
                       resultCodeFieldName
                       successfulResultCodeField
                       final
      .
      ( t ~ EGChangeProcessingStatusResponse
-
-     , -- We don't need failure constructor in our spec
-       -- since it's for internal use only.
-       'Just withoutIncorrectConstructor ~
-         RemoveConstructorByName (Rep t)
-           "EGChangeProcessingStatusResponseIncorrect"
+     , typeRep ~ Rep t
 
      , -- Prooving we have this field in another constructor (see failure).
-       'Just resultCodeFieldName ~
-         FieldName withoutIncorrectConstructor "resultCode"
+       'Just resultCodeFieldName ~ FieldName typeRep "resultCode"
 
      , -- New field definition to prepend.
        successfulResultCodeField ~
@@ -291,7 +247,7 @@ instance ToSchema EGChangeProcessingStatusResponse where
        'Just final ~
          MapConstructorByName' "EGChangeProcessingStatusResponseOk"
                                ((:*:) successfulResultCodeField)
-                               withoutIncorrectConstructor
+                               typeRep
      )
     => proxy t
     -> Declare (Definitions Schema) NamedSchema
@@ -344,8 +300,8 @@ data EGChangeProcessingStatusResponseError
        -- Currently only possible error is that such @EGRequestId@ not found.
 
    , errorCode :: EGChangeProcessingStatusResponseErrorCode
-   }
-     deriving (Eq, Show, Generic, ToJSON, FromJSON, ToSchema)
+
+   } deriving (Eq, Show, Generic, ToJSON, FromJSON, ToSchema)
 
 
 data EGChangeProcessingStatusResponseErrorCode = RequestNotFound

@@ -21,9 +21,8 @@ module Carma.EraGlonass.Types.EGBindVehiclesRequest
 import           GHC.Generics
 
 import           Data.Proxy
-import           Data.Text (Text)
 import           Data.Aeson
-import           Data.Aeson.Types (Parser, parseEither)
+import           Data.Aeson.Types (Parser)
 import qualified Data.HashMap.Lazy as HM
 import           Data.List.NonEmpty (NonEmpty)
 import           Text.InterpolatedString.QM (qns)
@@ -39,7 +38,6 @@ import           Carma.Utils.TypeSafe.Proxy
 import           Carma.Utils.TypeSafe.Generic.Record
 import           Carma.Utils.TypeSafe.Generic.Aeson
 import           Carma.Utils.TypeSafe.Generic.Record.Operations.ReplaceFieldType
-import           Carma.Utils.TypeSafe.Generic.DataType.Operations.RemoveConstructor
 import           Carma.Utils.TypeSafe.Generic.DataType.Operations.MapConstructor
 import           Carma.EraGlonass.Types.Helpers.Proof
 import           Carma.EraGlonass.Types.Helpers.Aeson
@@ -133,14 +131,6 @@ instance ToSchema EGBindVehiclesMode where
 
 
 data EGBindVehiclesResponse
-   -- | When data doesn't match our model
-   = EGBindVehiclesResponseIncorrect
-   { errorMessage          :: String
-   , incorrectResponseBody :: Value
-       -- ^ JSON value of incorrect request body
-       --   (which mismatched our data model).
-   }
-
    -- | When @resultCode@ equals to @\"OK"@.
    --
    -- For now @errors@ can be only filled with VINs which are not found in the
@@ -151,7 +141,7 @@ data EGBindVehiclesResponse
    -- @FromJSON@ instance. We could add @Maybe@ but we already have empty list
    -- as an indicator of having no /errors/, so it would be a redundant
    -- wrapper.
-   | EGBindVehiclesResponseOk
+   = EGBindVehiclesResponseOk
    { errors :: [EGBindVehiclesResponseError]
        -- ^ A list of VINs which are not found (there's only one possible error
        --   for a VIN at the moment of implementation - @\"VIN_NOT_FOUND"@).
@@ -178,22 +168,15 @@ instance FromJSON EGBindVehiclesResponse where
     :: forall t final okConstructor failureConstructor errorsListType
      .
      ( t ~ EGBindVehiclesResponse
+     , final ~ Rep t
      , okConstructor ~ "EGBindVehiclesResponseOk"
      , failureConstructor ~ "EGBindVehiclesResponseFailure"
      , 'Just errorsListType ~ ConstructorFieldType final okConstructor "errors"
-
-     , 'Just final ~
-         RemoveConstructorByName' "EGBindVehiclesResponseIncorrect" (Rep t)
      )
     => Value
     -> Parser t
 
-  parseJSON src = pure go where
-    -- | Parsing here to extract parsing error message.
-    go = case parseEither (const parse) src of
-              Left msg -> EGBindVehiclesResponseIncorrect msg src
-              Right x  -> x
-
+  parseJSON src = parse where
     resultCodeKey = fieldName' (Proxy :: Proxy '(final, "resultCode"))
 
     okConstructorProxy      = Proxy :: Proxy '(final, okConstructor)
@@ -221,25 +204,6 @@ instance FromJSON EGBindVehiclesResponse where
 
 instance ToJSON EGBindVehiclesResponse where
   toJSON :: forall t. t ~ EGBindVehiclesResponse => t -> Value
-
-  toJSON
-    EGBindVehiclesResponseIncorrect
-      { errorMessage, incorrectResponseBody } = object result where
-
-    tConstructorProxy = Proxy :: Proxy '(t, "EGBindVehiclesResponseIncorrect")
-
-    result =
-      [ "status" .= ("error" :: Text)
-
-      , constructorFieldName
-          (proxyPair2Triplet tConstructorProxy
-                             (Proxy :: Proxy "errorMessage")) .= errorMessage
-
-      , constructorFieldName
-          (proxyPair2Triplet tConstructorProxy
-                             (Proxy :: Proxy "incorrectResponseBody")) .=
-          incorrectResponseBody
-      ]
 
   toJSON EGBindVehiclesResponseOk { errors } = object result where
     tConstructorProxy = Proxy :: Proxy '(t, "EGBindVehiclesResponseOk")
@@ -272,21 +236,16 @@ instance ToSchema EGBindVehiclesResponse where
   -- | Cutting off failure constructor and appending @\"resultCode"@ field
   --   (which is always @\"OK"@) to successful constructor.
   declareNamedSchema
-    :: forall proxy t withoutIncorrectConstructor
+    :: forall proxy t typeRep
                       resultCodeFieldName
                       successfulResultCodeField
                       final
      .
      ( t ~ EGBindVehiclesResponse
-
-     , -- We don't need failure constructor in our spec
-       -- since it's for internal use only.
-       'Just withoutIncorrectConstructor ~
-         RemoveConstructorByName' "EGBindVehiclesResponseIncorrect" (Rep t)
+     , typeRep ~ Rep t
 
      , -- Prooving we have this field in another constructor (see failure).
-       'Just resultCodeFieldName ~
-         FieldName withoutIncorrectConstructor "resultCode"
+       'Just resultCodeFieldName ~ FieldName typeRep "resultCode"
 
      , -- New field definition to prepend.
        successfulResultCodeField ~
@@ -298,7 +257,7 @@ instance ToSchema EGBindVehiclesResponse where
        'Just final ~
          MapConstructorByName' "EGBindVehiclesResponseOk"
                                ((:*:) successfulResultCodeField)
-                               withoutIncorrectConstructor
+                               typeRep
      )
     => proxy t
     -> Declare (Definitions Schema) NamedSchema

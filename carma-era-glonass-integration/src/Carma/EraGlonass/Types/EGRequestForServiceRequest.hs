@@ -1,8 +1,7 @@
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass, ScopedTypeVariables #-}
 {-# LANGUAGE DataKinds, TypeOperators, TypeFamilies, InstanceSigs #-}
-{-# LANGUAGE FlexibleContexts, NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE OverloadedStrings, OverloadedLists, LambdaCase, NamedFieldPuns #-}
+{-# LANGUAGE FlexibleContexts, NoMonomorphismRestriction #-}
 
 -- Fixes issue when record-fields aren't exported. Probably related to:
 --   https://stackoverflow.com/questions/46357747/haddock-data-record-fields-names-not-being-generated
@@ -21,14 +20,9 @@ module Carma.EraGlonass.Types.EGRequestForServiceRequest
 import           GHC.Generics
 
 import           Data.Proxy
-import           Data.Semigroup ((<>))
-import           Data.Text (Text)
-import qualified Data.HashMap.Lazy as HM
-import           Data.Aeson hiding (json)
-import           Data.Aeson.Types (Parser, parseEither)
+import           Data.Aeson
+import           Data.Aeson.Types (Parser)
 import           Data.Swagger
-import           Data.Swagger.Internal.Schema
-import           Data.Swagger.Declare (Declare)
 
 import           Database.PostgreSQL.Simple.FromField
                    ( FromField (..)
@@ -60,10 +54,6 @@ import           Carma.Utils.Operators
 import           Carma.Utils.StringyEnum
 import           Carma.Utils.StringyEnum.Aeson
 import           Carma.Utils.StringyEnum.SwaggerSchema
-import           Carma.Utils.TypeSafe.Proxy
-import           Carma.Utils.TypeSafe.Generic.Aeson
-import           Carma.Utils.TypeSafe.Generic.Record hiding (fieldName)
-import           Carma.Utils.TypeSafe.Generic.DataType.Operations.RemoveConstructor
 import           Carma.EraGlonass.Types.Helpers.Proof
 import           Carma.EraGlonass.Types.Helpers.NonEmptyText
 import           Carma.EraGlonass.Types.EGRequestId (EGRequestId)
@@ -84,19 +74,7 @@ proof
 -- | First \"Request" is part of name of action and last ending \"Request" means
 --   it's type of HTTP request body, not response.
 data EGRequestForServiceRequest
-   -- | A constructor for failure case to be able to handle incorrect request
-   --   in a more flexible way (log it, store incorrect request for debugging
-   --   purposes, etc.).
-   = EGRequestForServiceRequestIncorrect
-   { errorMessage :: String
-       -- ^ Some error message, like failure message from parser.
-
-   , incorrectRequestBody :: Value
-       -- ^ Original provided JSON which is failed to be parsed.
-   }
-
-   -- | Successful constructor
-   | EGRequestForServiceRequest
+   = EGRequestForServiceRequest
    { requestId :: EGRequestId
        -- ^ Unique identity of a request for service.
 
@@ -138,87 +116,14 @@ data EGRequestForServiceRequest
 
    , fccComment :: Maybe NonEmptyText
        -- ^ An optional comment by an operator of call center.
-   }
 
-     deriving (Eq, Show, Generic)
+   } deriving (Eq, Show, Generic, ToJSON, ToSchema)
 
 instance FromJSON EGRequestForServiceRequest where
-  parseJSON
-    :: forall t final okConstructor
-     .
-     ( t ~ EGRequestForServiceRequest
-     , okConstructor ~ "EGRequestForServiceRequest"
-
-     , 'Just final ~
-         RemoveConstructorByName (Rep t) "EGRequestForServiceRequestIncorrect"
-     )
-    => Value
-    -> Parser t
-
-  parseJSON src = pure go where
-    -- | Parsing here to extract parsing error message.
-    go = case parseEither (const successfulCase) src of
-              Left msg -> EGRequestForServiceRequestIncorrect msg src
-              Right x  -> x
-
-    okConstructorProxy = Proxy :: Proxy '(final, okConstructor)
-
-    successfulCase = do
-      obj <-
-        -- Handling of optional @NonEmptyText@ fields
-        preParseOptionalNonEmptyTextFieldsRep'
-          (proxyPair2Triplet okConstructorProxy (Proxy :: Proxy 4)) src
-
-      -- Associating it with default constructor for successful case
-      genericParseJSON defaultOptions $ Object $
-        addConstructorTag' okConstructorProxy $ obj
-
-instance ToJSON EGRequestForServiceRequest where
-  toJSON :: forall t. t ~ EGRequestForServiceRequest => t -> Value
-
-  toJSON
-    EGRequestForServiceRequestIncorrect
-      { errorMessage, incorrectRequestBody } = object result where
-
-    tConstructorProxy =
-      Proxy :: Proxy '(t, "EGRequestForServiceRequestIncorrect")
-
-    result =
-      [ "status" .= ("error" :: Text)
-
-      , constructorFieldName
-          (proxyPair2Triplet tConstructorProxy
-                             (Proxy :: Proxy "errorMessage")) .= errorMessage
-
-      , constructorFieldName
-          (proxyPair2Triplet tConstructorProxy
-                             (Proxy :: Proxy "incorrectRequestBody")) .=
-          incorrectRequestBody
-      ]
-
-  toJSON x@EGRequestForServiceRequest {} =
-    case genericToJSON defaultOptions x of
-         Object obj -> Object $ HM.delete "tag" obj
-         json -> error $
-           "Impossible value (it's supposed to be an Object): " <> show json
-
-instance ToSchema EGRequestForServiceRequest where
-  -- | Cutting off failure constructor.
-  declareNamedSchema
-    :: forall proxy t final
-     .
-     ( t ~ EGRequestForServiceRequest
-
-     , -- We don't need failure constructor in our spec
-       -- since it's for internal use only.
-       'Just final ~
-         RemoveConstructorByName (Rep t) "EGRequestForServiceRequestIncorrect"
-     )
-    => proxy t
-    -> Declare (Definitions Schema) NamedSchema
-
-  declareNamedSchema _ =
-    gdeclareNamedSchema defaultSchemaOptions (Proxy :: Proxy final) mempty
+  parseJSON :: forall t. t ~ EGRequestForServiceRequest => Value -> Parser t
+  parseJSON =
+    parseJSONWithOptionalNonEmptyTextFields'
+      (Proxy :: Proxy '(t, "EGRequestForServiceRequest", 4))
 
 instance PersistField EGRequestForServiceRequest where
   toPersistValue = toPersistValue . toJSON
@@ -231,17 +136,18 @@ instance PgTypeable EGRequestForServiceRequest where
   pgTypeOf _ = PgType "json" True
 
 instance DefaultFieldView EGRequestForServiceRequest where
-  defaultFieldView f
-    = FieldView
-    { fv_name = fieldName f
-    , fv_type = "JSON"
-    , fv_canWrite = False
-    , fv_meta =
-        [ ("label", String $ fieldDesc f)
-        , ("app",   String $ fieldKindStr $ fieldToFieldKindProxy f)
-        ]
-    } where fieldToFieldKindProxy :: (m -> FF t nm desc a) -> Proxy a
-            fieldToFieldKindProxy _ = Proxy
+  defaultFieldView f = x where
+    fieldToFieldKindProxy :: (m -> FF t nm desc a) -> Proxy a
+    fieldToFieldKindProxy _ = Proxy
+    x = FieldView
+      { fv_name = fieldName f
+      , fv_type = "JSON"
+      , fv_canWrite = False
+      , fv_meta =
+          [ ("label", String $ fieldDesc f)
+          , ("app",   String $ fieldKindStr $ fieldToFieldKindProxy f)
+          ]
+      }
 
 instance FromField EGRequestForServiceRequest where
   fromField = fromJSONField
@@ -255,44 +161,30 @@ data EGRequestForServiceRequestLocation
    { latitude    :: EGLatLon.EGLatitude
    , longitude   :: EGLatLon.EGLongitude
    , description :: Maybe NonEmptyText
-   }
-     deriving (Eq, Show, Generic, ToJSON, ToSchema)
+   } deriving (Eq, Show, Generic, ToJSON, ToSchema)
 
 instance FromJSON EGRequestForServiceRequestLocation where
   parseJSON
-    :: forall t c n p
-     .
-     ( t ~ EGRequestForServiceRequestLocation
-     , c ~ "EGRequestForServiceRequestLocation"
-     , n ~ 1 -- Count of found @Maybe NonEmptyText@ fields
-     , p ~ '(t, c, n)
-     )
-    => Value
-    -> Parser t
+    :: forall t. t ~ EGRequestForServiceRequestLocation => Value -> Parser t
 
-  parseJSON = parseJSONWithOptionalNonEmptyTextFields' (Proxy :: Proxy p)
+  parseJSON =
+    parseJSONWithOptionalNonEmptyTextFields'
+      (Proxy :: Proxy '(t, "EGRequestForServiceRequestLocation", 1))
 
 
 data EGRequestForServiceRequestVehicle
    = EGRequestForServiceRequestVehicle
    { vin :: EGVin
    , plateNumber :: Maybe NonEmptyText
-   }
-     deriving (Eq, Show, Generic, ToJSON, ToSchema)
+   } deriving (Eq, Show, Generic, ToJSON, ToSchema)
 
 instance FromJSON EGRequestForServiceRequestVehicle where
   parseJSON
-    :: forall t c n p
-     .
-     ( t ~ EGRequestForServiceRequestVehicle
-     , c ~ "EGRequestForServiceRequestVehicle"
-     , n ~ 1 -- Count of found @Maybe NonEmptyText@ fields
-     , p ~ '(t, c, n)
-     )
-    => Value
-    -> Parser t
+    :: forall t. t ~ EGRequestForServiceRequestVehicle => Value -> Parser t
 
-  parseJSON = parseJSONWithOptionalNonEmptyTextFields' (Proxy :: Proxy p)
+  parseJSON =
+    parseJSONWithOptionalNonEmptyTextFields'
+      (Proxy :: Proxy '(t, "EGRequestForServiceRequestVehicle", 1))
 
 
 data EGRequestForServiceStatusCode = Sent
