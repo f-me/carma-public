@@ -1,9 +1,6 @@
-{-# LANGUAGE DuplicateRecordFields, RecordWildCards #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables, ConstraintKinds #-}
-{-# LANGUAGE DataKinds, TypeOperators #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE DuplicateRecordFields, RecordWildCards, FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables, ConstraintKinds, DataKinds, TypeOperators #-}
+{-# LANGUAGE QuasiQuotes, OverloadedStrings #-}
 
 -- | Incoming server implementation to provide an API for Era Glonass side
 --   and also some debug stuff for internal usage.

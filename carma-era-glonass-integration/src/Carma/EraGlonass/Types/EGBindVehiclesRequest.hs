@@ -97,22 +97,17 @@ instance ToSchema EGBindVehiclesRequest where
 data EGVinsNonEmptyList
 
 instance ToSchema EGVinsNonEmptyList where
-  declareNamedSchema
-    :: forall proxy t final. (t ~ EGVinsNonEmptyList, final ~ Rep [EGVin])
-    => proxy t
-    -> Declare (Definitions Schema) NamedSchema
-
   declareNamedSchema _ =
-    gdeclareNamedSchema defaultSchemaOptions (Proxy :: Proxy final) mempty
-      <&> \case x@NamedSchema { _namedSchemaSchema = schema' } -> x
-                  { _namedSchemaSchema
-                      = schema'
-                      { _schemaMinProperties = Just 1
-                      , _schemaDescription   = Just
-                          [qns| One VIN is minimum.
-                                All VINs are supposed to be unique. |]
-                      }
-                  }
+    declareNamedSchema (Proxy :: Proxy [EGVin]) <&> \case
+      x@NamedSchema { _namedSchemaSchema = schema' } -> x
+        { _namedSchemaSchema
+            = schema'
+            { _schemaMinProperties = Just 1
+            , _schemaDescription   = Just
+                [qns| One VIN is minimum.
+                      All VINs are supposed to be unique. |]
+            }
+        }
 
 
 -- | Helper type to specify an operation for a request.

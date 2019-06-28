@@ -20,6 +20,7 @@ import           Carma.Monad.Thread
 import           Carma.Monad.LoggerBus
 import           Carma.Monad.PersistentSql
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Types.NonePlug
 import           Carma.EraGlonass.Types.AppContext (AppContext)
 import           Carma.EraGlonass.Types.EGMayFailToParse
 import           Carma.EraGlonass.Types.EGRequestForServiceRequest
@@ -43,7 +44,7 @@ type ReceiveRequestForServiceRequestMonad m =
 receiveRequestForServiceRequest
   :: ReceiveRequestForServiceRequestMonad m
   => EGMayFailToParse EGRequestForServiceRequest
-  -> m ()
+  -> m NonePlug
 
 receiveRequestForServiceRequest _ =
   throwError err500

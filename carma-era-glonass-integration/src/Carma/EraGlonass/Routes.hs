@@ -7,6 +7,7 @@ module Carma.EraGlonass.Routes
 
 import           Servant
 
+import           Carma.EraGlonass.Types.NonePlug (type NonePlug)
 import           Carma.EraGlonass.Types.EGMayFailToParse (type EGMayFailToParse)
 import           Carma.EraGlonass.Types.EGRequestForServiceRequest
                    ( type EGRequestForServiceRequest
@@ -50,7 +51,7 @@ type IncomingAPI
    = -- POST <url>/requestForService
      "requestForService"
        :> ReqBody '[JSON] (EGMayFailToParse EGRequestForServiceRequest)
-       :> Post    '[JSON] ()
+       :> Post    '[JSON] NonePlug
 
 
 {-|
