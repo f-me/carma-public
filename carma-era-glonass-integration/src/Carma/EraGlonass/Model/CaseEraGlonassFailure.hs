@@ -1,6 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DataKinds, TypeFamilies #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase, DataKinds, TypeFamilies #-}
 
 -- | A model to collect failures of Era Glonass integration calls.
 module Carma.EraGlonass.Model.CaseEraGlonassFailure where
@@ -15,6 +13,8 @@ import           Data.Aeson
 
 import           Carma.Model.Types ()
 import           Carma.Model.PgTypes ()
+import           Carma.Monad.Clock (UTCTime)
+import           Carma.EraGlonass.Types.EGRequestId (EGRequestId)
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
 
 
@@ -22,22 +22,26 @@ data CaseEraGlonassFailure
    = CaseEraGlonassFailure
    { ident
      :: PK Int CaseEraGlonassFailure
-        "Информация об ошибке вызова точки интеграции с ЭРА-ГЛОНАСС"
+        "Информация об ошибке на точке интеграции с ЭРА-ГЛОНАСС"
+
+   , ctime
+       :: F UTCTime "ctime" "Дата-время фиксации ошибки"
+
    , integrationPoint
-     :: F EGIntegrationPoint "integrationPoint" "Точка интеграции"
+       :: F EGIntegrationPoint "integrationPoint" "Точка интеграции"
+
+   , requestId
+       :: F (Maybe EGRequestId) "requestId" "Идентификатор запроса на оказание услуги"
 
    , requestBody
-     :: F (Maybe Value) "requestBody" "Содержимое неудачного запроса"
-   -- , responseBody -- TODO
-   --   :: F (Maybe Value) "responseBody" "Содержимое неудачного ответа"
+       :: F (Maybe Value) "requestBody" "Содержимое неудачного запроса"
+
+   , responseBody
+       :: F (Maybe Value) "responseBody" "Содержимое неудачного ответа"
 
    , comment
-     :: F (Maybe Text) "comment" "Дополнительный комментарий"
+       :: F (Maybe Text) "comment" "Дополнительный комментарий"
 
-   , responseId
-     :: F (Maybe Text) "responseId" "Идентификатор ответа"
-   -- , requestId -- TODO
-   --   :: F (Maybe Text) "requestId" "Идентификатор запроса"
    } deriving Typeable
 
 

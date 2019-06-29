@@ -48,9 +48,10 @@ CREATE TABLE "CaseEraGlonassFailure"
   ( id               SERIAL PRIMARY KEY
   , ctime            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
   , integrationPoint "EraGlonassIntegrationPoint" NOT NULL
+  , requestId        TEXT NULL
   , requestBody      JSON NULL
+  , responseBody     JSON NULL
   , comment          TEXT NULL
-  , responseId       TEXT NULL
   );
 GRANT ALL ON "CaseEraGlonassFailure" TO carma_db_sync;
 GRANT ALL ON "CaseEraGlonassFailure_id_seq" TO carma_db_sync;
