@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings, OverloadedLists, QuasiQuotes, LambdaCase #-}
-{-# LANGUAGE ScopedTypeVariables, TypeFamilies, InstanceSigs #-}
+{-# LANGUAGE ScopedTypeVariables, TypeFamilies, InstanceSigs, DeriveGeneric #-}
 
 -- | A module that helps to deal with \"request id" of Era Glonass service.
 module Carma.EraGlonass.Types.EGRequestId
@@ -9,12 +9,12 @@ module Carma.EraGlonass.Types.EGRequestId
      , egRequestIdParser
      ) where
 
+import           GHC.Generics
+
 import           Data.Proxy
-import           Data.Typeable
 import           Numeric (showHex)
 import           Data.Char (digitToInt)
 import           Data.Monoid ((<>))
-import           Data.Function ((&))
 import           Data.ByteString.Char8 (ByteString, pack)
 import           Data.ByteString.Lazy.Char8 (pack)
 import           Data.Digest.Pure.MD5 (md5)
@@ -48,71 +48,64 @@ import           Database.Persist.Class
 import           Data.Model
 import           Data.Model.Types
 import           Carma.Monad.Clock
+import           Carma.Utils.Operators
+import           Carma.Utils.TypeSafe.Generic.DataType
 
 
 -- | "EGRequestId" is a free string that looks like:
 --   "c94eea91-d647-43d2-af04-109fbb53d8dc".
 --
--- We also have been told it is an UUID.
--- So I think it IS a free string but usually it is an UUID.
+-- It's an UUID.
+--
 -- Read about UUID here:
 --   https://en.wikipedia.org/wiki/Universally_unique_identifier
 --
--- Looking at this example we could see it looks like it is just an MD5 hash
--- with some dashes.
---
--- It's part of Era Glonass system, so we don't know what actually it is except
--- it must be unique for each request to Era Glonass.
---
-newtype EGRequestId = EGRequestId ByteString deriving (Eq, Show, Typeable)
+-- It represents unique identity of a \"service for request".
+newtype EGRequestId = EGRequestId ByteString deriving (Eq, Show, Generic)
 
 fromEGRequestId :: EGRequestId -> ByteString
 fromEGRequestId (EGRequestId x) = x
 
 instance IsString EGRequestId where
-  -- | Type annotation added here to provide type-variable @t@ inside
-  -- (for type-safety reasons).
   fromString :: forall t. t ~ EGRequestId => String -> t
   fromString x
     = parseOnly egRequestIdParser (fromString x)
     & \case Right y -> y
-            Left  e -> error [qms| {typeRep (Proxy :: Proxy t)}
+            Left  e -> error [qms| {typeName (Proxy :: Proxy t) :: String}
                                    "{x}" is incorrect, error: {e} |]
 
 egRequestIdParser :: Parser EGRequestId
-egRequestIdParser = f
-  <$> count (allDashesParts !! 0) hexDigit <* char '-'
-  <*> count (allDashesParts !! 1) hexDigit <* char '-'
-  <*> count (allDashesParts !! 2) hexDigit <* char '-'
-  <*> count (allDashesParts !! 3) hexDigit <* char '-'
-  <*> count (allDashesParts !! 4) hexDigit <* endOfInput
+egRequestIdParser = go where
+  go = f
+    <$> count (allDashesParts !! 0) hexDigit <* char '-'
+    <*> count (allDashesParts !! 1) hexDigit <* char '-'
+    <*> count (allDashesParts !! 2) hexDigit <* char '-'
+    <*> count (allDashesParts !! 3) hexDigit <* char '-'
+    <*> count (allDashesParts !! 4) hexDigit <* endOfInput
 
-  where hexDigit = digitToInt <$> satisfy (`elem` chars)
-          where chars = ['a'..'f'] <> ['A'..'F'] <> ['0'..'9'] :: [Char]
+  hexDigit = parser where
+    parser = digitToInt <$> satisfy (`elem` chars)
+    chars  = ['a'..'f'] <> ['A'..'F'] <> ['0'..'9'] :: [Char]
 
-        f :: [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> EGRequestId
-        f a b c d e = EGRequestId [qm| {g a}-{g b}-{g c}-{g d}-{g e} |]
-          where g :: [Int] -> String
-                g = mconcat . map (flip showHex "")
+  f :: [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> EGRequestId
+  f a b c d e = x where
+    x = EGRequestId [qm| {g a}-{g b}-{g c}-{g d}-{g e} |]
+    g = mconcat . map (flip showHex "") :: [Int] -> String
 
 instance FromJSON EGRequestId where
-  -- | Type annotation added here to provide type-variable @t@ inside
-  -- (for type-safety reasons).
   parseJSON :: forall t. t ~ EGRequestId => Value -> Data.Aeson.Types.Parser t
 
   parseJSON v@(String x)
     = parseOnly egRequestIdParser (encodeUtf8 x)
-    & \case Left  _ -> typeMismatch (show $ typeRep (Proxy :: Proxy t)) v
+    & \case Left  _ -> typeMismatch (typeName (Proxy :: Proxy t)) v
             Right y -> pure y
 
-  parseJSON invalid = typeMismatch (show $ typeRep (Proxy :: Proxy t)) invalid
+  parseJSON invalid = typeMismatch (typeName (Proxy :: Proxy t)) invalid
 
 instance ToJSON EGRequestId where
   toJSON (EGRequestId x) = String $ decodeUtf8 x
 
 instance ToSchema EGRequestId where
-  -- | Type annotation added here to provide type-variable @t@ inside
-  -- (for type-safety reasons).
   declareNamedSchema
     :: forall proxy t. t ~ EGRequestId
     => proxy t
@@ -120,7 +113,7 @@ instance ToSchema EGRequestId where
 
   declareNamedSchema _
     = pure
-    $ NamedSchema (Just [qm|{typeRep (Proxy :: Proxy t)}|]) mempty
+    $ NamedSchema (Just $ typeName (Proxy :: Proxy t)) mempty
     { _schemaParamSchema = mempty
         { _paramSchemaType    = SwaggerString
         , _paramSchemaFormat  = Just "UUID"
@@ -150,17 +143,19 @@ instance PgTypeable EGRequestId where
   pgTypeOf _ = PgType "text" True
 
 instance DefaultFieldView EGRequestId where
-  defaultFieldView f
-    = FieldView
-    { fv_name = fieldName f
-    , fv_type = "text"
-    , fv_canWrite = False
-    , fv_meta =
-        [ ("label", String $ fieldDesc f)
-        , ("app",   String $ fieldKindStr $ fieldToFieldKindProxy f)
-        ]
-    } where fieldToFieldKindProxy :: (m -> FF t nm desc a) -> Proxy a
-            fieldToFieldKindProxy _ = Proxy
+  defaultFieldView f = x where
+    fieldToFieldKindProxy :: (m -> FF t nm desc a) -> Proxy a
+    fieldToFieldKindProxy _ = Proxy
+
+    x = FieldView
+      { fv_name = fieldName f
+      , fv_type = "text"
+      , fv_canWrite = False
+      , fv_meta =
+          [ ("label", String $ fieldDesc f)
+          , ("app",   String $ fieldKindStr $ fieldToFieldKindProxy f)
+          ]
+      }
 
 
 -- | Builds new unique "EGRequestId".
@@ -169,21 +164,22 @@ newEGRequestId = do
   (randomPart  :: [Char]) <- take 128 <$> getRandoms
   (currentTime :: [Char]) <- show <$> getCurrentTime
 
+  let -- | Puts dashes to proper places of hash string
+      interleaveWithDashes :: String -> String
+      interleaveWithDashes x = go where
+        go = uncurry f $ foldl reducer ("", x) $ init allDashesParts
+        f a b = a <> ('-' : b)
+
+        reducer (prevAcc, rest) i = (newAcc, b) where
+          (a, b) = splitAt i rest
+          newAcc = if null prevAcc then a else f prevAcc a
+
   pure $ EGRequestId
        $ Data.ByteString.Char8.pack
        $ interleaveWithDashes
        $ show $ md5
        $ Data.ByteString.Lazy.Char8.pack
        $ randomPart <> ('|' : currentTime)
-
-  where -- Puts dashes to proper places of hash string
-        interleaveWithDashes :: String -> String
-        interleaveWithDashes x =
-          uncurry f $ foldl reducer ("", x) $ init allDashesParts
-          where f a b = a <> ('-' : b)
-                reducer (prevAcc, rest) i = (newAcc, b)
-                  where (a, b) = splitAt i rest
-                        newAcc = if null prevAcc then a else f prevAcc a
 
 
 -- | Lengths of parts between dashes in UUID of "EGRequestId".
