@@ -29,7 +29,7 @@ import           Carma.Monad.Clock
 import           Carma.Utils.Operators
 
 
--- Value contatiner with action mark accumulator
+-- | Value contatiner with action mark accumulator.
 data TestState a = TestState [String] a deriving (Show, Eq)
 
 instance Functor TestState where
@@ -51,7 +51,7 @@ instance {-# OVERLAPS #-} MonadClock TestState where
 data TestRandomGen = TestRandomGen
 
 instance RandomGen TestRandomGen where
-  next TestRandomGen = (minBound + 42, TestRandomGen) -- for "Char" it's '*'
+  next  TestRandomGen = (minBound + 42, TestRandomGen) -- for "Char" it's '*'
   split TestRandomGen = (TestRandomGen, TestRandomGen)
 
 instance MonadRandom TestState where
@@ -66,6 +66,9 @@ instance MonadRandom TestState where
 
 spec :: Spec
 spec = do
+  let (TestState state (show -> value)) =
+        newEGRequestId :: TestState EGRequestId
+
   describe "Entropy is enough" $ do
     describe "Gets current time" $ do
       it "Gets it" $
@@ -194,13 +197,10 @@ spec = do
 
       let referenceVal = "7fa07404-59a6-bae3-5591-3b39ce9708fa"
 
-          ('E':'G':'R':'e':'q':'u':'e':'s':'t':'I':'d':' ':'"':
+      let ('E':'G':'R':'e':'q':'u':'e':'s':'t':'I':'d':' ':'"':
             (init -> pack -> x)) = value
 
       x `shouldBe` referenceVal
 
       (show <$> parseOnly egRequestIdParser x) `shouldBe`
         Right [qm| EGRequestId "{referenceVal}" |]
-
-  where
-    (TestState state (show -> value)) = newEGRequestId :: TestState EGRequestId
