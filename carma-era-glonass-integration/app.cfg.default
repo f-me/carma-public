@@ -7,9 +7,6 @@ port = 8166
 # Just an example of base url for CaRMa -> Era Glonass requests.
 eg-base-url = "https://10.10.10.10:8888/api/v1/sp"
 
-# Predefined on Era Glonass side code for identifying us as a VIN handler.
-carma-service-code = "CaRMa RuAMC"
-
 db {
   postgresql {
     connection-string =
@@ -32,4 +29,7 @@ vin-synchronizer {
   # In minutes.
   # If synchronization iteration is failed it will retry after this interval.
   retry-interval = 60.0
+
+  # Predefined on Era Glonass side code.
+  carma-contract-id = "CaRMa RuAMC"
 }

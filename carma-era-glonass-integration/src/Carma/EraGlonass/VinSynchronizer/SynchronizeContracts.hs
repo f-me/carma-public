@@ -142,7 +142,7 @@ bindVINs vinsToMark = do
   srcLogDebug [qm| Marking {length vinsToMark} VINs as handled by us... |]
 
   bindRequest <-
-    lift (asks carmaEgServiceCode) <&> \contractId' ->
+    lift (asks vinSynchronizerContractId) <&> \contractId' ->
       EGBindVehiclesRequest
         { contractId = contractId'
         , vins       = vinsToMark <&> snd

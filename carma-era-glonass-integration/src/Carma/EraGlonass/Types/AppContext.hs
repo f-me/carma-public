@@ -1,4 +1,4 @@
-{-# LANGUAGE ExplicitNamespaces #-}
+{-# LANGUAGE ExplicitNamespaces, DataKinds #-}
 
 module Carma.EraGlonass.Types.AppContext
      ( type AppContext   (..)
@@ -19,6 +19,9 @@ import           Servant.Client (type ClientEnv)
 import           Carma.Monad.LoggerBus.Types (type LogMessage)
 
 import           Carma.EraGlonass.Types.EGContractId (type EGContractId)
+import           Carma.EraGlonass.Types.EGIntegrationPoint
+                   ( type EGIntegrationPoint (BindVehicles)
+                   )
 
 
 -- | Application context which holds shared data.
@@ -48,10 +51,6 @@ data AppContext
    , egClientEnv :: ClientEnv
        -- ^ @ClientEnv@ with bound base URL for CaRMa -> Era Glonass requests.
 
-   , carmaEgServiceCode :: EGContractId
-       -- ^ Predefined on Era Glonass side code for identifying us
-       --   as a VIN handler.
-
    , vinSynchronizerTimeout :: Int
        -- ^ VIN synchronization iteration timeout in microseconds.
        --
@@ -60,6 +59,9 @@ data AppContext
    , vinSynchronizerRetryInterval :: Int
        -- ^ An interval (in microseconds) between next VIN synchronization
        --   attempt if previous one is failed.
+
+   , vinSynchronizerContractId :: EGContractId 'BindVehicles
+       -- ^ Predefined on Era Glonass side code.
    }
 
 

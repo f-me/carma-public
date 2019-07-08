@@ -42,6 +42,9 @@ import           Carma.EraGlonass.Types.Helpers.Aeson
 import           Carma.EraGlonass.Types.Helpers.NonEmptyText
 import           Carma.EraGlonass.Types.EGRequestId (EGRequestId)
 import           Carma.EraGlonass.Types.EGContractId (EGContractId)
+import           Carma.EraGlonass.Types.EGIntegrationPoint
+                   ( EGIntegrationPoint (ChangeProcessingStatus)
+                   )
 
 
 proof :: ()
@@ -93,13 +96,14 @@ data EGChangeProcessingStatusRequest
        -- I believe it's a free string, we can write anything here,
        -- or also free to leave it empty.
 
-   , contractId :: EGContractId
-       -- ^ Identity of a contract of a service provider
-       --   (CaRMa's unique id given by EG).
+   , contractId :: EGContractId 'ChangeProcessingStatus
+       -- ^ Identity of a contract of a service provider (CaRMa).
        --
-       -- This is actually an optional field as the spec says (it should be
-       -- @Maybe EGContractId@) but I decided to make it required since we
-       -- always have this value.
+       -- Spec says it as an optional field (@Maybe@) but we have been told by
+       -- EG that this field is actually required.
+       --
+       -- See "Carma.EraGlonass.Types.EGContractId.EGContractId" datatype for
+       -- details.
 
    } deriving (Eq, Show, Generic, ToJSON, ToSchema)
 

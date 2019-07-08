@@ -57,6 +57,9 @@ import           Carma.EraGlonass.Types.Helpers.Aeson
 import           Carma.EraGlonass.Types.Helpers.NonEmptyText
 import           Carma.EraGlonass.Types.EGContractId (EGContractId)
 import           Carma.EraGlonass.Types.EGVin (EGVin)
+import           Carma.EraGlonass.Types.EGIntegrationPoint
+                   ( EGIntegrationPoint (BindVehicles)
+                   )
 
 
 proof :: ()
@@ -78,7 +81,7 @@ proof
 
 data EGBindVehiclesRequest (mode :: EGBindVehiclesMode)
    = EGBindVehiclesRequest
-   { contractId :: EGContractId
+   { contractId :: EGContractId 'BindVehicles
        -- ^ Identity of a contract of a service provider
        --   (CaRMa's unique id given by EG).
 

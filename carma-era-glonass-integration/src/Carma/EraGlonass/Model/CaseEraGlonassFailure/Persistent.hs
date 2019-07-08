@@ -15,7 +15,9 @@ import           Database.Persist.Postgresql.JSON ()
 
 import           Carma.Monad.Clock (type UTCTime)
 import           Carma.EraGlonass.Types.EGRequestId (type EGRequestId)
-import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
+import           Carma.EraGlonass.Types.EGIntegrationPoint
+                   ( type EGIntegrationPoint
+                   )
 
 
 -- | @CaseEraGlonassFailure@ persistent model.

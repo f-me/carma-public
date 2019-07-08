@@ -18,7 +18,10 @@ import           Carma.Model.Types ()
 import           Carma.Model.PgTypes ()
 import           Carma.Monad.Clock (type UTCTime)
 import           Carma.EraGlonass.Types.EGRequestId (type EGRequestId)
-import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
+
+import           Carma.EraGlonass.Types.EGIntegrationPoint
+                   ( type EGIntegrationPoint
+                   )
 
 
 data CaseEraGlonassFailure

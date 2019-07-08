@@ -1,35 +1,39 @@
 {-# LANGUAGE DeriveGeneric, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ExplicitNamespaces, KindSignatures, DataKinds #-}
 
 module Carma.EraGlonass.Types.EGContractId
-     ( EGContractId (..)
+     ( type EGContractId (..)
      ) where
 
-import           GHC.Generics (Generic)
+import           GHC.Generics (type Generic)
 
-import           Data.Proxy (Proxy (Proxy))
-import           Data.Text (Text)
-import           Data.Aeson (ToJSON, FromJSON)
-import           Data.Swagger (ToSchema (declareNamedSchema))
-import           Data.Configurator.Types (Value (String), Configured (convert))
+import           Data.Proxy (type Proxy (Proxy))
+import           Data.Text (type Text)
+import           Data.Aeson (type ToJSON, type FromJSON)
+import           Data.Swagger (type ToSchema (declareNamedSchema))
+import           Data.Configurator.Types
+                   ( type Value (String)
+                   , type Configured (convert)
+                   )
+
+import           Carma.EraGlonass.Types.EGIntegrationPoint
 
 
--- | An identity of contract between CaRMa and Era Glonass.
+-- | An identity of a contract between CaRMa and Era Glonass.
 --
--- It is given by EG to CaRMa.
+-- * @EGContractId 'BindVehicles@ is given by EG to CaRMa, it's static and
+--   supposed to be provided in microservice config;
 --
--- Used to identify CaRMa on Era Glonass side when making requests from CaRMa to
--- Era Glonass services. When Era Glonass makes requests to CaRMa it already
--- knows to which partner it makes requests to since it's associated with
--- CaRMa's service IP address.
+-- * @EGContractId 'ChangeProcessingStatus@ is coming from related Era Glonass
+--   participant @SubProgram@.
 --
--- This id is constant after you run the service, it supposed to be defined in
--- the service's configuration file.
-newtype EGContractId = EGContractId Text
+newtype EGContractId (a :: EGIntegrationPoint)
+      = EGContractId Text
         deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
-instance ToSchema EGContractId where
+instance ToSchema (EGContractId a) where
   declareNamedSchema _ = declareNamedSchema (Proxy :: Proxy Text)
 
-instance Configured EGContractId where
+instance Configured (EGContractId a) where
   convert (String x) = Just $ EGContractId x
   convert _ = Nothing

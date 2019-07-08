@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, QuasiQuotes, DuplicateRecordFields #-}
+{-# LANGUAGE ScopedTypeVariables, FlexibleContexts, DataKinds #-}
 {-# LANGUAGE BangPatterns, LambdaCase, DeriveAnyClass #-}
-{-# LANGUAGE ScopedTypeVariables, FlexibleContexts #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
 module Carma.EraGlonass.App
@@ -57,11 +57,14 @@ import           Carma.Monad.Thread
 import           Carma.Monad.Delay
 import           Carma.Monad.STM
 import           Carma.Monad.Concurrently
-import           Carma.EraGlonass.Types.AppContext
-import           Carma.EraGlonass.Types.EGContractId (EGContractId)
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Server (serverApplicaton)
 import           Carma.EraGlonass.VinSynchronizer (runVinSynchronizer)
+import           Carma.EraGlonass.Types.AppContext
+import           Carma.EraGlonass.Types.EGContractId (EGContractId)
+import           Carma.EraGlonass.Types.EGIntegrationPoint
+                   ( EGIntegrationPoint (BindVehicles)
+                   )
 
 foreign import ccall "exit" exit :: CInt -> IO ()
 
@@ -114,9 +117,6 @@ app appMode' withDbConnection = do
   -- It required to construct @ClientEnv@ alongwith @BaseUrl@.
   !(manager :: Manager) <- liftIO $ newManager tlsManagerSettings
 
-  !(carmaEgServiceCode' :: EGContractId) <-
-    liftIO $ Conf.require cfg "carma-service-code"
-
   !pgConf' <- liftIO $ PostgresConf
     <$> Conf.require cfg "db.postgresql.connection-string"
     <*> Conf.require cfg "db.postgresql.pool-size"
@@ -132,6 +132,9 @@ app appMode' withDbConnection = do
   -- In minutes
   !(vinSynchronizerRetryInterval' :: Float) <-
     liftIO $ Conf.require cfg "vin-synchronizer.retry-interval"
+
+  !(carmaVinSynchronizerContractId :: EGContractId 'BindVehicles) <-
+    liftIO $ Conf.require cfg "vin-synchronizer.carma-contract-id"
 
   loggerBus' <- atomically newTQueue
 
@@ -174,7 +177,7 @@ app appMode' withDbConnection = do
                 , backgroundTasksCounter = backgroundTasksCounter'
 
                 , egClientEnv = ClientEnv manager egBaseUrl
-                , carmaEgServiceCode = carmaEgServiceCode'
+                , vinSynchronizerContractId = carmaVinSynchronizerContractId
 
                 , vinSynchronizerTimeout =
                     round $ vinSynchronizerTimeout' * (10 ** 6)

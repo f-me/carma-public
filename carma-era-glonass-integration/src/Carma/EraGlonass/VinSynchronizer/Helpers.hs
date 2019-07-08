@@ -46,7 +46,7 @@ import           Carma.Model.Contract.Persistent
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Types.EGVin
 
-import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
+import           Carma.EraGlonass.Types.EGIntegrationPoint
                    ( EGIntegrationPoint (BindVehicles)
                    )
 

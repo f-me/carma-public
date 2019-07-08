@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
+module Carma.EraGlonass.Types.EGIntegrationPoint
      ( EGIntegrationPoint (..)
      ) where
 
@@ -32,7 +32,7 @@ import           Data.Model.Types
 
 
 -- | Be careful changing constructors here,
---   automatically derived @Show@ instance used to match SQL ENUM.
+--   automatically derived @Show@ instance is used to match SQL ENUM.
 data EGIntegrationPoint
    = RequestForService
    | BindVehicles

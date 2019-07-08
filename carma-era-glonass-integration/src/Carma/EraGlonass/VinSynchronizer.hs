@@ -51,12 +51,14 @@ import           Carma.EraGlonass.Instance.Persistent (TimeoutException (..))
 import           Carma.EraGlonass.Helpers
 import           Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persistent
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
-import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
-import           Carma.EraGlonass.Types.AppContext (AppContext (..))
 import           Carma.EraGlonass.VinSynchronizer.Types
 import           Carma.EraGlonass.VinSynchronizer.Helpers
 import           Carma.EraGlonass.VinSynchronizer.UnmarkAsHandled
 import           Carma.EraGlonass.VinSynchronizer.SynchronizeContracts
+import           Carma.EraGlonass.Types.AppContext (AppContext (..))
+import           Carma.EraGlonass.Types.EGIntegrationPoint
+                   ( EGIntegrationPoint (BindVehicles)
+                   )
 
 
 -- | VIN synchronizer worker starter.

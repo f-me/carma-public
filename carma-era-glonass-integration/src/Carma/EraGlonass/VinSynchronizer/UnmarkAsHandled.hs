@@ -128,7 +128,7 @@ unmarkAsHandled lists = do
       |]
 
   unbindRequest <-
-    lift (asks carmaEgServiceCode) <&> \contractId' ->
+    lift (asks vinSynchronizerContractId) <&> \contractId' ->
       EGBindVehiclesRequest
         { contractId = contractId'
         , vins       = allVins
