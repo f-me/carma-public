@@ -25,6 +25,7 @@ import           Control.Monad.Random.Class (MonadRandom)
 import           Control.Monad.Catch
 import           Control.Concurrent.MVar (tryReadMVar)
 import           Control.Concurrent.STM.TQueue
+import           Control.Concurrent.STM.TMVar
 import           Control.Concurrent.STM.TVar
 import           Control.Concurrent.STM.TSem
 import           Control.Exception
@@ -154,8 +155,10 @@ app appMode' withDbConnection = do
         , dbRequestTimeout = dbRequestTimeout'
         }
 
-  (backgroundTasksCounter', workersThreadFailureSem) <-
-    atomically $ (,) <$> newTVar 0 <*> newTSem 0
+  ( backgroundTasksCounter',
+    vinSynchronizerTriggerBus',
+    workersThreadFailureSem )
+      <- atomically $ (,,) <$> newTVar 0 <*> newEmptyTMVar <*> newTSem 0
 
   (workersThreadId, workersThreadSem) <-
     flip runReaderT loggerBus'
@@ -183,6 +186,7 @@ app appMode' withDbConnection = do
                     round $ vinSynchronizerTimeout' * (10 ** 6)
                 , vinSynchronizerRetryInterval =
                     round $ vinSynchronizerRetryInterval' * 60 * (10 ** 6)
+                , vinSynchronizerTriggerBus = vinSynchronizerTriggerBus'
                 }
 
           -- Semaphore for case when some worker is unexpectedly failed

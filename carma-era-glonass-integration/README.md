@@ -14,22 +14,7 @@ Short and simplified description is:
 
 A system that is integrated to a car to provide rapid emergency assistance.
 
-# Testing
-
-You could simulate *EG.CRM.01* request from Era Glonass by this command
-(it will run testing server with mocked in-memory SQLite database inside):
-
-```bash
-stack build && stack test :carma-era-glonass-integration-simulate-create-call-card
-```
-
-You also could run this simulation without mocking database, to make request to
-existing server which works on real database (may be useful for development
-purpuses) by using environment variable:
-
-```bash
-stack build && env CARMA_EG_TEST_WITHOUT_TESTING_SERVER=Y stack test :carma-era-glonass-integration-simulate-create-call-card
-```
+## Testing
 
 To run all tests related to this microservice just run:
 
@@ -37,7 +22,7 @@ To run all tests related to this microservice just run:
 tools/builder.sh -b backend-test-era-glonass-integration
 ```
 
-# Documentation
+## Documentation
 
 To generate **haddock** documentation run:
 
@@ -49,6 +34,20 @@ And to open generated docs in browser:
 
 ```bash
 xdg-open haddock/index.html
+```
+
+## Useful commands
+
+### To trigger VIN synchronization manually
+
+```bash
+curl -v 'http://127.0.0.1:8166/debug/vin-synchronizer/trigger.json' -XPOST | jq
+```
+
+### To see how many background tasks (threads) are currently running
+
+```bash
+curl -v 'http://127.0.0.1:8166/debug/background-tasks/count.json' | jq
 ```
 
 ## TODO

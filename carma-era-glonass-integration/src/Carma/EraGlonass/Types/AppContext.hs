@@ -7,8 +7,10 @@ module Carma.EraGlonass.Types.AppContext
      ) where
 
 import           Data.Pool (type Pool)
+import           Data.Time.Clock (type UTCTime)
 
 import           Control.Concurrent.STM.TQueue (type TQueue)
+import           Control.Concurrent.STM.TMVar (type TMVar)
 import           Control.Concurrent.STM.TVar (type TVar)
 import           Control.Concurrent.STM.TSem (type TSem)
 
@@ -62,6 +64,23 @@ data AppContext
 
    , vinSynchronizerContractId :: EGContractId 'BindVehicles
        -- ^ Predefined on Era Glonass side code.
+
+   , vinSynchronizerTriggerBus :: TMVar UTCTime
+       -- ^ Useful to manually trigger VIN synchronization.
+       --
+       -- When it's empty it means VIN synchronizer is waiting for next
+       -- scheduled launch or for next menual trigger.
+       --
+       -- When it's not empty it means VIN synchronization is in progress, after
+       -- VIN Synchronizer is done and reached next iteration is will flush this
+       -- bus, leaving it empty, starting to wait again for next manual trigger.
+       --
+       -- When you trigger it you put current time to this bus, so you could
+       -- check the time of start of currently processing synchronization.
+       --
+       -- In case VIN synchronization is triggered by schedule, it will itself
+       -- fill this bus with time of start of that synchronization (to notify
+       -- others it's busy).
    }
 
 

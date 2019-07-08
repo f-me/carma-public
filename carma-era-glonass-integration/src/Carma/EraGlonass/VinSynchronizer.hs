@@ -25,10 +25,13 @@ import           Data.List (intersect)
 import           Data.List.NonEmpty (NonEmpty ((:|)))
 import           Data.Aeson (Value)
 
+import           Control.Arrow ((&&&), (***), (>>>))
 import           Control.Monad
 import           Control.Monad.Trans.Class (lift)
 import           Control.Monad.Reader (MonadReader, ReaderT, asks)
 import           Control.Monad.Catch (MonadCatch, MonadThrow (throwM))
+import           Control.Concurrent.STM.TMVar
+import           Control.Concurrent.STM.TVar
 import           Control.Exception.Base (AssertionFailed (AssertionFailed))
 
 import           Control.Exception
@@ -56,6 +59,7 @@ import           Carma.EraGlonass.VinSynchronizer.Helpers
 import           Carma.EraGlonass.VinSynchronizer.UnmarkAsHandled
 import           Carma.EraGlonass.VinSynchronizer.SynchronizeContracts
 import           Carma.EraGlonass.Types.AppContext (AppContext (..))
+import           Carma.EraGlonass.Types.Helpers.DateTime (showRFC3339DateTime)
 import           Carma.EraGlonass.Types.EGIntegrationPoint
                    ( EGIntegrationPoint (BindVehicles)
                    )
@@ -63,7 +67,8 @@ import           Carma.EraGlonass.Types.EGIntegrationPoint
 
 -- | VIN synchronizer worker starter.
 runVinSynchronizer
-  ::
+  :: forall m
+   .
    ( MonadReader AppContext m
    , MonadLoggerBus m
    , MonadClock m
@@ -84,7 +89,10 @@ runVinSynchronizer tz = go where
 
   willBeRetried interval = [qms|
     Synchronization of VINs will be retried in
-    {printf "%.2f" (inHours interval) :: String} hour(s).
+    {printf "%.2f" (inHours interval) :: String} hour(s)
+    (also it will wait for manual trigger in parallel, flushing manual
+    triggering bus first, either scheduled retry or manual trigger will run next
+    synchronization attempt)...
   |] :: Text
 
   retrying interval = [qms|
@@ -100,12 +108,49 @@ runVinSynchronizer tz = go where
 
       srcLogDebug $ let zeroPad x = printf "%02d" (x :: Word) :: String in [qms|
         Waiting for {zeroPad $ floor hoursToWait}:{zeroPad minutesToWait}
-        before 00:00 to trigger next VIN synchronization...
+        before 00:00 to trigger next VIN synchronization (also waiting for
+        manual trigger in paralell, flushing manual triggering bus first,
+        either scheduled iteration or manual trigger will run next
+        synchronization)...
       |]
 
-      delay $ round $ hoursToWait * 3600 * (10 ** 6)
-      srcLogDebug [qns| It's about 00:00,
-                        initiating VIN synchronization process... |]
+      manualTriggerBus <- asks vinSynchronizerTriggerBus
+      bgThreadsCounter <- asks backgroundTasksCounter
+
+      (wait, done) <- atomically $ do
+        _ <- tryTakeTMVar manualTriggerBus -- Flusing previous state
+        modifyTVar' bgThreadsCounter (+2) -- Two threads in background
+
+        (newEmptyTMVar <&>) $
+          takeTMVar  &&& flip putTMVar () >>>
+          atomically *** atomically
+
+      let -- | Deducing background threads counter when thread is done
+          onForkDeath = atomically $ modifyTVar' bgThreadsCounter pred
+
+      scheduleThread <-
+        flip forkFinally (const onForkDeath) $ do
+          delay $ round $ hoursToWait * 3600 * (10 ** 6)
+          srcLogDebug [qns|
+            It's about 00:00, initiating scheduled
+            VIN synchronization process...
+          |]
+          done
+
+      manualTriggerThread <-
+        flip forkFinally (const onForkDeath) $ do
+          time <- atomically $ readTMVar manualTriggerBus
+          srcLogDebug [qms|
+            Received signal from manual VIN synchronization trigger bus,
+            it's triggered at {showRFC3339DateTime time :: Text},
+            running VIN synchronization process manually...
+          |]
+          done
+
+      wait
+      srcLogInfo "Killing waiting threads before running VIN synchronization..."
+      killThread scheduleThread
+      killThread manualTriggerThread
 
       fix $ \again ->
         asks vinSynchronizerTimeout
@@ -133,65 +178,87 @@ runVinSynchronizer tz = go where
   synchronizationResolve (Right ()) = True <$
     srcLogInfo [qn| VINs synchronization iteration is finished successfully. |]
 
-  synchronizationResolve
-    (Left (fromException -> Just (TimeoutExceeded n))) = False <$ do
-      retryInterval <- asks vinSynchronizerRetryInterval
-
-      let failureMessage = [qms|
-            Synchronization of VINs is failed becuase it is exceeded timeout of
-            {round $ (fromIntegral n / 1000 / 1000 :: Float) :: Int} second(s).
-          |] :: Text
-
-      srcLogError [qm| {failureMessage} {willBeRetried retryInterval} |]
-      currentTime <- getCurrentTime
-      saveFailureIncidentInBackground currentTime failureMessage Nothing
-      delay retryInterval
-      srcLogInfo $ retrying retryInterval
+  synchronizationResolve (Left (fromException -> Just (TimeoutExceeded n))) =
+    False <$ retryFlow Nothing [qms|
+      Synchronization of VINs is failed becuase it is exceeded timeout of
+      {round $ (fromIntegral n / 1000 / 1000 :: Float) :: Int} second(s).
+    |]
 
   synchronizationResolve
     -- Only response is possible to fail to parse since we don't have incoming
     -- requests in this integration point.
-    (Left (fromException -> Just (ResponseParseFailure err body))) = False <$ do
-      retryInterval <- asks vinSynchronizerRetryInterval
+    (Left (fromException -> Just (ResponseParseFailure err body))) =
+      False <$ retryFlow (Just body) [qms|
+        Synchronization of VINs is failed becuase response from EG service
+        is failed to parse with this error message: {err}
+      |]
 
-      let failureMessage = [qms|
-            Synchronization of VINs is failed becuase response from EG service
-            is failed to parse with this error message: {err}
-          |] :: Text
+  synchronizationResolve (Left (fromException -> Just (FailureScenario err))) =
+    False <$ retryFlow Nothing [qms|
+      Synchronization of VINs is failed becuase EG service
+      responded with failure case: {err}
+    |]
 
-      srcLogError [qm| {failureMessage} {willBeRetried retryInterval} |]
-      currentTime <- getCurrentTime
-      saveFailureIncidentInBackground currentTime failureMessage (Just body)
-      delay retryInterval
-      srcLogInfo $ retrying retryInterval
+  synchronizationResolve (Left exception) =
+    False <$ retryFlow Nothing [qms|
+      Synchronization of VINs is failed with exception: {exception}.
+    |]
 
-  synchronizationResolve
-    (Left (fromException -> Just (FailureScenario err))) = False <$ do
-      retryInterval <- asks vinSynchronizerRetryInterval
+  retryFlow
+    ::
+     ( MonadReader AppContext m
+     , MonadLoggerBus m
+     , MonadThread m
+     , MonadClock m
+     , MonadDelay m -- To wait before retry
+     , MonadSTM m
+     )
+    => Maybe Value
+    -> Text
+    -> m ()
 
-      let failureMessage = [qms|
-            Synchronization of VINs is failed becuase EG service
-            responded with failure case: {err}
-          |] :: Text
-
-      srcLogError [qm| {failureMessage} {willBeRetried retryInterval} |]
-      currentTime <- getCurrentTime
-      saveFailureIncidentInBackground currentTime failureMessage Nothing
-      delay retryInterval
-      srcLogInfo $ retrying retryInterval
-
-  synchronizationResolve (Left exception) = False <$ do
+  retryFlow failureResponseBody failureMessage = do
     retryInterval <- asks vinSynchronizerRetryInterval
-
-    let failureMessage = [qms|
-          Synchronization of VINs is failed with exception: {exception}.
-        |] :: Text
-
     srcLogError [qm| {failureMessage} {willBeRetried retryInterval} |]
     currentTime <- getCurrentTime
-    saveFailureIncidentInBackground currentTime failureMessage Nothing
-    delay retryInterval
-    srcLogInfo $ retrying retryInterval
+
+    saveFailureIncidentInBackground
+      currentTime failureMessage failureResponseBody
+
+    manualTriggerBus <- asks vinSynchronizerTriggerBus
+    bgThreadsCounter <- asks backgroundTasksCounter
+
+    (wait, done) <- atomically $ do
+      _ <- tryTakeTMVar manualTriggerBus -- Flusing previous state
+      modifyTVar' bgThreadsCounter (+2) -- Two threads in background
+
+      (newEmptyTMVar <&>) $
+        takeTMVar  &&& flip putTMVar () >>>
+        atomically *** atomically
+
+    let -- | Deducing background threads counter when thread is done
+        onForkDeath = atomically $ modifyTVar' bgThreadsCounter pred
+
+    scheduleThread <-
+      flip forkFinally (const onForkDeath) $ do
+        delay retryInterval
+        srcLogInfo $ retrying retryInterval
+        done
+
+    manualTriggerThread <-
+      flip forkFinally (const onForkDeath) $ do
+        time <- atomically $ readTMVar manualTriggerBus
+        srcLogDebug [qms|
+          Received signal from manual VIN synchronization trigger bus,
+          it's triggered at {showRFC3339DateTime time :: Text},
+          retrying VIN synchronization manually...
+        |]
+        done
+
+    wait
+    srcLogInfo "Killing waiting threads before retrying VIN synchronization..."
+    killThread scheduleThread
+    killThread manualTriggerThread
 
 
 -- | VINs synchronization logic handler.
@@ -409,7 +476,7 @@ saveFailureIncidentInBackground
   -> m ()
 
 saveFailureIncidentInBackground ctime comment responseBody = go where
-  go = inBackground $ runSqlInTime (insert_ record) >>= resolve :: m ()
+  go = void $ inBackground $ runSqlInTime (insert_ record) >>= resolve :: m ()
 
   record =
     CaseEraGlonassFailure

@@ -1,6 +1,14 @@
 {-# LANGUAGE OverloadedStrings, QuasiQuotes, FlexibleContexts #-}
 
 -- | Testing server implementation (with in-memory SQLite database).
+--
+-- TODO WARNING! This is dead module from previous version of EG spec
+--               implementation. It's not very convenient to run this test
+--               process manually, it's better to reimplement it but with custom
+--               monad (not @IO@, just pure data), inside tests, without any
+--               separated processes, and tests would work just as they usually
+--               work, without any fancy magic tricks.
+--
 module Main (main) where
 
 import           Data.Proxy
