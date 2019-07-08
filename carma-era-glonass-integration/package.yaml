@@ -26,6 +26,7 @@ dependencies:
   - either
   - exceptions
   - fast-logger
+  - generic-deriving
   - http-api-data
   - http-client
   - http-client-tls

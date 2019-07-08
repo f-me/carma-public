@@ -1,8 +1,9 @@
-{-# LANGUAGE ExplicitNamespaces #-}
+{-# LANGUAGE ExplicitNamespaces, DataKinds #-}
 
 -- | Client requests to Era Glonass implementation.
 module Carma.EraGlonass.Client
      ( bindVehicles
+     , unbindVehicles
      , changeProcessingStatusRequest
      , changeRequestStatusRequest
      ) where
@@ -17,6 +18,7 @@ import           Carma.EraGlonass.Types.EGMayFailToParse (type EGMayFailToParse)
 import           Carma.EraGlonass.Types.EGBindVehiclesRequest
                    ( type EGBindVehiclesRequest
                    , type EGBindVehiclesResponse
+                   , type EGBindVehiclesMode (..)
                    )
 import           Carma.EraGlonass.Types.EGChangeProcessingStatusRequest
                    ( type EGChangeProcessingStatusRequest
@@ -28,8 +30,12 @@ import           Carma.EraGlonass.Types.EGChangeRequestStatusRequest
 
 
 bindVehicles
-  :: EGBindVehiclesRequest
-  -> ClientM (EGMayFailToParse EGBindVehiclesResponse)
+  :: EGBindVehiclesRequest 'Bind
+  -> ClientM (EGMayFailToParse (EGBindVehiclesResponse 'Bind))
+
+unbindVehicles
+  :: EGBindVehiclesRequest 'Unbind
+  -> ClientM (EGMayFailToParse (EGBindVehiclesResponse 'Unbind))
 
 changeProcessingStatusRequest
   :: [EGChangeProcessingStatusRequest]
@@ -39,7 +45,7 @@ changeRequestStatusRequest
   :: [EGChangeRequestStatusRequest]
   -> ClientM (EGMayFailToParse EGChangeProcessingStatusResponse)
 
-( bindVehicles
+( (bindVehicles :<|> unbindVehicles)
   :<|> changeProcessingStatusRequest
   :<|> changeRequestStatusRequest
   )

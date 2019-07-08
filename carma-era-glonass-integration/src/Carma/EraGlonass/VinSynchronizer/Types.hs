@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds, FlexibleContexts, DeriveDataTypeable #-}
 {-# LANGUAGE ExplicitNamespaces #-}
 
 -- To add docs for every type or function defined in the module.
@@ -6,38 +5,19 @@
 
 -- | Additional types for VIN synchronizer.
 module Carma.EraGlonass.VinSynchronizer.Types
-     ( type VinSynchronizerMonad
-
-     , type OneOrTwoNonEmptyLists (..)
+     ( type OneOrTwoNonEmptyLists (..)
      , getFirstNonEmptyList
      , getSecondNonEmptyList
+     , oneOrTwoNonEmptyListsLengths
+
+     , type BodyParseFailure (..)
+     , type FailureScenario (..)
      ) where
 
 import           Data.List.NonEmpty (type NonEmpty)
+import           Data.Aeson (type Value)
 
-import           Control.Monad.Reader (type MonadReader)
-import           Control.Monad.Random.Class (type MonadRandom)
-import           Control.Monad.Catch (type MonadThrow)
-
-import           Carma.Monad
-import           Carma.EraGlonass.Types.AppContext (type AppContext)
-
-
--- | VIN synchronizer monad constraint.
-type VinSynchronizerMonad m =
-   ( MonadReader AppContext m
-   , MonadLoggerBus m
-
-   , MonadClock m -- For creating new @EGRequestId@.
-                  -- To calc intervals before synchronizations.
-
-   , MonadDelay m -- To wait before synchronizations.
-   , MonadPersistentSql m
-   , MonadThrow m
-   , MonadRandom m -- For creating new @EGRequestId@.
-   , MonadConcurrently m
-   , MonadServantClient m
-   )
+import           Control.Exception (type Exception)
 
 
 -- | Helper type for VINs unmarking.
@@ -50,10 +30,42 @@ data OneOrTwoNonEmptyLists first second
 
 getFirstNonEmptyList :: OneOrTwoNonEmptyLists a b -> Maybe (NonEmpty a)
 getFirstNonEmptyList (FirstNonEmptyList  x  ) = Just x
-getFirstNonEmptyList (SecondNonEmptyList _  ) = Nothing
+getFirstNonEmptyList (SecondNonEmptyList   _) = Nothing
 getFirstNonEmptyList (BothNonEmptyLists  x _) = Just x
 
 getSecondNonEmptyList :: OneOrTwoNonEmptyLists a b -> Maybe (NonEmpty b)
 getSecondNonEmptyList (FirstNonEmptyList  _  ) = Nothing
-getSecondNonEmptyList (SecondNonEmptyList x  ) = Just x
+getSecondNonEmptyList (SecondNonEmptyList   x) = Just x
 getSecondNonEmptyList (BothNonEmptyLists  _ x) = Just x
+
+
+oneOrTwoNonEmptyListsLengths :: OneOrTwoNonEmptyLists a b -> (Word, Word)
+oneOrTwoNonEmptyListsLengths (FirstNonEmptyList first) =
+  ( fromIntegral $ length first
+  , minBound
+  )
+oneOrTwoNonEmptyListsLengths (SecondNonEmptyList second) =
+  ( minBound
+  , fromIntegral $ length second
+  )
+oneOrTwoNonEmptyListsLengths (BothNonEmptyLists first second) =
+  ( fromIntegral $ length first
+  , fromIntegral $ length second
+  )
+
+
+data BodyParseFailure
+   = ResponseParseFailure
+   { errorMessage :: String
+   , responseBody :: Value
+   } deriving Show
+
+instance Exception BodyParseFailure
+
+
+newtype FailureScenario
+      = FailureScenario
+      { failureMessage :: String
+      } deriving Show
+
+instance Exception FailureScenario

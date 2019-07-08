@@ -19,9 +19,9 @@ writeLoggerBusEventsToMonadLogger =
   forever $ readLog >>= \case
     LogForward loc src lvl msg -> monadLoggerLog loc src lvl msg
 
-    LogMessage msgType msg ->
+    LogMessage src msgType msg ->
       case msgType of
-           LogDebug -> logDebugN msg
-           LogInfo  -> logInfoN  msg
-           LogWarn  -> logWarnN  msg
-           LogError -> logErrorN msg
+           LogDebug -> logDebugNS src msg
+           LogInfo  -> logInfoNS  src msg
+           LogWarn  -> logWarnNS  src msg
+           LogError -> logErrorNS src msg

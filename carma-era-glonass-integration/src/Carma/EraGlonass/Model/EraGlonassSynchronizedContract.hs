@@ -1,8 +1,9 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DataKinds, TypeFamilies #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase, DataKinds, TypeFamilies #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Carma.EraGlonass.Model.EraGlonassSynchronizedContract where
+
+import           GHC.Generics
 
 import           Data.Typeable
 
@@ -31,7 +32,7 @@ data EraGlonassSynchronizedContract
      :: F Bool "isHandledByCarma" "Синхронизирован"
    , lastStatusChangeTime
      :: F (Maybe UTCTime) "lastStatusChangeTime" "Время последней смены статуса"
-   } deriving Typeable
+   } deriving (Generic, Typeable)
 
 
 instance Model EraGlonassSynchronizedContract where

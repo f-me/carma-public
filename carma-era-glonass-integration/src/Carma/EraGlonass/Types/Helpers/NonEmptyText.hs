@@ -18,6 +18,8 @@ module Carma.EraGlonass.Types.Helpers.NonEmptyText
 
 import           GHC.Generics (Generic (Rep))
 import           GHC.TypeLits (Nat, Symbol, KnownSymbol, type (<=))
+import           Generics.Deriving.Eq
+import           Generics.Deriving.Show
 
 import           Data.Semigroup (Semigroup ((<>)))
 import           Data.Proxy
@@ -42,6 +44,9 @@ import           Carma.Utils.TypeSafe.Serialize
 newtype NonEmptyText
       = NonEmptyText Text
         deriving (Generic, Show, Eq, Ord, Semigroup, PrintfArg, NFData)
+
+instance GShow NonEmptyText where gshowsPrec = showsPrec
+instance GEq   NonEmptyText where geq = (==)
 
 fromNonEmptyText :: NonEmptyText -> Text
 fromNonEmptyText (NonEmptyText x) = x

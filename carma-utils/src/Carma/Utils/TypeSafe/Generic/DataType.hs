@@ -29,7 +29,7 @@ type family TypeName (k1 :: * -> *) :: Symbol where
 typeName
   :: forall t typeRep typeName str
   .  ( typeRep ~ Rep t
-     , typeName ~ TypeName (Rep t)
+     , typeName ~ TypeName typeRep
      , KnownSymbol typeName
      , IsString str
      )

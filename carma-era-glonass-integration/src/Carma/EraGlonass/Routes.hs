@@ -15,6 +15,7 @@ import           Carma.EraGlonass.Types.EGRequestForServiceRequest
 import           Carma.EraGlonass.Types.EGBindVehiclesRequest
                    ( type EGBindVehiclesRequest
                    , type EGBindVehiclesResponse
+                   , type EGBindVehiclesMode (..)
                    )
 import           Carma.EraGlonass.Types.EGChangeProcessingStatusRequest
                    ( type EGChangeProcessingStatusRequest
@@ -83,8 +84,13 @@ Routes which CaRMa uses to make requests to Era Glonass.
 -}
 type OutcomingAPI
    = -- POST <url>/bindVehicles
-     "bindVehicles" :> ReqBody '[JSON] EGBindVehiclesRequest
-                    :> Post    '[JSON] (EGMayFailToParse EGBindVehiclesResponse)
+     "bindVehicles" :>
+       ( ReqBody '[JSON] (EGBindVehiclesRequest 'Bind)
+         :> Post '[JSON] (EGMayFailToParse (EGBindVehiclesResponse 'Bind))
+
+       # ReqBody '[JSON] (EGBindVehiclesRequest 'Unbind)
+         :> Post '[JSON] (EGMayFailToParse (EGBindVehiclesResponse 'Unbind))
+       )
 
    # -- POST <url>/changeProcessingStatus
      "changeProcessingStatus"

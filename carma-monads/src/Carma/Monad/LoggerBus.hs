@@ -13,6 +13,7 @@ import qualified Data.Text as T
 import           Text.InterpolatedString.QM
 
 import           Control.Monad
+import           Control.Monad.Logger (LogSource)
 import           Control.Concurrent.MVar (MVar)
 import           Control.Concurrent.STM.TQueue
 
@@ -31,10 +32,15 @@ import           Carma.Monad.LoggerBus.Helpers
 -- Could be used to implement @logDebug@, @logInfo@, @logWarn@ and @logError@.
 genericMVarLog
   :: (MonadMVar m, MonadClock m, MonadThread m)
-  => LogMessageType -> MVar LogMessage -> T.Text -> m ()
-genericMVarLog logMsgType loggerBus' msg = do
+  => LogSource
+  -> LogMessageType
+  -> MVar LogMessage
+  -> T.Text
+  -> m ()
+
+genericMVarLog src logMsgType loggerBus' msg = do
   !utc <- getCurrentTime
-  let !logMsg = LogMessage logMsgType [qm| [{formatTime utc} UTC] {msg} |]
+  let !logMsg = LogMessage src logMsgType [qm| [{formatTime utc} UTC] {msg} |]
 
   -- Forking for non-blocking writing to @MVar@
   void $ fork $ putMVar loggerBus' logMsg
@@ -52,10 +58,15 @@ genericMVarReadLog = takeMVar
 -- Could be used to implement @logDebug@, @logInfo@, @logWarn@ and @logError@.
 genericTQueueLog
   :: (MonadSTM m, MonadClock m)
-  => LogMessageType -> TQueue LogMessage -> T.Text -> m ()
-genericTQueueLog logMsgType loggerBus' msg = do
+  => LogSource
+  -> LogMessageType
+  -> TQueue LogMessage
+  -> T.Text
+  -> m ()
+
+genericTQueueLog src logMsgType loggerBus' msg = do
   !utc <- getCurrentTime
-  let !logMsg = LogMessage logMsgType [qm| [{formatTime utc} UTC] {msg} |]
+  let !logMsg = LogMessage src logMsgType [qm| [{formatTime utc} UTC] {msg} |]
   atomically $ writeTQueue loggerBus' logMsg
 
 

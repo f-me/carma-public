@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes, OverloadedStrings #-}
 
 module Carma.Monad.LoggerBus.Types
      ( LogMessageType (..)
@@ -23,18 +23,19 @@ data LogMessageType
 
 -- | Bangs to avoid lazy errors when they reach logger thread.
 data LogMessage
-   = LogMessage !LogMessageType !T.Text
+   = LogMessage !LogSource !LogMessageType !T.Text
    | LogForward !Loc !LogSource !LogLevel !LogStr
 
 instance Show LogMessage where
-  show (LogMessage logType msg) =
-    [qm| LogMessage {logType} {show msg} |]
-  show (LogForward loc src lvl msg) =
-    [qm| LogForward {loc} {src} {lvl} {show $ fromLogStr msg} |]
+  show (LogMessage src logType msg) =
+    [qm| LogMessage {show src} {logType} {show msg} |]
+  show (LogForward src loc lvl msg) =
+    [qm| LogForward {src} {loc} {lvl} {show $ fromLogStr msg} |]
 
 instance Eq LogMessage where
-  (LogMessage logType msg) == (LogMessage logType' msg')
-    =  logType == logType'
+  (LogMessage src logType msg) == (LogMessage src' logType' msg')
+    =  src     == src'
+    && logType == logType'
     && msg     == msg'
 
   (LogForward loc src lvl msg) == (LogForward loc' src' lvl' msg')

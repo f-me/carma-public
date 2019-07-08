@@ -1,7 +1,9 @@
-{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveGeneric, GeneralizedNewtypeDeriving, GADTs #-}
 {-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
 
 module Carma.Model.SubProgram.Persistent where
+
+import           GHC.Generics (Generic)
 
 import           Data.Text (Text)
 import           Data.Typeable
@@ -55,7 +57,7 @@ SubProgram sql=SubProgram
   help       Text Maybe sql=help
   dealerHelp Text Maybe sql=dealerhelp
 
-  deriving Typeable Show
+  deriving Generic Typeable Show
 
 SubProgramService sql=SubProgramService
   sParent SubProgramId sql=parent
@@ -70,7 +72,7 @@ SubProgramService sql=SubProgramService
   maxPeriod   Int  Maybe sql=maxperiod
   maxCount    Int  Maybe sql=maxcount
 
-  deriving Typeable Show
+  deriving Generic Typeable Show
 
 SubProgramContact sql=SubProgramContact
   cParent SubProgramId sql=parent
@@ -78,7 +80,7 @@ SubProgramContact sql=SubProgramContact
   email   Text Maybe   sql=email
   phone   Text Maybe   sql=phone
 
-  deriving Typeable Show
+  deriving Generic Typeable Show
 
 SubProgramContractPermission sql=SubProgramContractPermission
   fParent   SubProgramId sql=parent
@@ -91,7 +93,7 @@ SubProgramContractPermission sql=SubProgramContractPermission
   showTable Bool         sql=showtable
   showForm  Bool         sql=showform
 
-  deriving Typeable Show
+  deriving Generic Typeable Show
 |]
 
 

@@ -5,8 +5,11 @@ module Carma.Utils.TypeSafe.TypeFamilies
      ( type If
      , type Unless
 
+     , type Guard
+
      , type FromMaybe
      , type FmapMaybe
+     , type FromJust
      , type MaybeAlternative
 
      , type MaybePair
@@ -32,7 +35,10 @@ module Carma.Utils.TypeSafe.TypeFamilies
      , type Reverse
      ) where
 
-import           GHC.TypeLits (type Nat, type (+))
+import           GHC.TypeLits
+                   ( type Nat, type (+)
+                   , type TypeError, type ErrorMessage (Text, ShowType, (:<>:))
+                   )
 
 
 -- | Type-level \"if" condition
@@ -57,6 +63,18 @@ type family Not (k1 :: Bool) :: Bool where
   Not 'False = 'True
 
 
+-- | Sort of like "Control.Monad.guard" but not limited to any wrapper.
+--
+-- It just makes sure predicate @Bool@ is satisfied or throws type error if not.
+type family Guard (predicate :: Bool) (value :: a) :: a where
+  Guard 'True  a = a
+  Guard 'False a =
+    TypeError (
+      'Text "Guard type family: received False predicate for this value: " ':<>:
+      'ShowType a
+    )
+
+
 -- | Just like "fromMaybe" term-level function.
 type family FromMaybe (k1 :: k) (k2 :: Maybe k) :: k where
   FromMaybe x 'Nothing  = x
@@ -66,6 +84,13 @@ type family FromMaybe (k1 :: k) (k2 :: Maybe k) :: k where
 type family FmapMaybe (fn :: a -> b) (x :: Maybe a) :: Maybe b where
   FmapMaybe fn ('Just x) = 'Just (fn x)
   FmapMaybe _ 'Nothing = 'Nothing
+
+-- | Just like "fromJust" term-level function but it's okay that it's not total,
+--   since its result is checked in compile-time.
+type family FromJust (x :: Maybe k) :: k where
+  FromJust ('Just a) = a
+  FromJust 'Nothing  =
+    TypeError ('Text "FromJust type family: received Nothing, expected Just")
 
 -- | Just like @(<|>)@ operator of "Alternative" instance for "Maybe" only on
 -- type-level.

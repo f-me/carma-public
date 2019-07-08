@@ -1,9 +1,11 @@
-{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, DeriveGeneric #-}
 {-# LANGUAGE MultiParamTypeClasses, TypeFamilies #-}
 {-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
 
 module Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persistent where
+
+import           GHC.Generics
 
 import           Data.Typeable
 import           Data.Time.Clock
@@ -22,17 +24,19 @@ EraGlonassSynchronizedContract json sql=EraGlonassSynchronizedContract
 
   vin Text sql=vin
     -- ^ VIN which have been used to synchronize a @Contract@.
+    --
     -- Could be useful for debugging in case some @Contract@'s
     -- data have been changed after a synchronization.
 
   isHandledByCarma Bool sql=ishandledbycarma
     -- ^ Indicates if a contract (VIN) is handled by CaRMa
-    -- which means Era Glonass service is notified about that.
+    --   which means Era Glonass service is notified about that.
+    --
     -- @False@ means that a @Contract@ was used to be handled earlier,
-    -- but EG service have been notified that it is not longer true.
+    -- but EG service have been notified that it is no longer true.
 
   lastStatusChangeTime UTCTime Maybe sql=laststatuschangetime
 
   UniqueContract contract
-  deriving Typeable Show
+  deriving Generic Typeable Show
 |]

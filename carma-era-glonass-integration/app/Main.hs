@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns, LambdaCase, RecordWildCards, QuasiQuotes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, FlexibleContexts #-}
 
 -- | Production server implementation.
 module Main (main) where
@@ -13,12 +13,11 @@ import           Control.Monad.Reader
 import           Database.Persist.Postgresql
 
 import           Carma.Monad.LoggerBus
+import           Carma.Model.Usermeta.Persistent (admin)
 import           Carma.EraGlonass.Types.AppContext
 import           Carma.EraGlonass.App
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Logger.LoggerForward (runLoggerForward)
-
-import           Carma.Model.Usermeta.Persistent (admin)
 
 
 main :: IO ()

@@ -1,5 +1,5 @@
-{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
 {-# LANGUAGE DeriveGeneric, ScopedTypeVariables, TypeFamilies, InstanceSigs #-}
+{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
 
 -- | @Internal@ module for @EGVin@ type.
 --
@@ -13,6 +13,8 @@ module Carma.EraGlonass.Types.EGVin.Internal
      ) where
 
 import           GHC.Generics
+import           Generics.Deriving.Eq
+import           Generics.Deriving.Show
 
 import           Data.Proxy
 import           Data.Text (Text)
@@ -42,6 +44,9 @@ import           Carma.Utils.TypeSafe.Generic.DataType
 --
 -- See also https://en.wikipedia.org/wiki/Vehicle_identification_number
 newtype EGVin = EGVin { fromEGVin :: ByteString } deriving (Show, Generic)
+
+instance GShow EGVin where gshowsPrec = showsPrec
+instance GEq   EGVin where geq = (==)
 
 -- | WARNING! This implementation is case-insensitive.
 instance Eq EGVin where
