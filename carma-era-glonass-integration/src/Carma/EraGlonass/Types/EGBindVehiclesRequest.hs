@@ -162,22 +162,23 @@ instance ( EGBindVehiclesModeToTermLevel mode
 
       genericParseJSON defaultOptions $ Object obj
 
-instance ToSchema (EGBindVehiclesModeOnly mode)
-      => ToSchema (EGBindVehiclesRequest mode) where
+instance ( t ~ EGBindVehiclesRequest mode
 
-  declareNamedSchema
-    :: forall proxy t withNonEmptyVinsList final.
-     ( t ~ EGBindVehiclesRequest mode
+         , '(1, withNonEmptyVinsList) ~
+             ReplaceFieldTypeFromToByFieldName
+               (Rep t) "vins" (NonEmpty EGVin) EGVinsNonEmptyList
 
-     , '(1, withNonEmptyVinsList) ~
-         ReplaceFieldTypeFromToByFieldName
-           (Rep t) "vins" (NonEmpty EGVin) EGVinsNonEmptyList
+         , 'Just withAddModeField ~
+             EGBindVehiclesRequestAddModeField withNonEmptyVinsList mode
 
-     , 'Just final ~ EGBindVehiclesRequestAddModeField withNonEmptyVinsList mode
-     )
-    => proxy t
-    -> Declare (Definitions Schema) NamedSchema
+         , fullTypeName ~ EGBindVehiclesFullTypeName t
+         , KnownSymbol fullTypeName
+         , withAddModeField ~ D1 meta constructors
+         , final ~ D1 (MetaDataOf withAddModeField fullTypeName) constructors
+         , ToSchema (EGBindVehiclesModeOnly mode)
+         ) => ToSchema (EGBindVehiclesRequest mode) where
 
+  declareNamedSchema :: proxy t -> Declare (Definitions Schema) NamedSchema
   declareNamedSchema _ =
     gdeclareNamedSchema defaultSchemaOptions (Proxy :: Proxy final) mempty
 
@@ -479,10 +480,14 @@ instance ( t ~ EGBindVehiclesResponse mode
                 (Rec0 EGBindVehiclesResponseSuccessfulResultCode)
 
          , -- Prepending new field to successful constructor.
-           final ~
+           withOkResultCode ~
              EGBindVehiclesResponseResultCodeOkFieldByMode
                mode successfulResultCodeField typeRep
 
+         , fullTypeName ~ EGBindVehiclesFullTypeName t
+         , KnownSymbol fullTypeName
+         , withOkResultCode ~ D1 meta constructors
+         , final ~ D1 (MetaDataOf withOkResultCode fullTypeName) constructors
          ) => ToSchema (EGBindVehiclesResponse mode) where
 
   declareNamedSchema :: proxy t -> Declare (Definitions Schema) NamedSchema
@@ -520,16 +525,15 @@ instance ( t ~ EGBindVehiclesModeOnly mode
          ) => ToSchema (EGBindVehiclesModeOnly mode) where
 
   declareNamedSchema :: proxy t -> Declare (Definitions Schema) NamedSchema
-  declareNamedSchema _
-    = stringyEnumMappedNamedSchema (kindToType (Proxy :: Proxy mode))
-    $ \(NamedSchema name' schema') -> pure
-    $ NamedSchema name' schema'
-    { _schemaParamSchema = (_schemaParamSchema schema')
-        { _paramSchemaEnum
-            = Just $ pure $ String $ toStringy
-            $ egBindVehiclesModeToTermLevel (Proxy :: Proxy mode)
-        }
-    }
+  declareNamedSchema _ = x where
+    mode = egBindVehiclesModeToTermLevel (Proxy :: Proxy mode)
+    x = stringyEnumMappedNamedSchema (kindToType (Proxy :: Proxy mode))
+      $ \(NamedSchema name' schema') -> pure
+      $ NamedSchema (name' <&> (`mappend` fromString (show mode))) schema'
+      { _schemaParamSchema = (_schemaParamSchema schema')
+          { _paramSchemaEnum = Just $ pure $ String $ toStringy mode
+          }
+      }
 
 
 -- | Just a plug for a proper Swagger instance of "EGBindVehiclesResponse".
@@ -591,3 +595,20 @@ instance FromJSON EGBindVehiclesResponseErrorCode where
 
 instance ToSchema EGBindVehiclesResponseErrorCode where
   declareNamedSchema = stringyEnumNamedSchema
+
+
+-- | For "Data.Swagger.Schema.ToSchema" instances.
+--
+-- TODO Use "GHC.TypeLits.AppendSymbol" for type name
+--      after update to /base >=4.10.0.0/.
+type family EGBindVehiclesFullTypeName (t :: *) :: Symbol where
+
+  EGBindVehiclesFullTypeName (EGBindVehiclesRequest 'Bind) =
+    "EGBindVehiclesRequestBind"
+  EGBindVehiclesFullTypeName (EGBindVehiclesRequest 'Unbind) =
+    "EGBindVehiclesRequestUnbind"
+
+  EGBindVehiclesFullTypeName (EGBindVehiclesResponse 'Bind) =
+    "EGBindVehiclesResponseBind"
+  EGBindVehiclesFullTypeName (EGBindVehiclesResponse 'Unbind) =
+    "EGBindVehiclesResponseUnbind"

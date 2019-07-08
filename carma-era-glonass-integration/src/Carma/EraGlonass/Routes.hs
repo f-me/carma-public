@@ -7,6 +7,7 @@ module Carma.EraGlonass.Routes
 
 import           Servant
 
+import           Carma.EraGlonass.Helpers (type (#))
 import           Carma.EraGlonass.Types.NonePlug (type NonePlug)
 import           Carma.EraGlonass.Types.EGMayFailToParse (type EGMayFailToParse)
 import           Carma.EraGlonass.Types.EGRequestForServiceRequest
@@ -24,9 +25,6 @@ import           Carma.EraGlonass.Types.EGChangeProcessingStatusRequest
 import           Carma.EraGlonass.Types.EGChangeRequestStatusRequest
                    ( type EGChangeRequestStatusRequest
                    )
-
-
-type (#) = (:<|>); infixr 3 #
 
 
 {-|

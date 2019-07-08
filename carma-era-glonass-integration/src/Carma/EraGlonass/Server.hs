@@ -1,6 +1,6 @@
 {-# LANGUAGE DuplicateRecordFields, RecordWildCards, FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables, ConstraintKinds, DataKinds, TypeOperators #-}
-{-# LANGUAGE QuasiQuotes, OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies, QuasiQuotes, OverloadedStrings #-}
 
 -- | Incoming server implementation to provide an API for Era Glonass side
 --   and also some debug stuff for internal usage.
@@ -20,7 +20,7 @@ import           Control.Concurrent.STM.TVar
 import           Database.Persist.Types
 
 import           Servant
-import           Servant.Swagger (toSwagger)
+import           Servant.Swagger (HasSwagger (toSwagger))
 
 import           Carma.Monad.STM
 import           Carma.Monad.MVar
@@ -29,15 +29,14 @@ import           Carma.Monad.Thread
 import           Carma.Monad.LoggerBus
 import           Carma.Monad.PersistentSql
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Helpers
 import           Carma.EraGlonass.Routes
 import           Carma.EraGlonass.Types.AppContext (AppContext (..))
+import           Carma.EraGlonass.Types.EGBindVehiclesRequest
+import           Carma.EraGlonass.Types.EGMayFailToParse
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
 import           Carma.EraGlonass.Server.Helpers
 import           Carma.EraGlonass.Server.ReceiveRequestForServiceRequest
-
-
-type (#) = (:<|>); (#) = (:<|>); (#) :: a -> b -> (:<|>) a b; infixr 3 #
-{-# INLINE (#) #-}
 
 
 type FaliuresAPI
@@ -108,8 +107,40 @@ server
 incomingSwagger :: Applicative m => m Swagger
 incomingSwagger = pure $ toSwagger (Proxy :: Proxy IncomingAPI)
 
-outcomingSwagger :: Applicative m => m Swagger
-outcomingSwagger = pure $ toSwagger (Proxy :: Proxy OutcomingAPI)
+outcomingSwagger
+  :: forall m final xs
+   .
+   ( Applicative m
+
+   , OutcomingAPI ~
+       ( "bindVehicles" :>
+       ( ReqBody '[JSON] (EGBindVehiclesRequest 'Bind)
+           :> Post '[JSON] (EGMayFailToParse (EGBindVehiclesResponse 'Bind))
+       # ReqBody '[JSON] (EGBindVehiclesRequest 'Unbind)
+           :> Post '[JSON] (EGMayFailToParse (EGBindVehiclesResponse 'Unbind))
+       )
+       # xs
+       )
+
+   , -- Fixing clashing routes with same URL.
+     final ~
+       ( "bindVehicles" :>
+       ( ReqBody '[JSON] (
+           Either (EGBindVehiclesRequest 'Bind)
+                  (EGBindVehiclesRequest 'Unbind)
+         ) :> Post '[JSON] (EGMayFailToParse (
+                Either (EGBindVehiclesResponse 'Bind)
+                       (EGBindVehiclesResponse 'Unbind)
+              ))
+       )
+       # xs
+       )
+
+   , HasSwagger final
+   )
+  => m Swagger
+
+outcomingSwagger = pure $ toSwagger (Proxy :: Proxy final)
 
 
 getFailuresCount

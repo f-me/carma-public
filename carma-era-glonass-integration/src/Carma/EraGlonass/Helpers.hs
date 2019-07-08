@@ -1,8 +1,10 @@
-{-# LANGUAGE FlexibleContexts, OverloadedStrings, QuasiQuotes #-}
+{-# LANGUAGE FlexibleContexts, OverloadedStrings, QuasiQuotes, TypeOperators #-}
+{-# LANGUAGE ExplicitNamespaces #-}
 
 module Carma.EraGlonass.Helpers
      ( inBackground
      , runSqlInTime
+     , (#), type (#)
      ) where
 
 
@@ -19,12 +21,21 @@ import           Control.Exception
 
 import           Database.Persist.Sql (SqlBackend)
 
+import           Servant ((:<|>) ((:<|>)))
+
 import           Carma.Monad.STM
 import           Carma.Monad.Thread
 import           Carma.Monad.LoggerBus
 import           Carma.Monad.PersistentSql
 import           Carma.EraGlonass.Types.AppContext (AppContext (..))
 import           Carma.EraGlonass.Instances ()
+
+
+type (#) = (:<|>)
+(#) = (:<|>)
+(#) :: a -> b -> (:<|>) a b
+infixr 3 #
+{-# INLINE (#) #-}
 
 
 inBackground
