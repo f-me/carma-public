@@ -48,6 +48,7 @@ import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.Generic.DataType
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Instance.Persistent (TimeoutException (..))
+import           Carma.EraGlonass.Helpers
 import           Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persistent
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Types
@@ -69,6 +70,7 @@ runVinSynchronizer
    , MonadServantClient m
    , MonadThread m
    , MonadCatch m
+   , MonadSTM m
    )
   => TimeZone
   -> m ()
@@ -119,7 +121,9 @@ runVinSynchronizer tz = go where
      , MonadPersistentSql m
      , MonadThread m
      , MonadClock m
-     , MonadDelay m -- To wait before retry.
+     , MonadDelay m -- To wait before retry
+     , MonadCatch m -- To catch failures in background
+     , MonadSTM m
      )
     => Either SomeException ()
     -> m Bool
@@ -387,25 +391,23 @@ synchronizeVins =
                   synchronizeContracts nowDay handledContracts $ x :| xs
 
 
-failureSaveTimeout :: Int
-failureSaveTimeout = 5 * 1000 * 1000
-
-
 saveFailureIncidentInBackground
   :: forall m
    .
    ( MonadReader AppContext m
    , MonadLoggerBus m
+   , MonadCatch m
    , MonadThread m
    , MonadPersistentSql m
+   , MonadSTM m
    )
   => UTCTime
   -> Text
   -> Maybe Value -- ^ Response body which failed to parse.
   -> m ()
 
-saveFailureIncidentInBackground ctime comment responseBody = () <$ fork go where
-  go = runSqlTimeout failureSaveTimeout (insert_ record) >>= resolve :: m ()
+saveFailureIncidentInBackground ctime comment responseBody = go where
+  go = inBackground $ runSqlInTime (insert_ record) >>= resolve :: m ()
 
   record =
     CaseEraGlonassFailure
@@ -420,5 +422,5 @@ saveFailureIncidentInBackground ctime comment responseBody = () <$ fork go where
   resolve (Right ()) = pure ()
   resolve (Left (SomeException e)) = srcLogError [qms|
     Failed to save failure incident record into database,
-    it failed with exception: {displayException e}.
+    it is failed with exception: {displayException e}.
   |]
