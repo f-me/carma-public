@@ -47,13 +47,13 @@ curl -v 'http://127.0.0.1:8166/debug/vin-synchronizer/trigger.json' -XPOST | jq
 ### To see total count of registered failure incidents
 
 ```bash
-curl -v '/debug/failures/count.json' | jq
+curl -v 'http://127.0.0.1:8166/debug/failures/count.json' | jq
 ```
 
 ### To see last 10 registered failures incidents
 
 ```bash
-curl -v '/debug/failures/list.json?limit=10' | jq
+curl -v 'http://127.0.0.1:8166/debug/failures/list.json?limit=10' | jq
 ```
 
 ### To see how many background tasks (threads) are currently running
