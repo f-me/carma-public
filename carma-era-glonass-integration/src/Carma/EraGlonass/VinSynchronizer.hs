@@ -42,7 +42,7 @@ import           Control.Exception
 
 import           Database.Persist ((==.), (!=.), (>=.), (<-.), (/<-.), (||.))
 import           Database.Persist.Types (Entity (..))
-import           Database.Persist.Sql (SqlBackend)
+import           Database.Persist.Sql (SqlBackend, fromSqlKey)
 
 import           Carma.Monad
 import           Carma.Model.Contract.Persistent
@@ -220,11 +220,7 @@ runVinSynchronizer tz = go where
   retryFlow failureResponseBody failureMessage = do
     retryInterval <- asks vinSynchronizerRetryInterval
     srcLogError [qm| {failureMessage} {willBeRetried retryInterval} |]
-    currentTime <- getCurrentTime
-
-    saveFailureIncidentInBackground
-      currentTime failureMessage failureResponseBody
-
+    saveFailureIncidentInBackground failureMessage failureResponseBody
     manualTriggerBus <- asks vinSynchronizerTriggerBus
     bgThreadsCounter <- asks backgroundTasksCounter
 
@@ -465,20 +461,23 @@ saveFailureIncidentInBackground
    .
    ( MonadReader AppContext m
    , MonadLoggerBus m
+   , MonadClock m
    , MonadCatch m
    , MonadThread m
    , MonadPersistentSql m
    , MonadSTM m
    )
-  => UTCTime
-  -> Text
+  => Text
   -> Maybe Value -- ^ Response body which failed to parse.
   -> m ()
 
-saveFailureIncidentInBackground ctime comment responseBody = go where
-  go = void $ inBackground $ runSqlInTime (insert_ record) >>= resolve :: m ()
+saveFailureIncidentInBackground comment responseBody = go where
+  go :: m ()
+  go = do
+    ctime <- getCurrentTime
+    void $ inBackground $ runSqlInTime (insert $ record ctime) >>= resolve
 
-  record =
+  record ctime =
     CaseEraGlonassFailure
       { caseEraGlonassFailureCtime            = ctime
       , caseEraGlonassFailureIntegrationPoint = BindVehicles
@@ -488,8 +487,14 @@ saveFailureIncidentInBackground ctime comment responseBody = go where
       , caseEraGlonassFailureComment          = Just comment
       }
 
-  resolve (Right ()) = pure ()
+  model = typeName (Proxy :: Proxy CaseEraGlonassFailure) :: Text
+
+  resolve (Right failureId) = srcLogError [qms|
+    Failure incident record is successfully saved to the database:
+    "{model}" id#{fromSqlKey failureId}.
+  |]
+
   resolve (Left (SomeException e)) = srcLogError [qms|
     Failed to save failure incident record into database,
-    it is failed with exception: {displayException e}.
+    it is failed with exception: {displayException e}
   |]

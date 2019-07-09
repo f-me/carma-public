@@ -1,7 +1,9 @@
-{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, DeriveGeneric #-}
 {-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
 
 module Carma.Model.Program.Persistent where
+
+import           GHC.Generics (Generic)
 
 import           Data.Typeable
 import           Data.Text (Text)
@@ -26,7 +28,7 @@ Program sql=Program
   pType ProgramTypeId Maybe sql=ptype
   help Text Maybe sql=help
 
-  deriving Typeable Show
+  deriving Typeable Generic Show
 |]
 
 

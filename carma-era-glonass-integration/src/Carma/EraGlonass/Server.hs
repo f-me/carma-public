@@ -19,7 +19,9 @@ import           Text.InterpolatedString.QM
 import           Control.Monad (when)
 import           Control.Monad.Reader (MonadReader, asks, runReaderT, ReaderT)
 import           Control.Monad.Error.Class (MonadError, throwError)
+import           Control.Monad.Catch (MonadCatch)
 import           Control.Monad.Random.Class (MonadRandom)
+import           Control.Monad.Logger (LogSource)
 import           Control.Concurrent.STM.TMVar
 import           Control.Concurrent.STM.TVar
 
@@ -32,7 +34,6 @@ import           Servant
 import           Servant.Swagger (HasSwagger (toSwagger))
 
 import           Carma.Monad.STM
-import           Carma.Monad.MVar
 import           Carma.Monad.Clock
 import           Carma.Monad.Thread
 import           Carma.Monad.LoggerBus (MonadLoggerBus)
@@ -42,7 +43,7 @@ import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Helpers
 import           Carma.EraGlonass.Routes
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
-import           Carma.EraGlonass.Server.Helpers
+import           Carma.EraGlonass.Server.Helpers (runSqlProtected)
 import           Carma.EraGlonass.Server.ReceiveRequestForServiceRequest
 import           Carma.EraGlonass.Types.AppContext (AppContext (..))
 import           Carma.EraGlonass.Types.EGBindVehiclesRequest
@@ -88,11 +89,11 @@ type ServerMonad m =
    ( MonadReader AppContext m
    , MonadLoggerBus m
    , MonadError ServantErr m
+   , MonadCatch m
    , MonadPersistentSql m
    , MonadClock m
    , MonadRandom m
    , MonadThread m
-   , MonadMVar m
    , MonadSTM m
    )
 
@@ -174,7 +175,7 @@ getFailuresCount = do
 
   totalCount <-
     fromIntegral <$>
-      runSqlProtected
+      runSqlProtected logSrc
         [qn| Failed to request EG failures total count! |]
         (count ([] :: [Filter CaseEraGlonassFailure]))
 
@@ -205,7 +206,7 @@ getFailuresList (Just n) = do
   srcLogDebug [qm| Obtaining EG failures list limited to last {n} elements... |]
 
   result <-
-    runSqlProtected
+    runSqlProtected logSrc
       [qn| Failed to request EG failures list! |]
       $ selectList [] [ Desc CaseEraGlonassFailureId
                       , LimitTo $ fromIntegral n
@@ -301,5 +302,5 @@ srcLogDebug, srcLogError :: MonadLoggerBus m => Text -> m ()
 srcLogDebug = LoggerBus.logDebugS logSrc
 srcLogError = LoggerBus.logErrorS logSrc
 
-logSrc :: Text
+logSrc :: LogSource
 logSrc = "Server"

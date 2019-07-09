@@ -1,8 +1,10 @@
-{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, DeriveGeneric #-}
 {-# LANGUAGE MultiParamTypeClasses, TypeFamilies #-}
 {-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
 
 module Carma.EraGlonass.Model.CaseEraGlonassCreateRequest.Persistent where
+
+import           GHC.Generics (Generic)
 
 import           Data.Typeable
 import           Data.Time.Clock
@@ -23,5 +25,5 @@ CaseEraGlonassCreateRequest sql=CaseEraGlonassCreateRequest
   requestId EGRequestId sql=requestid
   requestBody EGRequestForServiceRequest sql=requestbody
 
-  deriving Typeable Show
+  deriving Typeable Generic Show
 |]

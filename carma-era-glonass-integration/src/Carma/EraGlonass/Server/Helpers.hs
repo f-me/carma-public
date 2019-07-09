@@ -1,49 +1,31 @@
 {-# LANGUAGE FlexibleContexts, LambdaCase, QuasiQuotes #-}
 
 module Carma.EraGlonass.Server.Helpers
-     ( inBackground
-     , runSqlProtected
+     ( runSqlProtected
      ) where
 
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 
-import           Control.Monad
-import           Control.Monad.Error.Class (MonadError, throwError, catchError)
-import           Control.Monad.Reader (MonadReader, asks, ReaderT)
-import           Control.Exception (SomeException)
-import           Control.Concurrent.STM.TVar
+import           Control.Monad ((>=>))
+import           Control.Monad.Error.Class (MonadError (throwError))
+import           Control.Monad.Reader (MonadReader, ReaderT)
+import           Control.Monad.Logger (LogSource)
+import           Control.Exception (displayException)
 
 import           Servant
 
 import           Database.Persist.Sql (SqlBackend)
 
-import           Carma.Monad.STM
-import           Carma.Monad.Thread
 import           Carma.Monad.LoggerBus
 import           Carma.Monad.PersistentSql
 import           Carma.EraGlonass.Types.AppContext (AppContext (..))
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Helpers (runSqlInTime)
 
 
-inBackground
-  ::
-   ( MonadReader AppContext m
-   , MonadError ServantErr m
-   , MonadThread m
-   , MonadSTM m
-   )
-  => m ()
-  -> m ()
-
-inBackground m = do
-  counter <- asks backgroundTasksCounter
-  atomically $ modifyTVar' counter succ
-  void $ fork $ do
-    m `catchError` \_ -> pure () -- Ignoring @ServantErr@ exception
-    atomically $ modifyTVar' counter pred
-
-
+-- | Helps to automatically write to log about failed request to a database and
+--   to throw 500 HTTP response with the same error message.
 runSqlProtected
   ::
    ( MonadReader AppContext m
@@ -51,24 +33,17 @@ runSqlProtected
    , MonadPersistentSql m
    , MonadError ServantErr m
    )
-  => Text -- ^ Fail message
+  => LogSource
+  -> Text -- ^ Fail message
   -> ReaderT SqlBackend m a
   -> m a
 
-runSqlProtected errMsg =
+runSqlProtected logSrc errMsg =
   runSqlInTime >=> \case
     Right x -> pure x
     Left  e -> do
       let logMsg = [qmb| Database request is failed: {errMsg}
-                         Exception: {e} |]
+                         Exception: {displayException e} |]
 
-      logError [qm| {logMsg} |]
+      logErrorS logSrc [qm| {logMsg} |]
       throwError err500 { errBody = logMsg }
-
-
-runSqlInTime
-  :: (MonadReader AppContext m, MonadPersistentSql m)
-  => ReaderT SqlBackend m a
-  -> m (Either SomeException a)
-
-runSqlInTime m = asks dbRequestTimeout >>= flip runSqlTimeout m

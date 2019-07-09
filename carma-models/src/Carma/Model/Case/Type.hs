@@ -1,7 +1,11 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 -- WARNING! This module supposed to be imported only from `Carma.Model.Case`.
 --          If you need `Case` type import it from `Carma.Model.Case` instead.
 
 module Carma.Model.Case.Type where
+
+import GHC.Generics (Generic)
 
 import Data.Text
 import Data.Time.Calendar
@@ -200,4 +204,4 @@ data Case = Case
     :: F (Maybe UTCTime) "acStart" "Время начала постзызывной обработки"
   , isCreatedByEraGlonass
     :: F Bool "isCreatedByEraGlonass" "Заявка от ЭРА-ГЛОНАСС"
-  } deriving Typeable
+  } deriving (Typeable, Generic)

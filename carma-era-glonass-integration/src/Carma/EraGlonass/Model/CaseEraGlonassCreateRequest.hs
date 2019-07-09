@@ -1,8 +1,9 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase, DeriveGeneric #-}
 {-# LANGUAGE DataKinds, TypeFamilies #-}
-{-# LANGUAGE LambdaCase #-}
 
 module Carma.EraGlonass.Model.CaseEraGlonassCreateRequest where
+
+import           GHC.Generics (Generic)
 
 import           Data.Typeable
 
@@ -37,7 +38,7 @@ data CaseEraGlonassCreateRequest
        :: F EGRequestForServiceRequest
             "requestBody"
             "Полученные данные при поступлении запроса на оказание услуги"
-   } deriving Typeable
+   } deriving (Typeable, Generic)
 
 
 instance Model CaseEraGlonassCreateRequest where
