@@ -926,23 +926,18 @@ mixin caseFilesList
               div
                 i.glyphicon.glyphicon-globe
                 | &nbsp;
-                b Поступление «Карточки Вызова» от ЭРА-ГЛОНАСС.
+                b Поступление заявки на обслуживание от ЭРА-ГЛОНАСС.
               div
-                b Идентификатор «Карточки Вызова»:
+                b Идентификатор заявки на обслуживание:
                 |
                 |
-                span(data-bind=`text: callCardId`)
-              div
-                b Идентификатор ответа на поступление:
-                |
-                |
-                span(data-bind=`text: responseId`)
+                span(data-bind=`text: requestId`)
               div
                 b Имя звонящего:
                 |
                 |
                 span(data-bind=`text: $root.safeGetProp($data, [
-                  'requestBody', 'callerFullName'
+                  'requestBody', 'fullName'
                 ], '✗')`)
               div
                 i.glyphicon.glyphicon-earphone
@@ -953,14 +948,14 @@ mixin caseFilesList
                   |
                   |
                   span(data-bind=`text: $root.safeGetProp($data, [
-                    'requestBody', 'atPhoneNumber'
+                    'requestBody', 'ivsPhoneNumber'
                   ], '✗')`)
                 div
                   i Звонящий:
                   |
                   |
                   span(data-bind=`text: $root.safeGetProp($data, [
-                    'requestBody', 'callerPhoneNumber'
+                    'requestBody', 'phoneNumber'
                   ], '✗')`)
               div
                 b Транспорт:
@@ -976,40 +971,14 @@ mixin caseFilesList
                   |
                   |
                   span(data-bind=`text: $root.safeGetProp($data, [
-                    'requestBody', 'vehicle', 'registrationNumber'
+                    'requestBody', 'vehicle', 'plateNumber'
                   ], '✗')`)
-                div
-                  i Цвет:
-                  |
-                  |
-                  span(data-bind=`text: $root.safeGetProp($data, [
-                    'requestBody', 'vehicle', 'color'
-                  ], '✗')`)
-              div
-                b Адрес:
-                |
-                |
-                span(data-bind=`text: $root.safeGetProp($data, [
-                  'requestBody', 'gis', 0, 'regionName'
-                ], '✗')`)
-                span=', '
-                span(data-bind=`text: $root.safeGetProp($data, [
-                  'requestBody', 'gis', 0, 'settlementName'
-                ], '✗')`)
-                span=', '
-                span(data-bind=`text: $root.safeGetProp($data, [
-                  'requestBody', 'gis', 0, 'streetName'
-                ], '✗')`)
-                span=', '
-                span(data-bind=`text: $root.safeGetProp($data, [
-                  'requestBody', 'gis', 0, 'building'
-                ], '✗')`)
               div
                 b Описание местонахождения:
                 |
                 |
                 span(data-bind=`text: $root.safeGetProp($data, [
-                  'requestBody', 'locationDescription'
+                  'requestBody', 'location', 'description'
                 ], '✗')`)
               div
                 i.glyphicon.glyphicon-screenshot
@@ -1020,7 +989,7 @@ mixin caseFilesList
                   |
                   |
                   span(data-bind=`text: ($root.safeGetProp($data, [
-                    'requestBody', 'lastTrustedLatitude'
+                    'requestBody', 'location', 'latitude'
                   ], 0) / (3600 * 1000)).toLocaleString('ru-RU', {
                     minimumFractionDigits: 6,
                     maximumFractionDigits: 6,
@@ -1031,7 +1000,7 @@ mixin caseFilesList
                   |
                   |
                   span(data-bind=`text: ($root.safeGetProp($data, [
-                    'requestBody', 'lastTrustedLongitude'
+                    'requestBody', 'location', 'longitude'
                   ], 0) / (3600 * 1000)).toLocaleString('ru-RU', {
                     minimumFractionDigits: 6,
                     maximumFractionDigits: 6,

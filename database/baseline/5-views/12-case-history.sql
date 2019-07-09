@@ -247,8 +247,7 @@ CREATE VIEW "CaseHistory" AS
                 , t.ctime                            AS datetime
                 , casetbl.callTaker                  AS userId
                 , t.id                               AS id
-                , t.callCardId                       AS "callCardId"
-                , t.responseId                       AS "responseId"
+                , t.requestId                        AS "requestId"
                 , t.requestBody                      AS "requestBody"
 
            FROM "CaseEraGlonassCreateRequest" AS t
