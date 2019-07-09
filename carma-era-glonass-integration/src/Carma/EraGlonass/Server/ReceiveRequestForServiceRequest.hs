@@ -344,7 +344,7 @@ updateCase reqBody@EGRequestForServiceRequest {..} caseId time = do
       , caseEraGlonassCreateRequestRequestBody    = reqBody
       }
 
-  srcLogDebug [qmb|
+  srcLogDebug [qms|
     Successfully updated existing "{caseModel}" id#{fromSqlKey caseId} for
     {requestId}. "{requestModel}" id#{fromSqlKey caseEGCreateRequestId} is
     successfully created.
