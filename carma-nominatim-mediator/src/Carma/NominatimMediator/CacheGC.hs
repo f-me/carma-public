@@ -19,7 +19,9 @@ import           Control.Monad.Reader.Class (MonadReader, asks)
 
 import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Utils
-import           Carma.NominatimMediator.Logger
+import           Carma.NominatimMediator.Logger ()
+import           Carma.Monad
+import           Carma.Utils.Operators
 
 
 -- Cleans outdated cached responses and statistics for days older than N days
@@ -27,10 +29,10 @@ import           Carma.NominatimMediator.Logger
 -- Supposed to be run in own thread.
 cacheGCInit
   :: ( MonadReader AppContext m
-     , LoggerBusMonad m
-     , IORefWithCounterMonad m
-     , TimeMonad m
-     , DelayMonad m
+     , MonadLoggerBus m
+     , MonadIORefWithCounter m
+     , MonadClock m
+     , MonadDelay m
      )
   => Float
   -> Float

@@ -93,6 +93,25 @@ urlFor = ->
     else
       "/##{@kvm._meta.model.name}/#{this()}"
 
+# `path` is an array of keys sequence of a branch you're getting.
+# `defaultValue` is used only for `undefined`
+# (not for `null` or other "falsy" value).
+safeGetProp = (obj, path, defaultValue=undefined) ->
+  if obj is null or typeof obj isnt 'object'
+    return defaultValue
+
+  result = obj
+
+  for propName, i in path
+    x = result[propName]
+    if i isnt (path.length - 1) and (x is null or typeof x isnt 'object')
+      result = undefined
+      break
+    else
+      result = x
+
+  if result is undefined then defaultValue else result
+
 # Knockout model builder
 #
 # Sets additional observables in Knockout model:
@@ -116,6 +135,8 @@ buildKVM = (model, options = {}) ->
   {fetched, queue, queueOptions, models} = options
   kvm.safelyGet = (prop) -> kvm[prop]?() or ''
   kvm._meta = {model, cid: _.uniqueId("#{model.name}_"), cannotModifyModelData}
+
+  kvm.safeGetProp = safeGetProp
 
   # build observables for real model fields
   for f in fields

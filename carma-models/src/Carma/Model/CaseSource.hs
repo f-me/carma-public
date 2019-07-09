@@ -23,6 +23,7 @@ mkIdents [t|CaseSource|]
  [ ("op", 1)
  , ("mobile", 2)
  , ("mobileAccident", 3)
+ , ("eraGlonass", 4)
  ]
 
 instance Model CaseSource where

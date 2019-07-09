@@ -25,7 +25,8 @@ import           Servant.Client (ClientM, ServantError)
 
 import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Utils
-import           Carma.NominatimMediator.Logger
+import           Carma.NominatimMediator.Logger ()
+import           Carma.Monad
 
 
 type RealRequestQueue
@@ -74,9 +75,9 @@ requestExecutorInit nominatimReqGapInSeconds = do
 handleRequest
   :: ( MonadReader AppContext m
      , S.MonadState Integer m -- Request counter
-     , LoggerBusMonad m
-     , MVarMonad m -- To read next request and write real request
-     , IORefWithCounterMonad m -- To read from cache
+     , MonadLoggerBus m
+     , MonadMVar m -- To read next request and write real request
+     , MonadIORefWithCounter m -- To read from cache
      )
   => RealRequestQueue -> m ()
 handleRequest realRequestQueue = do
@@ -116,12 +117,12 @@ handleRequest realRequestQueue = do
 handleRealRequest
   :: ( MonadReader AppContext m
      , S.MonadState Time.UTCTime m -- Time of last request (for intervals)
-     , LoggerBusMonad m
-     , TimeMonad m -- Handle intervals by comparing time
-     , DelayMonad m -- Waiting intervals
-     , MVarMonad m -- Reading next request
-     , IORefWithCounterMonad m -- Writing to cache
-     , ServantClientMonad m -- Real client requests
+     , MonadLoggerBus m
+     , MonadClock m -- Handle intervals by comparing time
+     , MonadDelay m -- Waiting intervals
+     , MonadMVar m -- Reading next request
+     , MonadIORefWithCounter m -- Writing to cache
+     , MonadServantClient m -- Real client requests
      )
   => Float -> RealRequestQueue -> m ()
 handleRealRequest nominatimReqGapInSeconds realRequestQueue = do

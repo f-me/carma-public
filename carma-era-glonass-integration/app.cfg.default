@@ -1,0 +1,35 @@
+# Port for incoming requests
+port = 8166
+
+# [OPTIONAL]
+# host = "127.0.0.1"
+
+# Just an example of base url for CaRMa -> Era Glonass requests.
+eg-base-url = "https://10.10.10.10:8888/api/v1/sp"
+
+db {
+  postgresql {
+    connection-string =
+      "host='localhost' dbname='carma' user='carma_db_sync' password='pass'"
+
+    # How many parallel connections are open to handle database requests
+    pool-size = 3
+
+    # In seconds
+    request-timeout = 15.0
+  }
+}
+
+vin-synchronizer {
+  # In seconds.
+  # Synchronization iteration timeout.
+  # One iteration includes requests to EG side and own database requests.
+  timeout = 60.0
+
+  # In minutes.
+  # If synchronization iteration is failed it will retry after this interval.
+  retry-interval = 60.0
+
+  # Predefined on Era Glonass side code.
+  carma-contract-id = "CaRMa RuAMC"
+}

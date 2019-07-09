@@ -1,19 +1,16 @@
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveGeneric, DeriveDataTypeable, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables, ConstraintKinds, ExistentialQuantification #-}
 
 module Carma.Model.Contract
-    ( Contract(..)
-    , identifiers
-    , identifierNames
-    , WDay(..)
-    , contractSearchParams
-    , contractCaseSearchParams
-    )
+     ( Contract(..)
+     , identifiers
+     , identifierNames
+     , WDay(..)
+     , contractSearchParams
+     , contractCaseSearchParams
+     ) where
 
-where
+import GHC.Generics
 
 import Data.Aeson
 import Data.Time.Calendar (Day)
@@ -190,7 +187,7 @@ data Contract = Contract
   , dixi             :: F Bool
                         "dixi"
                         "Сохранить"
-  } deriving Typeable
+  } deriving (Generic, Typeable)
 
 instance Model Contract where
   type TableName Contract = "Contract"

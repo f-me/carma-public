@@ -693,51 +693,60 @@ mixin caseFilesList
   fieldset#default-case.complex-field.default-complex-field
     p
       b Кто звонил:&nbsp;
-      span(data-bind='text: safelyGet(\'contact_name\')')
-      span(data-bind='text: " " + safelyGet("contact_phone1")')
-      span(data-bind='visible: vip')
+      span(data-bind=`text: safelyGet('contact_name')`)
+      span(data-bind=`text: " " + safelyGet("contact_phone1")`)
+      span(data-bind=`visible: vip`)
         | &nbsp;
         span.label.label-danger
           i.glyphicon.glyphicon-star
           | VIP
-      span(data-bind='\
-        visible: contact_phone2,\
-        text: ", " + safelyGet("contact_phone2")')
-      span(data-bind='\
-        visible: contact_phone3,\
-        text: ", " + safelyGet("contact_phone3")')
-      span(data-bind='\
-        visible: contact_phone4,\
-        text: ", " + safelyGet("contact_phone4")')
-    p(data-bind='visible: safelyGet(\'car_make\')')
+      span(data-bind=`
+        visible : contact_phone2,
+        text    : ", " + safelyGet("contact_phone2"),
+      `)
+      span(data-bind=`
+        visible : contact_phone3,
+        text    : ", " + safelyGet("contact_phone3"),
+      `)
+      span(data-bind=`
+        visible : contact_phone4,
+        text    : ", " + safelyGet("contact_phone4"),
+      `)
+      span(data-bind=`if: isCreatedByEraGlonass`)
+        br
+        span.label.label-warning Заявка от ЭРА-ГЛОНАСС
+    p(data-bind=`visible: safelyGet('car_make')`)
       b Автомобиль:&nbsp;
-      span(data-bind='text: safelyGet(\'car_makeLocal\')')
+      span(data-bind=`text: safelyGet('car_makeLocal')`)
       | &nbsp;
-      span(data-bind='text: safelyGet(\'car_modelLocal\')')
+      span(data-bind=`text: safelyGet('car_modelLocal')`)
       | &nbsp;
-      span(data-bind='text: safelyGet(\'car_plateNum\')')
-    p(data-bind='visible: safelyGet(\'caseAddress_address\')')
+      span(data-bind=`text: safelyGet('car_plateNum')`)
+    p(data-bind=`visible: safelyGet('caseAddress_address')`)
       b Адрес кейса:&nbsp;
-      span(data-bind='text: safelyGet(\'caseAddress_address\')')
+      span(data-bind=`text: safelyGet('caseAddress_address')`)
       br
-      span(data-bind='text: safelyGet(\'caseAddress_comment\')')
-    p(data-bind='visible: safelyGet(\'caseAddress_cityLocal\')')
+      span(data-bind=`text: safelyGet('caseAddress_comment')`)
+    p(data-bind=`visible: safelyGet('caseAddress_cityLocal')`)
       b Регион:&nbsp;
-      span(data-bind='text: safelyGet(\'region\')')
-    p(data-bind='visible: safelyGet(\'caseAddress_cityLocal\')')
+      span(data-bind=`text: safelyGet('region')`)
+    p(data-bind=`visible: safelyGet('caseAddress_cityLocal')`)
       b
         | Расчётное значение ожидания эвакуатора в
         | г.
-        span(data-bind='text: safelyGet(\'caseAddress_cityLocal\')')
+        span(data-bind=`text: safelyGet('caseAddress_cityLocal')`)
         | :&nbsp;
       span#city-towage-average-time
     #contract
     .program
-      #case-files(data-bind="visible: hasFiles")
+      #case-files(data-bind=`visible: hasFiles`)
         h4 Прикреплённые файлы
         +caseFilesList
-        dl(data-bind="foreach: servicesReference")
-          dt(data-bind="visible: safelyGet(\'filesReference\').length, text: _meta.model.title")
+        dl(data-bind=`foreach: servicesReference`)
+          dt(data-bind=`
+            visible : safelyGet('filesReference').length,
+            text    : _meta.model.title,
+          `)
             dd
               +caseFilesList
 
@@ -754,66 +763,78 @@ mixin caseFilesList
           .btn-group.btn-group-sm(role="group")
             .btn.btn-default(
               title="Показать действия",
-              data-bind="css: {active: histShowActi}, click: histToggleActi")
+              data-bind=`css: {active: histShowActi}, click: histToggleActi`)
                 i.glyphicon.glyphicon-briefcase
             .btn.btn-default(
               title="Показать комментарии",
-              data-bind="css: {active: histShowComm}, click: histToggleComm")
+              data-bind=`css: {active: histShowComm}, click: histToggleComm`)
                 i.glyphicon.glyphicon-bullhorn
             .btn.btn-default(
               title="Показать отказы партнёров",
-              data-bind="css: {active: histShowCanc}, click: histToggleCanc")
+              data-bind=`css: {active: histShowCanc}, click: histToggleCanc`)
                 i.glyphicon.glyphicon-remove-circle
             .btn.btn-default(
               title="Показать опоздания партнёров",
-              data-bind="css: {active: histShowDelay}, click: histToggleDelay")
+              data-bind=`css: {active: histShowDelay}, click: histToggleDelay`)
                 i.glyphicon.glyphicon-time
             .btn.btn-default(
               title="Показать звонки",
-              data-bind="css: {active: histShowCall}, click: histToggleCall")
+              data-bind=`css: {active: histShowCall}, click: histToggleCall`)
                 i.glyphicon.glyphicon-phone-alt
             .btn.btn-default(
               title="Показать SMS партнёрам",
               data-bind=`
-                css: {active: histShowPartnerSms},
-                click: histTogglePartnerSms,
+                css   : {active: histShowPartnerSms},
+                click : histTogglePartnerSms,
               `)
                 i.glyphicon.glyphicon-envelope
+            // ko if: isCreatedByEraGlonass()
+            .btn.btn-default(
+              title="Показать поступления «Карточек Вызова» ЭРА-ГЛОНАСС",
+              data-bind=`
+                css   : {active: histShowEGCallCard},
+                click : histToggleEGCallCard,
+              `)
+                i.glyphicon.glyphicon-globe
+            // /ko
           |
           |
           input.form-control(
             placeholder="Фильтр"
             style="display: inline-block; width: auto;"
-            data-bind="textInput: historyFilter")
+            data-bind=`textInput: historyFilter`)
         div(style="clear:both")
         // ko foreach: historyItems
         .well.history-item(data-bind=`
-          visible: visible,
-          style: {'background-color': color},
+          visible : visible,
+          style   : {'background-color': color},
         `)
           div
             .history-datetime
-              span(data-bind="text: datetime")
+              span(data-bind=`text: datetime`)
+            // For that type "who" doesn't mean anything.
+            // ko if: json.type !== 'eraGlonassIncomingCallCard'
             .history-who
-              span(data-bind="text: who")
-            .history-body(data-bind="with: json")
+              span(data-bind=`text: who`)
+            // /ko
+            .history-body(data-bind=`with: json`)
               // ko if: $data.actiontype
               div
                 i.glyphicon.glyphicon-briefcase
                 | &nbsp;
                 b
                   | Действие:&nbsp;
-                span(data-bind="text: actiontype")
+                span(data-bind=`text: actiontype`)
               div
                 b
                   | Результат:&nbsp;
-                span(data-bind="text: actionresult")
+                span(data-bind=`text: actionresult`)
               // /ko
               // ko if: $data.servicelabel
               div
                 b
                   | Услуга:&nbsp;
-                span(data-bind="text: servicelabel")
+                span(data-bind=`text: servicelabel`)
               // /ko
               // ko if: $data.tasks
               div
@@ -822,7 +843,7 @@ mixin caseFilesList
                 // ko foreach: $data.tasks
                 br
                 | &nbsp;
-                input(type="checkbox" disabled data-bind="checked: isChecked")
+                input(type="checkbox" disabled data-bind=`checked: isChecked`)
                 | &nbsp;
                 span(data-bind="text: label")
                 // /ko
@@ -831,7 +852,7 @@ mixin caseFilesList
               div
                 b
                   | Комментарий:&nbsp;
-                span(data-bind="text: actioncomment")
+                span(data-bind=`text: actioncomment`)
               // /ko
               // ko if: $data.calltype
               div
@@ -839,7 +860,7 @@ mixin caseFilesList
                 | &nbsp;
                 b
                   | Звонок:&nbsp;
-                span(data-bind="text: calltype")
+                span(data-bind=`text: calltype`)
               // /ko
               // ko if: $data.type == 'comment'
               div
@@ -847,7 +868,7 @@ mixin caseFilesList
                 | &nbsp;
                 b
                   | Комментарий:&nbsp;
-                span(data-bind="text: commenttext")
+                span(data-bind=`text: commenttext`)
               // /ko
               // ko if: $data.type == 'partnerCancel'
               div
@@ -855,15 +876,15 @@ mixin caseFilesList
                 | &nbsp;
                 b
                   | Отказ партнёра:&nbsp;
-                span(data-bind="text: partnername")
+                span(data-bind=`text: partnername`)
               div
                 b
                   | Причина отказа:&nbsp;
-                span(data-bind="text: refusalreason")
-                span(data-bind="visible: refusalcomment")
+                span(data-bind=`text: refusalreason`)
+                span(data-bind=`visible: refusalcomment`)
                   | &nbsp;(
-                span(data-bind="text: refusalcomment")
-                span(data-bind="visible: refusalcomment")
+                span(data-bind=`text: refusalcomment`)
+                span(data-bind=`visible: refusalcomment`)
                   | )
               // /ko
               // ko if: $data.type == 'partnerDelay'
@@ -872,15 +893,15 @@ mixin caseFilesList
                 | &nbsp;
                 b
                   | Опоздание партнёра:&nbsp;
-                span(data-bind="text: partnername")
+                span(data-bind=`text: partnername`)
               div
                 b
                   | Время опоздания:&nbsp;
-                span(data-bind="text: delayminutes")
+                span(data-bind=`text: delayminutes`)
               div
                 b
                   | Опоздание согласовано:&nbsp;
-                span(data-bind="text: delayconfirmed")
+                span(data-bind=`text: delayconfirmed`)
               // /ko
               // ko if: $data.type === 'smsForPartner'
               div
@@ -888,18 +909,103 @@ mixin caseFilesList
                 | &nbsp;
                 b
                   | Партнёру отправлено SMS:&nbsp;
-                span(data-bind='text: msgtext')
+                span(data-bind=`text: msgtext`)
                 br
                 b
                   | Телефон получателя:&nbsp;
-                span(data-bind='text: phone')
+                span(data-bind=`text: phone`)
                 br
                 b
                   | Статус отправки:&nbsp;
-                span(data-bind='text: deliverystatus')
+                span(data-bind=`text: deliverystatus`)
                 = ' (обновлено: '
-                span(data-bind='text: mtime')
+                span(data-bind=`text: mtime`)
                 = ')'
+              // /ko
+              // ko if: $data.type === 'eraGlonassIncomingCallCard'
+              div
+                i.glyphicon.glyphicon-globe
+                | &nbsp;
+                b Поступление заявки на обслуживание от ЭРА-ГЛОНАСС.
+              div
+                b Идентификатор заявки на обслуживание:
+                |
+                |
+                span(data-bind=`text: requestId`)
+              div
+                b Имя звонящего:
+                |
+                |
+                span(data-bind=`text: $root.safeGetProp($data, [
+                  'requestBody', 'fullName'
+                ], '✗')`)
+              div
+                i.glyphicon.glyphicon-earphone
+                | &nbsp;
+                b Номера телефонов:
+                div
+                  i Терминала авто:
+                  |
+                  |
+                  span(data-bind=`text: $root.safeGetProp($data, [
+                    'requestBody', 'ivsPhoneNumber'
+                  ], '✗')`)
+                div
+                  i Звонящий:
+                  |
+                  |
+                  span(data-bind=`text: $root.safeGetProp($data, [
+                    'requestBody', 'phoneNumber'
+                  ], '✗')`)
+              div
+                b Транспорт:
+                div
+                  i VIN:
+                  |
+                  |
+                  span(data-bind=`text: $root.safeGetProp($data, [
+                    'requestBody', 'vehicle', 'vin'
+                  ], '✗')`)
+                div
+                  i Регистрационный номер:
+                  |
+                  |
+                  span(data-bind=`text: $root.safeGetProp($data, [
+                    'requestBody', 'vehicle', 'plateNumber'
+                  ], '✗')`)
+              div
+                b Описание местонахождения:
+                |
+                |
+                span(data-bind=`text: $root.safeGetProp($data, [
+                  'requestBody', 'location', 'description'
+                ], '✗')`)
+              div
+                i.glyphicon.glyphicon-screenshot
+                | &nbsp;
+                b Координаты:
+                div
+                  i Широта:
+                  |
+                  |
+                  span(data-bind=`text: ($root.safeGetProp($data, [
+                    'requestBody', 'location', 'latitude'
+                  ], 0) / (3600 * 1000)).toLocaleString('ru-RU', {
+                    minimumFractionDigits: 6,
+                    maximumFractionDigits: 6,
+                  })`)
+                  span °
+                div
+                  i Долгота:
+                  |
+                  |
+                  span(data-bind=`text: ($root.safeGetProp($data, [
+                    'requestBody', 'location', 'longitude'
+                  ], 0) / (3600 * 1000)).toLocaleString('ru-RU', {
+                    minimumFractionDigits: 6,
+                    maximumFractionDigits: 6,
+                  })`)
+                  span °
               // /ko
               // ko if: $data.aetype
               div
@@ -907,23 +1013,23 @@ mixin caseFilesList
                 | &nbsp;
                 b
                   | Событие AVAYA:&nbsp;
-                span(data-bind="text: aetype")
+                span(data-bind=`text: aetype`)
               // /ko
               // ko if: $data.aeinterlocutors
               div
                 b
                   | Второй абонент:&nbsp;
-                span(data-bind="text: aeinterlocutors")
+                span(data-bind=`text: aeinterlocutors`)
               // /ko
               // ko if: $data.aecall
               div
                 b
                   | Идентификатор звонка:&nbsp;
-                span(data-bind="text: aecall")
+                span(data-bind=`text: aecall`)
               // /ko
         // /ko
         // ko if: !endOfHistory()
-        a.more(href="javascript:void(0)" data-bind="click: lookBackInHistory")
+        a.more(href="javascript:void(0)" data-bind=`click: lookBackInHistory`)
           | Ещё
         // /ko
 
@@ -936,6 +1042,7 @@ mixin caseFilesList
       ul.dropdown-menu
         | {{# dictionary.source }}
         li
+          // TODO FIXME get rid of global shit and dirty hax (see "onclick")
           a(href="#" onclick="addService('{{model}}'); return false;")
             span.glyphicon(class="glyphicon-{{icon}}")
             | {{ label }}

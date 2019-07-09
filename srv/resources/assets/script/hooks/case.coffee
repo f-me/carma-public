@@ -233,6 +233,7 @@ module.exports =
     kvm['histShowDelay'] = ko.observable true
     kvm['histShowCall'] = ko.observable true
     kvm['histShowPartnerSms'] = ko.observable true
+    kvm['histShowEGCallCard'] = ko.observable true
     kvm['histToggleActi'] = -> kvm['histShowActi'] not kvm['histShowActi']()
     kvm['histToggleComm'] = -> kvm['histShowComm'] not kvm['histShowComm']()
     kvm['histToggleCanc'] = -> kvm['histShowCanc'] not kvm['histShowCanc']()
@@ -240,6 +241,8 @@ module.exports =
     kvm['histToggleCall'] = -> kvm['histShowCall'] not kvm['histShowCall']()
     kvm['histTogglePartnerSms'] =
       -> kvm['histShowPartnerSms'] not kvm['histShowPartnerSms']()
+    kvm['histToggleEGCallCard'] =
+      -> kvm['histShowEGCallCard'] not kvm['histShowEGCallCard']()
     kvm['historyItems'] = ko.observableArray()
     kvm['endOfHistory'] = ko.observable true
     kvm['lookBackInHistory'] = ->

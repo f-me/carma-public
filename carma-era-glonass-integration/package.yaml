@@ -1,0 +1,96 @@
+name:        carma-era-glonass-integration
+version:     1.0.0.0
+license:     BSD3
+author:      Viacheslav Lotsmanov
+maintainer:  lotsmanov89@gmail.com
+category:    Web
+synopsis:    Integration between CaRMa and Era Glonass microservice
+
+description:
+  Integration between CaRMa and Era Glonass microservice.
+  .
+  It provides proper API to handle everything realted to this integration.
+
+dependencies:
+  - aeson
+  - attoparsec
+  - base
+  - bytestring
+  - carma-models
+  - carma-monads
+  - carma-utils
+  - configurator
+  - containers
+  - deepseq
+  - directory
+  - either
+  - exceptions
+  - fast-logger
+  - generic-deriving
+  - http-api-data
+  - http-client
+  - http-client-tls
+  - http-media
+  - http-types
+  - lifted-base
+  - monad-control
+  - monad-logger
+  - MonadRandom
+  - mtl
+  - persistent
+  - persistent-postgresql
+  - persistent-template
+  - postgresql-simple
+  - pureMD5
+  - qm-interpolated-string
+  - resource-pool
+  - servant
+  - servant-client
+  - servant-server
+  - servant-swagger
+  - stm
+  - swagger2
+  - text
+  - time
+  - transformers
+  - transformers-base
+  - unix
+  - unordered-containers
+  - vector
+  - warp
+
+ghc-options:
+  - -Wall
+  - -Werror
+  - -O2
+  - -funbox-strict-fields
+  - -fprint-potential-instances
+
+library:
+  source-dirs: src
+
+executables:
+  carma-era-glonass-integration:
+    source-dirs: app
+    main: Main.hs
+    dependencies: [carma-era-glonass-integration]
+    ghc-options: [-threaded]
+
+  carma-era-glonass-integration-test-server:
+    source-dirs: app
+    main: TestServer.hs
+    dependencies:
+      - carma-era-glonass-integration
+      - persistent-sqlite
+    ghc-options: [-threaded]
+
+tests:
+  carma-era-glonass-integration-types:
+    source-dirs: test
+    main: Types.hs
+    dependencies:
+      - carma-era-glonass-integration
+      - hspec
+      - HUnit
+      - random
+      - process

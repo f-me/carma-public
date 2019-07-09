@@ -22,6 +22,10 @@ data Engine = Engine
 mkIdents [t|Engine|]
  [ ("petrol", 1)
  , ("diesel", 2)
+ , ("hydrogen", 3)
+ , ("electricity", 4)
+ , ("lpg", 5)
+ , ("lng", 6)
  ]
 
 instance Model Engine where

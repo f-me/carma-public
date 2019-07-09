@@ -1,21 +1,20 @@
 {-# LANGUAGE DataKinds, TypeFamilies, TypeOperators, ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts, FlexibleInstances, UndecidableInstances #-}
+{-# LANGUAGE ExplicitNamespaces #-}
 
 module Carma.Utils.TypeSafe.Generic.Record
-     ( FieldName
+     ( type FieldName
      , fieldName
      , fieldName'
-     , ConstructorFieldName
+     , type ConstructorFieldName
      , constructorFieldName
      , constructorFieldName'
-     , FieldType
+     , type FieldType
      , fieldType
      , fieldType'
-     , ConstructorFieldType
+     , type ConstructorFieldType
      , constructorFieldType
      , constructorFieldType'
-
-     , ReplaceFieldKey
      ) where
 
 import           GHC.Generics
@@ -240,6 +239,7 @@ type family RecordFieldName (k1 :: * -> *) (k2 :: Symbol) :: Maybe Symbol where
   RecordFieldName (xs :*: ys) x =
     MaybeAlternative (RecordFieldName xs x) (RecordFieldName ys x)
   RecordFieldName (S1 _ _) _ = 'Nothing
+  RecordFieldName U1 _ = 'Nothing -- Empty constructor
 
 -- | Sub-helper of @FieldType@ and @ConstructorFieldType@ to iterate over fields
 -- definitions inside a constructor.
@@ -250,9 +250,4 @@ type family RecordFieldType (k1 :: * -> *) (k2 :: Symbol) :: Maybe * where
   RecordFieldType (xs :*: ys) x =
     MaybeAlternative (RecordFieldType xs x) (RecordFieldType ys x)
   RecordFieldType (S1 _ _) _ = 'Nothing
-
-
--- | Helps to rename a field of a record
-type family ReplaceFieldKey (from :: Symbol) (to :: Symbol) field where
-  ReplaceFieldKey from to (S1 ('MetaSel ('Just from) a b c) d) =
-    S1 ('MetaSel ('Just to) a b c) d
+  RecordFieldType U1 _ = 'Nothing -- Empty constructor

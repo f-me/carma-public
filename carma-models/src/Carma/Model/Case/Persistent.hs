@@ -1,7 +1,9 @@
-{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, DeriveGeneric #-}
 {-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
 
 module Carma.Model.Case.Persistent where
+
+import           GHC.Generics (Generic)
 
 import           Data.Text (Text)
 import           Data.Time.Calendar (Day)
@@ -114,6 +116,7 @@ Case sql=casetbl
   files Reference Maybe sql=files
   source CaseSourceId sql=source
   acStart UTCTime Maybe sql=acstart
+  isCreatedByEraGlonass Bool sql=iscreatedbyeraglonass
 
-  deriving Typeable Show
+  deriving Typeable Generic Show
 |]

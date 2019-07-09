@@ -236,6 +236,26 @@ CREATE VIEW "CaseHistory" AS
 
     UNION ALL
 
+    -- Era Glonass incoming Call Cards
+    SELECT row.caseId
+         , row.datetime
+         , row.userId
+         , ROW_TO_JSON(row)
+
+    FROM ( SELECT 'eraGlonassIncomingCallCard'::TEXT AS "type"
+                , t.caseId                           AS caseId
+                , t.ctime                            AS datetime
+                , casetbl.callTaker                  AS userId
+                , t.id                               AS id
+                , t.requestId                        AS "requestId"
+                , t.requestBody                      AS "requestBody"
+
+           FROM "CaseEraGlonassCreateRequest" AS t
+           INNER JOIN casetbl ON casetbl.id = t.caseId
+         ) AS row
+
+    UNION ALL
+
     SELECT row.caseId
          , row.datetime
          , row.userId

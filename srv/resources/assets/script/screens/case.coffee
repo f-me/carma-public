@@ -221,8 +221,11 @@ setupHistory = (kvm) ->
           return false
         when i.json.type is 'smsForPartner' and not kvm.histShowPartnerSms()
           return false
+        when i.json.type is 'eraGlonassIncomingCallCard' \
+             and not kvm.histShowEGCallCard()
+          return false
         when (i.json.type is 'call' or i.json.type is 'avayaEvent') \
-        and not kvm.histShowCall()
+             and not kvm.histShowCall()
           return false
 
       filterVal = kvm['historyFilter']()

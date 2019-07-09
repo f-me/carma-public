@@ -1,8 +1,10 @@
-{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveGeneric, GeneralizedNewtypeDeriving, GADTs #-}
 {-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
 
 -- | @Contract@ persistent model.
 module Carma.Model.Contract.Persistent where
+
+import           GHC.Generics
 
 import           Data.Typeable
 import           Data.Time.Clock (UTCTime)
@@ -77,5 +79,5 @@ Contract json sql=Contract
   extra Value Maybe sql=extra
   dixi Bool sql=dixi
 
-  deriving Typeable Show
+  deriving Generic Typeable Show
 |]

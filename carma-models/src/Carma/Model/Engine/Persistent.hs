@@ -21,6 +21,10 @@ Engine sql=Engine
 
 
 -- | @Engine@ predefined IDs.
-petrol, diesel :: EngineId
+petrol, diesel, hydrogen, electricity, lpg, lng :: EngineId
 petrol = toSqlKey 1
 diesel = toSqlKey 2
+hydrogen = toSqlKey 3
+electricity = toSqlKey 4
+lpg = toSqlKey 5
+lng = toSqlKey 6
