@@ -33,12 +33,16 @@ module Carma.Utils.TypeSafe.TypeFamilies
      , type MaybeMaybeConcat
      , type Length
      , type Reverse
+     , type Elem
+     , type OneOf
      ) where
 
 import           GHC.TypeLits
                    ( type Nat, type (+)
                    , type TypeError, type ErrorMessage (Text, ShowType, (:<>:))
                    )
+
+import           Data.Kind (type Constraint)
 
 
 -- | Type-level \"if" condition
@@ -237,3 +241,30 @@ type family Reverse (k1 :: [a]) :: [a] where
 type family ReverseInternal (k1 :: [a]) (k2 :: [a]) :: [a] where
   ReverseInternal '[]       acc = acc
   ReverseInternal (x ': xs) acc = ReverseInternal xs (x ': acc)
+
+-- | Type-level @elem@ function,
+--   it checks whether a type is one of types from a list.
+type family Elem (t :: a) (list :: [a]) :: Bool where
+  Elem _ '[]       = 'False
+  Elem x (x ': xs) = 'True
+  Elem x (_ ': xs) = Elem x xs
+
+
+-- | Constraint version of "Elem".
+type family OneOf (t :: a) (list :: [a]) :: Constraint where
+  OneOf x list = OneOfInternal list x list
+
+-- | This helps to drag original list through all the recursive iterations
+--   for better error message in case of failure.
+type family OneOfInternal (listOrigin :: [a])
+                          (t          :: a)
+                          (list       :: [a])
+                                      :: Constraint where
+  OneOfInternal origin x '[] =
+    TypeError (
+      'Text "Type \"" ':<>: 'ShowType x ':<>:
+      'Text "\" is not one of " ':<>: 'ShowType origin ':<>: 'Text " types"
+    )
+
+  OneOfInternal _      x (x ': xs) = ()
+  OneOfInternal origin x (_ ': xs) = OneOfInternal origin x xs

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, DuplicateRecordFields, LambdaCase #-}
-{-# LANGUAGE QuasiQuotes, ViewPatterns, NamedFieldPuns #-}
-{-# LANGUAGE ScopedTypeVariables, ConstraintKinds, TypeFamilies #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns, NamedFieldPuns, TypeApplications #-}
+{-# LANGUAGE ScopedTypeVariables, ConstraintKinds, TypeFamilies, DataKinds #-}
 {-# LANGUAGE UndecidableInstances, FlexibleInstances, FlexibleContexts #-}
 
 -- To add docs for every type or function defined in the module.
@@ -23,7 +23,6 @@ import           Text.Printf (printf)
 import           Data.Maybe (catMaybes)
 import           Data.List (intersect)
 import           Data.List.NonEmpty (NonEmpty ((:|)))
-import           Data.Aeson (Value)
 
 import           Control.Arrow ((&&&), (***), (>>>))
 import           Control.Monad
@@ -33,27 +32,22 @@ import           Control.Monad.Catch (MonadCatch, MonadThrow (throwM))
 import           Control.Concurrent.STM.TMVar
 import           Control.Concurrent.STM.TVar
 import           Control.Exception.Base (AssertionFailed (AssertionFailed))
-
-import           Control.Exception
-                   ( SomeException (SomeException)
-                   , fromException
-                   , displayException
-                   )
+import           Control.Exception (SomeException, fromException)
 
 import           Database.Persist ((==.), (!=.), (>=.), (<-.), (/<-.), (||.))
 import           Database.Persist.Types (Entity (..))
-import           Database.Persist.Sql (SqlBackend, fromSqlKey)
+import           Database.Persist.Sql (SqlBackend)
 
 import           Carma.Monad
 import           Carma.Model.Contract.Persistent
 import           Carma.Model.SubProgram.Persistent
 import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.Generic.DataType
+import           Carma.Utils.TypeSafe.TypeFamilies (OneOf)
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Instance.Persistent (TimeoutException (..))
 import           Carma.EraGlonass.Helpers
 import           Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persistent
-import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
 import           Carma.EraGlonass.VinSynchronizer.Types
 import           Carma.EraGlonass.VinSynchronizer.Helpers
 import           Carma.EraGlonass.VinSynchronizer.UnmarkAsHandled
@@ -179,7 +173,7 @@ runVinSynchronizer tz = go where
     srcLogInfo [qn| VINs synchronization iteration is finished successfully. |]
 
   synchronizationResolve (Left (fromException -> Just (TimeoutExceeded n))) =
-    False <$ retryFlow Nothing [qms|
+    False <$ retryFlow FailureWithoutBody [qms|
       Synchronization of VINs is failed becuase it is exceeded timeout of
       {round $ (fromIntegral n / 1000 / 1000 :: Float) :: Int} second(s).
     |]
@@ -188,19 +182,19 @@ runVinSynchronizer tz = go where
     -- Only response is possible to fail to parse since we don't have incoming
     -- requests in this integration point.
     (Left (fromException -> Just (ResponseParseFailure err body))) =
-      False <$ retryFlow (Just body) [qms|
+      False <$ retryFlow (FailureWithBody @'FailureResponseBodyType body) [qms|
         Synchronization of VINs is failed becuase response from EG service
         is failed to parse with this error message: {err}
       |]
 
   synchronizationResolve (Left (fromException -> Just (FailureScenario err))) =
-    False <$ retryFlow Nothing [qms|
+    False <$ retryFlow FailureWithoutBody [qms|
       Synchronization of VINs is failed becuase EG service
       responded with failure case: {err}
     |]
 
   synchronizationResolve (Left exception) =
-    False <$ retryFlow Nothing [qms|
+    False <$ retryFlow FailureWithoutBody [qms|
       Synchronization of VINs is failed with exception: {exception}.
     |]
 
@@ -212,15 +206,17 @@ runVinSynchronizer tz = go where
      , MonadClock m
      , MonadDelay m -- To wait before retry
      , MonadSTM m
+     , OneOf bodyType '[ 'FailureNoBodyType, 'FailureResponseBodyType ]
+     , GetFailureBodyType bodyType
      )
-    => Maybe Value
+    => FailureBody bodyType
     -> Text
     -> m ()
 
-  retryFlow failureResponseBody failureMessage = do
+  retryFlow failureBody failureMessage = do
     retryInterval <- asks vinSynchronizerRetryInterval
     srcLogError [qm| {failureMessage} {willBeRetried retryInterval} |]
-    saveFailureIncidentInBackground failureMessage failureResponseBody
+    saveFailureIncidentInBackground failureBody failureMessage
     manualTriggerBus <- asks vinSynchronizerTriggerBus
     bgThreadsCounter <- asks backgroundTasksCounter
 
@@ -457,44 +453,21 @@ synchronizeVins =
 
 
 saveFailureIncidentInBackground
-  :: forall m
+  :: forall m bodyType
    .
    ( MonadReader AppContext m
    , MonadLoggerBus m
-   , MonadClock m
    , MonadCatch m
+   , MonadClock m
    , MonadThread m
    , MonadPersistentSql m
    , MonadSTM m
+   , OneOf bodyType '[ 'FailureNoBodyType, 'FailureResponseBodyType ]
+   , GetFailureBodyType bodyType
    )
-  => Text
-  -> Maybe Value -- ^ Response body which failed to parse.
+  => FailureBody bodyType
+  -> Text
   -> m ()
 
-saveFailureIncidentInBackground comment responseBody = go where
-  go :: m ()
-  go = do
-    ctime <- getCurrentTime
-    void $ inBackground $ runSqlInTime (insert $ record ctime) >>= resolve
-
-  record ctime =
-    CaseEraGlonassFailure
-      { caseEraGlonassFailureCtime            = ctime
-      , caseEraGlonassFailureIntegrationPoint = BindVehicles
-      , caseEraGlonassFailureRequestId        = Nothing
-      , caseEraGlonassFailureRequestBody      = Nothing
-      , caseEraGlonassFailureResponseBody     = responseBody
-      , caseEraGlonassFailureComment          = Just comment
-      }
-
-  model = typeName (Proxy :: Proxy CaseEraGlonassFailure) :: Text
-
-  resolve (Right failureId) = srcLogError [qms|
-    Failure incident record is successfully saved to the database:
-    "{model}" id#{fromSqlKey failureId}.
-  |]
-
-  resolve (Left (SomeException e)) = srcLogError [qms|
-    Failed to save failure incident record into database,
-    it is failed with exception: {displayException e}
-  |]
+saveFailureIncidentInBackground failureBody =
+  reportToHouston failureBody BindVehicles
