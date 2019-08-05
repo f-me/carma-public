@@ -1,0 +1,41 @@
+name:        carma-monads
+version:     1.0.0.0
+license:     BSD3
+author:      Viacheslav Lotsmanov
+maintainer:  <lotsmanov89@gmail.com>
+category:    Web
+synopsis:    Generic abstract monads for CaRMa
+
+description:
+  Generic abstract monads for CaRMa.
+  .
+  They are used over the system to control and limit possible side-effects of
+  the monads. They also could be used in the future to mock stuff for testing
+  purpuses.
+
+dependencies:
+  - base
+  - carma-utils
+  - directory
+  - fast-logger
+  - lifted-async
+  - lifted-base
+  - monad-control
+  - monad-logger
+  - mtl
+  - persistent
+  - qm-interpolated-string
+  - servant-client
+  - stm
+  - text
+  - time
+  - transformers-base
+
+ghc-options:
+  - -Wall
+  - -Werror
+  - -O2
+  - -funbox-strict-fields
+
+library:
+  source-dirs: src

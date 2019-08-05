@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Carma.NominatimMediator.Utils.StatisticsWriterMonad where
+module Carma.NominatimMediator.Utils.MonadStatisticsWriter where
 
 import           Data.Time.Clock (UTCTime)
 
@@ -10,14 +10,14 @@ import           Control.Monad
 import           Control.Monad.Reader.Class (MonadReader, asks)
 
 import           Carma.NominatimMediator.Types
-import           Carma.NominatimMediator.Utils
+import           Carma.Monad
 
 
-class Monad m => StatisticsWriterMonad m where
+class Monad m => MonadStatisticsWriter m where
   writeStatistics :: UTCTime -> RequestType -> StatisticResolve -> m ()
 
-instance (Monad m, MonadReader AppContext m, MVarMonad m, ThreadMonad m) =>
-         StatisticsWriterMonad m
+instance (Monad m, MonadReader AppContext m, MonadMVar m, MonadThread m) =>
+         MonadStatisticsWriter m
          where
   writeStatistics utcTime reqType resolve = do
     bus <- asks statisticsBus

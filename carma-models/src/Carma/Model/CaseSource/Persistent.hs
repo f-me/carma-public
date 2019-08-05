@@ -19,7 +19,8 @@ CaseSource sql=CaseSource
 
 
 -- | @CaseSource@ predefined IDs.
-op, mobile, mobileAccident :: CaseSourceId
+op, mobile, mobileAccident, eraGlonass :: CaseSourceId
 op = toSqlKey 1
 mobile = toSqlKey 2
 mobileAccident = toSqlKey 3
+eraGlonass = toSqlKey 4

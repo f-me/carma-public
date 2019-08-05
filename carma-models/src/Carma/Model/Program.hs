@@ -1,6 +1,8 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, DeriveGeneric #-}
 
 module Carma.Model.Program where
+
+import GHC.Generics (Generic)
 
 import Data.Aeson as A (Value(Bool))
 import Data.Text
@@ -30,7 +32,7 @@ data Program = Program
                              "pType"  "Тип программы"
   , help                  :: F (Maybe Text)
                              "help" "Справка"
-  } deriving Typeable
+  } deriving (Typeable, Generic)
 
 
 mkIdents [t|Program|]

@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 {-|
 
 Subprogram and subordinate models.
@@ -13,6 +15,8 @@ module Carma.Model.SubProgram.Type
      , SubProgramContractPermission(..)
      , SubProgramService(..)
      ) where
+
+import GHC.Generics (Generic)
 
 import Data.Text
 import Data.Typeable
@@ -79,6 +83,10 @@ data SubProgram = SubProgram
   , smsProgram  :: F Text
                    "smsProgram"
                    "Название программы в SMS"
+  , eraGlonassParticipant
+                :: F Bool
+                   "eraGlonassParticipant"
+                   "Обмен данными с ЭРА-ГЛОНАСС"
   , contractPrs :: F (IdentList SubProgramContractPermission)
                    "contractPermissions"
                    "Настройка партнёрского интерфейса"
@@ -94,7 +102,7 @@ data SubProgram = SubProgram
   , dealerHelp  :: F (Maybe Text)
                    "dealerHelp"
                    "Справка для дилеров"
-  } deriving Typeable
+  } deriving (Generic, Typeable)
 
 
 data SubProgramService = SubProgramService
@@ -116,7 +124,7 @@ data SubProgramService = SubProgramService
     , maxCount    :: F (Maybe Int)
                      "maxCount"
                      "Лимит количества предоставления услуги"
-    } deriving Typeable
+    } deriving (Generic, Typeable)
 
 
 data SubProgramContractPermission = SubProgramContractPermission
@@ -137,7 +145,7 @@ data SubProgramContractPermission = SubProgramContractPermission
     , showForm  :: F Bool
                    "showForm"
                    "Отображается в форме"
-    } deriving Typeable
+    } deriving (Generic, Typeable)
 
 
 data SubProgramContact = SubProgramContact
@@ -146,4 +154,4 @@ data SubProgramContact = SubProgramContact
     , name        :: F (Maybe Text)        "name"   "ФИО"
     , email       :: F (Maybe Text)        "email"  "E-mail"
     , phone       :: F (Maybe Text)        "phone"  "Телефон"
-    } deriving Typeable
+    } deriving (Generic, Typeable)
