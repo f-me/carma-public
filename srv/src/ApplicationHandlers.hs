@@ -1,6 +1,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module ApplicationHandlers
     (
@@ -78,6 +79,7 @@ import Data.Model.CRUD
 import Data.Model.Patch as Patch (Patch(..), differenceFrom)
 import Carma.Model.Event (EventType(..))
 import Carma.Model.Partner (Partner)
+import Carma.Model.DiagSlide (DiagSlide)
 
 import Application
 import AppHandlers.Util
@@ -210,10 +212,11 @@ readManyHandler = do
   --            interactive completion search
   --            (loading huge data structures to user's RAM isn't cool)
   let defaultLimit =
-        if model == modelName (modelInfo :: ModelInfo Partner)
-           then 5000 -- Now we have more than 4000 partners,
-                     -- and some elements not found in dictionary on frontend.
-           else 4000
+          if | model == modelName (modelInfo :: ModelInfo Partner) -> 5000
+                -- Now we have more than 4000 partners,
+                -- and some elements not found in dictionary on frontend.
+             | model == modelName (modelInfo :: ModelInfo DiagSlide) -> 5000
+             | otherwise -> 4000
 
   limit  <- maybe defaultLimit readInt <$> getParam "limit"
   offset <- maybe            0 readInt <$> getParam "offset"
