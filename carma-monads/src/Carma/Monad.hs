@@ -2,6 +2,7 @@ module Carma.Monad
      ( module Carma.Monad.IORefWithCounter
      , module Carma.Monad.ServantClient
      , module Carma.Monad.PersistentSql
+     , module Carma.Monad.Esqueleto
      , module Carma.Monad.Concurrently
      , module Carma.Monad.LoggerBus
      , module Carma.Monad.Thread
@@ -15,6 +16,7 @@ module Carma.Monad
 import           Carma.Monad.IORefWithCounter
 import           Carma.Monad.ServantClient
 import           Carma.Monad.PersistentSql
+import           Carma.Monad.Esqueleto
 import           Carma.Monad.Concurrently
 import           Carma.Monad.LoggerBus
 import           Carma.Monad.Thread

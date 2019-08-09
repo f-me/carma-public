@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts, OverloadedStrings, QuasiQuotes, TypeOperators #-}
-{-# LANGUAGE ExplicitNamespaces, RankNTypes, GADTs #-}
-{-# LANGUAGE ScopedTypeVariables, TypeFamilies, DataKinds #-}
+{-# LANGUAGE RecordWildCards, NamedFieldPuns, ExplicitNamespaces, RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables, TypeFamilies, DataKinds, GADTs #-}
 
 module Carma.EraGlonass.Helpers
      ( inBackground
@@ -15,6 +15,7 @@ module Carma.EraGlonass.Helpers
 
 
 import           Data.Proxy
+import           Data.Monoid ((<>))
 import           Data.Aeson
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
@@ -22,6 +23,8 @@ import           Text.InterpolatedString.QM
 import           Control.Monad (void)
 import           Control.Monad.Reader (MonadReader, ReaderT, asks)
 import           Control.Monad.Catch (MonadCatch (catch))
+import           Control.Monad.Trans.Class (lift)
+import           Control.Applicative ((<|>))
 import           Control.Concurrent.STM.TVar
 
 import           Control.Exception
@@ -29,7 +32,10 @@ import           Control.Exception
                    , displayException
                    )
 
+import           Database.Persist ((==.), (=.))
+import           Database.Persist.Types (Entity (..))
 import           Database.Persist.Sql (SqlBackend, fromSqlKey)
+import           Database.Persist.Types (SelectOpt (Desc))
 
 import           Servant ((:<|>) ((:<|>)))
 
@@ -38,6 +44,7 @@ import           Carma.Monad.Thread
 import           Carma.Monad.LoggerBus
 import           Carma.Monad.PersistentSql
 import           Carma.Monad.Clock
+import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.TypeFamilies (OneOf)
 import           Carma.Utils.TypeSafe.Generic.DataType
 import           Carma.EraGlonass.Instances ()
@@ -134,11 +141,41 @@ reportToHouston
 
 reportToHouston body integrationPoint comment = go where
   go :: m ()
-  go = do
-    ctime <- getCurrentTime
-    void $ inBackground $ runSqlInTime (insert $ record ctime) >>= resolve
+  go = void $ inBackground $ runSqlInTime transaction >>= resolve
 
-  bodyType = getFailureBodyType (Proxy :: Proxy bodyType)
+  transaction :: ReaderT SqlBackend m (Bool, CaseEraGlonassFailureId)
+  transaction = do
+    ctime <- lift getCurrentTime
+    let CaseEraGlonassFailure {..} = record ctime
+
+    previousRecordOfThisFailure <-
+      selectFirst
+        [ CaseEraGlonassFailureIntegrationPoint ==.
+            caseEraGlonassFailureIntegrationPoint
+
+        , CaseEraGlonassFailureRequestId   ==. caseEraGlonassFailureRequestId
+        , CaseEraGlonassFailureComment     ==. caseEraGlonassFailureComment
+        , CaseEraGlonassFailureRequestBody ==. caseEraGlonassFailureRequestBody
+
+        , CaseEraGlonassFailureResponseBody ==.
+            caseEraGlonassFailureResponseBody
+        ]
+        [ -- Trying to add a repeat to latest (by creation time) failure
+          Desc CaseEraGlonassFailureCtime
+        ]
+
+    case previousRecordOfThisFailure of
+         Nothing -> (,) <$> pure True <*> insert (record ctime)
+
+         Just Entity { entityKey = prevFailureId
+                     , entityVal = CaseEraGlonassFailure
+                         { caseEraGlonassFailureRepeats = repeats }
+                     } ->
+
+           (False, prevFailureId) <$ update prevFailureId
+             [ CaseEraGlonassFailureRepeats =.
+                 (repeats <|> Just mempty) <&> (<> pure ctime)
+             ]
 
   record ctime =
     CaseEraGlonassFailure
@@ -146,6 +183,7 @@ reportToHouston body integrationPoint comment = go where
       , caseEraGlonassFailureIntegrationPoint = integrationPoint
       , caseEraGlonassFailureRequestId        = Nothing
       , caseEraGlonassFailureComment          = Just comment
+      , caseEraGlonassFailureRepeats          = Nothing
 
       , caseEraGlonassFailureRequestBody = case body of
           FailureWithoutBody -> Nothing
@@ -160,14 +198,20 @@ reportToHouston body integrationPoint comment = go where
             | otherwise -> Nothing
       }
 
+  bodyType = getFailureBodyType (Proxy :: Proxy bodyType)
   model = typeName (Proxy :: Proxy CaseEraGlonassFailure) :: Text
 
-  resolve (Right failureId) = logErrorS [qm| {integrationPoint} |] [qms|
+  resolve (Right (isNew, failureId)) = logErrorS [qm|{integrationPoint}|] [qms|
     Failure incident record is successfully saved to the database:
-    "{model}" id#{fromSqlKey failureId}.
+    "{model}" id#{fromSqlKey failureId}
+    ({ if isNew
+          then "new record have been created"
+          else "found previous record of this failure,\
+               \ that record have been updated by adding current timestamp\
+               \ to the list of repeats" :: Text }).
   |]
 
-  resolve (Left (SomeException e)) = logErrorS [qm| {integrationPoint} |] [qms|
+  resolve (Left (SomeException e)) = logErrorS [qm|{integrationPoint}|] [qms|
     Failed to save failure incident record into database,
     it is failed with exception: {displayException e}
   |]

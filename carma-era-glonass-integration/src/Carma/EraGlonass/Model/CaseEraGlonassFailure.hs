@@ -7,7 +7,7 @@ module Carma.EraGlonass.Model.CaseEraGlonassFailure where
 import           GHC.Generics (type Generic)
 
 import           Data.Typeable
-
+import           Data.Vector
 import           Data.Text (type Text)
 
 import           Data.Model
@@ -47,6 +47,11 @@ data CaseEraGlonassFailure
 
    , comment
        :: F (Maybe Text) "comment" "Дополнительный комментарий"
+
+   , repeats
+       :: F (Maybe (Vector UTCTime))
+            "repeats"
+            "Временные метки повторений данной ошибки"
 
    } deriving (Generic, Typeable)
 

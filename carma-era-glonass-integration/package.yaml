@@ -24,6 +24,7 @@ dependencies:
   - deepseq
   - directory
   - either
+  - esqueleto
   - exceptions
   - fast-logger
   - generic-deriving

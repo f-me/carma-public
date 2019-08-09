@@ -186,6 +186,20 @@ instance DefaultFieldView UTCTime where
       $ fv_meta $ defFieldView f
     }
 
+-- | Plural version of @DefaultFieldView UTCTime@ instance.
+--
+-- This haven't been tested yet and haven't been implemented on frontend,
+-- it was only used for some field of a model of the
+-- \"carma-era-glonass-integration" microservice.
+instance DefaultFieldView (Vector UTCTime) where
+  defaultFieldView f = (defFieldView f)
+    { fv_type = "UTCTime-many"
+    , fv_meta
+        = Map.insert "regexp" (Aeson.String regexpDateTime)
+        $ Map.insert "widget" "datetime-many"
+        $ fv_meta $ defFieldView f
+    }
+
 instance DefaultFieldView HMDiffTime where
   defaultFieldView f = (defFieldView f)
     { fv_type = "text"

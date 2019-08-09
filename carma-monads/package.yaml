@@ -17,6 +17,7 @@ dependencies:
   - base
   - carma-utils
   - directory
+  - esqueleto
   - fast-logger
   - lifted-async
   - lifted-base
