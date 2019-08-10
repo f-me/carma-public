@@ -11,6 +11,7 @@
 --   empty response body with 200 status in case everything is okay.
 module Carma.EraGlonass.Types.EGRequestForServiceRequest
      ( EGRequestForServiceRequest         (..)
+     , EGRequestForServiceStatusCode      (..)
      , EGRequestForServiceRequestLocation (..)
      , EGRequestForServiceRequestVehicle  (..)
 

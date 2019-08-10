@@ -104,6 +104,17 @@ receiveRequestForServiceRequest
           time <- getCurrentTime
           runSqlProtected logSrc [qm| Transaction is failed! |] $ m time
 
+    let -- | This code does nothing but keep you informed when new status code
+        --   is added to the set of possible status code values, so you should
+        --   probably handle it here in some way.
+        --
+        -- Currently we have only "Sent" from spec and "WorkInProgress" from
+        -- real world (see "EGRequestForServiceStatusCode" for details) and it
+        -- doesn't matter which one we get.
+        _ = case statusCode of
+                 Sent           -> ()
+                 WorkInProgress -> ()
+
     handleTransaction $ \time ->
       case vehicle of
            Nothing -> do
