@@ -78,6 +78,10 @@ instance FromPersistList UTCTime where
 class BiggestPgArrayItem typ where
   -- | Instances implemented in a hacky way,
   --   because constructors of "E.SqlExpr" aren't reachable.
+  --
+  -- TODO FIXME In newer version of \"esqueleto" constructors of "E.SqlExpr" are
+  --            exported, use those instead when LTS will be updated from 9.21
+  --            to something newer.
   biggestPgArrayItem
     :: (PersistEntity val, PersistField typ)
     => E.SqlExpr (E.Entity val)
