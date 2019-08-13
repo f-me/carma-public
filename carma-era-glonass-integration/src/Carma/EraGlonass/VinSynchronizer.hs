@@ -54,9 +54,6 @@ import           Carma.EraGlonass.VinSynchronizer.UnmarkAsHandled
 import           Carma.EraGlonass.VinSynchronizer.SynchronizeContracts
 import           Carma.EraGlonass.Types.AppContext (AppContext (..))
 import           Carma.EraGlonass.Types.Helpers.DateTime (showRFC3339DateTime)
-import           Carma.EraGlonass.Types.EGIntegrationPoint
-                   ( EGIntegrationPoint (BindVehicles)
-                   )
 
 
 -- | VIN synchronizer worker starter.
@@ -264,7 +261,9 @@ synchronizeVins
    , MonadPersistentSql m
    , MonadServantClient m
    , MonadClock m
-   , MonadThrow m
+   , MonadCatch m
+   , MonadThread m
+   , MonadSTM m
    )
   => ReaderT SqlBackend m ()
 
@@ -450,24 +449,3 @@ synchronizeVins =
                 x : xs -> do
                   srcLogDebug $ logMsg True
                   synchronizeContracts nowDay handledContracts $ x :| xs
-
-
-saveFailureIncidentInBackground
-  :: forall m bodyType
-   .
-   ( MonadReader AppContext m
-   , MonadLoggerBus m
-   , MonadCatch m
-   , MonadClock m
-   , MonadThread m
-   , MonadPersistentSql m
-   , MonadSTM m
-   , OneOf bodyType '[ 'FailureNoBodyType, 'FailureResponseBodyType ]
-   , GetFailureBodyType bodyType
-   )
-  => FailureBody bodyType
-  -> Text
-  -> m ()
-
-saveFailureIncidentInBackground failureBody =
-  reportToHouston failureBody BindVehicles
