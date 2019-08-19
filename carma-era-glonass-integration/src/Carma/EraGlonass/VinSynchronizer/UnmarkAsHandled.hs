@@ -13,7 +13,7 @@ import           Data.Proxy
 import           Data.Semigroup (Semigroup ((<>)))
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
-import           Data.List.NonEmpty (NonEmpty, nub, toList)
+import           Data.List.NonEmpty (NonEmpty ((:|)), nub, toList)
 import           Data.Either.Combinators (mapLeft)
 
 import           Control.Monad (unless)
@@ -98,11 +98,34 @@ unmarkAsHandled lists = do
         |]
 
   (allVins :: NonEmpty EGVin) <- lift $
-    case lists of
-         (FirstNonEmptyList x) -> extrudeContractVINs x
-         (SecondNonEmptyList y) -> extrudeEphemeralVins y
-         (BothNonEmptyLists x y) ->
-            (<>) <$> extrudeContractVINs x <*> extrudeEphemeralVins y
+    let
+      extrudeContractVINsWithFailureHandling =
+        extrudeContractVINs ? foldr reducer ([], []) ? \case
+          ([], x : xs) -> pure $ x :| xs
+
+          (e : es, _) -> throwM $ AssertionFailed $
+            getErrorMessageOfExtrudingContractVINs $ e :| es
+
+          ([], []) -> throwM $ AssertionFailed [qns|
+            Unexpected and impossible case, either of lists must be not
+            empty, since source list is "NonEmpty" list.
+          |]
+
+      reducer
+        :: Either (ExtrudeContractVinError String) EGVin
+        -> ([ExtrudeContractVinError String], [EGVin])
+        -> ([ExtrudeContractVinError String], [EGVin])
+
+      reducer (Left  x) (l,  _) = (x : l, [])
+      reducer (Right x) ([], r) = ([], x : r)
+      reducer (Right _) acc     = acc
+    in
+      case lists of
+           (FirstNonEmptyList x) -> extrudeContractVINsWithFailureHandling x
+           (SecondNonEmptyList y) -> extrudeEphemeralVins y
+           (BothNonEmptyLists x y) ->
+              (<>) <$> extrudeContractVINsWithFailureHandling x
+                   <*> extrudeEphemeralVins y
 
   let allVinsLen = length allVins
 

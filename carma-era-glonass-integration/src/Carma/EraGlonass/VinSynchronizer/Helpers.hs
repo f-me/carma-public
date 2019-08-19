@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, FlexibleContexts, TypeFamilies #-}
+{-# LANGUAGE ScopedTypeVariables, FlexibleContexts, TypeFamilies, DataKinds #-}
 {-# LANGUAGE OverloadedStrings, QuasiQuotes, NamedFieldPuns #-}
 
 -- To add docs for every type or function defined in the module.
@@ -15,19 +15,32 @@ module Carma.EraGlonass.VinSynchronizer.Helpers
 
      , extrudeContractVIN
      , extrudeContractVINs
+     , ExtrudeContractVinError (..)
+     , getErrorMessageOfExtrudingContractVINs
+
+     , saveFailureIncidentInBackground
      ) where
 
 import           Data.Proxy
+import           Data.Typeable (Typeable)
+import           Data.Monoid ((<>))
+import           Data.List.NonEmpty (NonEmpty (..))
+import qualified Data.Map.Strict as M
+import qualified Data.Set as S
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
-import           Data.Either.Combinators (mapLeft)
+import           Text.InterpolatedString.QM.ShowQ.Class (ShowQ)
+import           Data.String (IsString (fromString))
 import           Data.Time.Clock (UTCTime)
 import           Data.Time.LocalTime (TimeZone, ZonedTime, utcToZonedTime)
 import           Data.Time.Format
 
 import           Control.Arrow
-import           Control.Monad.Catch (MonadThrow (throwM))
-import           Control.Exception (AssertionFailed (AssertionFailed))
+import           Control.Applicative ((<|>))
+import           Control.Monad.Catch (MonadCatch)
+import           Control.Monad.Reader (MonadReader)
+import           Control.Monad.Except (MonadError (throwError))
+import           Control.Exception (Exception (displayException))
 
 import           Database.Persist.Class (persistFieldDef)
 import           Database.Persist.Sql (fromSqlKey)
@@ -35,15 +48,17 @@ import           Database.Persist.Sql (fromSqlKey)
 import           Database.Persist.Types
                    ( Entity (..)
                    , FieldDef (fieldHaskell)
-                   , HaskellName
+                   , HaskellName (unHaskellName)
                    )
 
 import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.Generic.DataType
-import           Carma.Monad.Clock
-import           Carma.Monad.LoggerBus.Class
+import           Carma.Utils.TypeSafe.TypeFamilies (OneOf)
+import           Carma.Monad
 import           Carma.Model.Contract.Persistent
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Helpers
+import           Carma.EraGlonass.Types.AppContext (AppContext)
 import           Carma.EraGlonass.Types.EGVin
 
 import           Carma.EraGlonass.Types.EGIntegrationPoint
@@ -97,43 +112,153 @@ logSrc :: Text
 logSrc = [qm| {BindVehicles} |]
 
 
-extrudeContractVINs
-  :: forall f m
-   .
-   ( Applicative f
-   , Traversable f
-   , MonadThrow m
-   )
-  => f (Entity Contract)
-  -> m (f EGVin)
+-- | Helper type for "getErrorMessageOfExtrudingContractVINs" function.
+data ExtrudeContractVinErrorMessage parsingErrMsg
+   = ExtrudeContractVinErrorMessage
+   { vinFieldIsNotSetIds :: S.Set ContractId
+   , incorrectVinValue   :: M.Map parsingErrMsg (S.Set ContractId)
+   } deriving (Show, Eq)
 
-extrudeContractVINs = sequenceA . fmap extrudeContractVIN
+getErrorMessageOfExtrudingContractVINs
+  :: forall s parsingErrMsg t
+   .
+   ( IsString s
+   , Monoid s
+   , Ord s
+   , ShowQ parsingErrMsg
+   , IsString parsingErrMsg
+   , Ord parsingErrMsg
+   , t ~ Contract
+   )
+  => NonEmpty (ExtrudeContractVinError parsingErrMsg)
+  -> s
+
+getErrorMessageOfExtrudingContractVINs list = go where
+  go = [qm|
+    Failed to extract VINs from some of "{modelName}"s.
+    { let xs = vinFieldIsNotSetIds folded
+       in if xs /= mempty
+             then " " <> notSetMsg xs
+             else mempty :: s
+    }
+    { let xs = incorrectVinValue folded
+       in if xs /= mempty
+             then " " <> incorrectMsg xs
+             else mempty :: s
+    }
+  |]
+
+  modelName = typeName (Proxy :: Proxy t) :: String
+
+  fieldName :: EntityField t typ -> Text
+  fieldName = unHaskellName . fieldHaskell . persistFieldDef
+
+  renderIds ids = x :: s where
+    x = showId `S.map` ids & foldl reduceIdToString mempty
+    showId = fromString . show . fromSqlKey
+    reduceIdToString acc x' = if acc == mempty then x' else acc <> ", " <> x'
+
+  renderIncorrect idsPerMsg = x :: s where
+    x = idsPerMsg <&> renderIds & M.foldlWithKey reduceToString mempty
+    showErrMsg msg = [qm|{msg :: parsingErrMsg}|] :: s
+
+    reduceToString acc msg ids
+      = (if acc == mempty then id else \x' -> acc <> "; " <> x')
+      $ showErrMsg msg <> ids
+
+  notSetMsg xs = [qms|
+    Some of "{modelName}"s have empty value
+    of "{fieldName ContractVin}" field,
+    here are IDs of those "{modelName}"s: {renderIds xs}.
+  |]
+
+  incorrectMsg xs = [qms|
+    Some of "{modelName}"s have incorrect value
+    of "{fieldName ContractVin}" field, here are errors
+    (error messages and for each one a list of IDs which failed to parse
+    with that error message): {renderIncorrect xs}
+  |]
+
+  folded = foldl reducer (ExtrudeContractVinErrorMessage mempty mempty) list
+
+  reducer
+    acc@ExtrudeContractVinErrorMessage { vinFieldIsNotSetIds = ids }
+    (VinFieldIsNotSet id') = acc { vinFieldIsNotSetIds = id' `S.insert` ids }
+  reducer
+    acc@ExtrudeContractVinErrorMessage { incorrectVinValue = msgMap }
+    (VinValueIsIncorrect id' msg) = x where
+      x = acc { incorrectVinValue = f msgMap }
+      f = M.alter ((S.insert id' <$>) ? (<|> Just (S.singleton id'))) msg
+
+
+-- | Plural version of "extrudeContractVIN".
+extrudeContractVINs
+  :: (ShowQ parsingErrMsg, IsString parsingErrMsg)
+  => NonEmpty (Entity Contract)
+  -> NonEmpty (Either (ExtrudeContractVinError parsingErrMsg) EGVin)
+
+extrudeContractVINs = fmap extrudeContractVIN
 
 
 extrudeContractVIN
-  :: forall t m. (t ~ Contract, MonadThrow m) => Entity t -> m EGVin
+  :: forall t m parsingErrMsg
+   .
+   ( t ~ Contract
+   , ShowQ parsingErrMsg
+   , IsString parsingErrMsg
+   , MonadError (ExtrudeContractVinError parsingErrMsg) m
+   )
+  => Entity t
+  -> m EGVin
 
-extrudeContractVIN = go where
-  go = either (throwM . AssertionFailed) pure . parse
+extrudeContractVIN (Entity id' Contract { contractVin })
+  = flip (maybe $ throwError $ VinFieldIsNotSet id') contractVin
+  $ stringToProvedEGVin ? either (throwError . VinValueIsIncorrect id') pure
 
-  parse (Entity id' Contract { contractVin }) =
-    maybe (vinNotSetErr id')
-          (mapLeft (parseFailureErr id') . stringToProvedEGVin)
-          contractVin
+data ExtrudeContractVinError parsingErrMsg
+   = VinFieldIsNotSet    ContractId
+   | VinValueIsIncorrect ContractId parsingErrMsg
+     deriving (Eq, Show, Typeable)
 
-  fieldName :: EntityField t typ -> HaskellName
-  fieldName = fieldHaskell . persistFieldDef
+instance ( Typeable parsingErrMsg
+         , Show parsingErrMsg
+         , ShowQ parsingErrMsg
+         , t ~ Contract
+         ) => Exception (ExtrudeContractVinError parsingErrMsg) where
 
-  modelName    = typeName (Proxy :: Proxy t) :: String
-  idFieldName  = fieldName ContractId
-  vinFieldName = fieldName ContractVin
-
-  vinNotSetErr id' = Left [qms|
-    {modelName} {idFieldName}#{fromSqlKey id'}
-    unexpectedly has not set "{vinFieldName}" field.
+  displayException (VinFieldIsNotSet id') = [qms|
+    {typeName (Proxy :: Proxy t) :: String} {
+      fieldHaskell $ persistFieldDef (ContractId :: EntityField t ContractId)
+    }#{fromSqlKey id'}
+    unexpectedly has not set "{
+      fieldHaskell $ persistFieldDef (ContractVin :: EntityField t (Maybe Text))
+    }" field.
   |]
 
-  parseFailureErr id' (msg :: String) = [qms|
-    {modelName} {idFieldName}#{fromSqlKey id'}
+  displayException (VinValueIsIncorrect id' msg) = [qms|
+    {typeName (Proxy :: Proxy t) :: String} {
+      fieldHaskell $ persistFieldDef (ContractId :: EntityField t ContractId)
+    }#{fromSqlKey id'}
     unexpectedly has incorrect VIN. Parsing error message: {msg}
   |]
+
+
+saveFailureIncidentInBackground
+  :: forall m bodyType
+   .
+   ( MonadReader AppContext m
+   , MonadLoggerBus m
+   , MonadCatch m
+   , MonadClock m
+   , MonadThread m
+   , MonadPersistentSql m
+   , MonadSTM m
+   , OneOf bodyType '[ 'FailureNoBodyType, 'FailureResponseBodyType ]
+   , GetFailureBodyType bodyType
+   )
+  => FailureBody bodyType
+  -> Text
+  -> m ()
+
+saveFailureIncidentInBackground failureBody =
+  reportToHouston failureBody BindVehicles

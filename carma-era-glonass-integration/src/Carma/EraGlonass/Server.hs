@@ -10,6 +10,7 @@ module Carma.EraGlonass.Server
      ) where
 
 import           Data.Proxy
+import           Data.Semigroup ((<>))
 import           Data.Maybe (isNothing)
 import           Data.Aeson (Value (String), encode)
 import           Data.Swagger (Swagger)
@@ -25,7 +26,9 @@ import           Control.Monad.Logger (LogSource)
 import           Control.Concurrent.STM.TMVar
 import           Control.Concurrent.STM.TVar
 
+import           Database.Persist ((==.))
 import           Database.Persist.Types
+import qualified Database.Esqueleto as E
 
 import           Network.HTTP.Types.Header (hContentType)
 import           Network.HTTP.Media (renderHeader)
@@ -39,6 +42,7 @@ import           Carma.Monad.Thread
 import           Carma.Monad.LoggerBus (MonadLoggerBus)
 import qualified Carma.Monad.LoggerBus as LoggerBus
 import           Carma.Monad.PersistentSql
+import           Carma.Monad.Esqueleto
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Helpers
 import           Carma.EraGlonass.Routes
@@ -50,6 +54,7 @@ import           Carma.EraGlonass.Types.EGBindVehiclesRequest
 import           Carma.EraGlonass.Types.EGMayFailToParse
 import           Carma.EraGlonass.Types.RouteActionResponse
 import           Carma.EraGlonass.Types.Helpers.DateTime (showRFC3339DateTime)
+import           Carma.EraGlonass.Model.Types (biggestPgArrayItem)
 
 
 type FaliuresAPI
@@ -91,6 +96,7 @@ type ServerMonad m =
    , MonadError ServantErr m
    , MonadCatch m
    , MonadPersistentSql m
+   , MonadEsqueleto m
    , MonadClock m
    , MonadRandom m
    , MonadThread m
@@ -189,6 +195,7 @@ getFailuresList
    , MonadLoggerBus m
    , MonadError ServantErr m
    , MonadPersistentSql m
+   , MonadEsqueleto m
    )
   => Maybe Word
   -> m [Entity CaseEraGlonassFailure]
@@ -206,11 +213,34 @@ getFailuresList (Just n) = do
   srcLogDebug [qm| Obtaining EG failures list limited to last {n} elements... |]
 
   result <-
-    runSqlProtected logSrc
-      [qn| Failed to request EG failures list! |]
-      $ selectList [] [ Desc CaseEraGlonassFailureId
-                      , LimitTo $ fromIntegral n
-                      ]
+    runSqlProtected logSrc [qn| Failed to request EG failures list! |] $ do
+      -- To avoid @null@s being placed on top of the order
+      withRepeats <-
+        esqueletoSelect $
+        E.from $ \failure -> do
+
+        E.where_ ( E.not_ $ E.isNothing $
+                     failure E.^. CaseEraGlonassFailureRepeats
+                 )
+
+        E.orderBy [ E.desc $ failure `biggestPgArrayItem`
+                               CaseEraGlonassFailureRepeats
+
+                  , E.desc $ failure E.^. CaseEraGlonassFailureCtime
+                  ]
+
+        E.limit $ fromIntegral n
+        pure failure
+
+      -- To avoid @null@s being placed on top of the order
+      withoutRepeats <-
+        selectList [ CaseEraGlonassFailureRepeats ==. Nothing
+                   ]
+                   [ Desc CaseEraGlonassFailureCtime
+                   , LimitTo $ fromIntegral n - length withRepeats
+                   ]
+
+      pure $ withRepeats <> withoutRepeats
 
   srcLogDebug [qms|
     EG failures list is obtained, total elements: {length result}

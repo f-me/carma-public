@@ -11,6 +11,7 @@
 --   empty response body with 200 status in case everything is okay.
 module Carma.EraGlonass.Types.EGRequestForServiceRequest
      ( EGRequestForServiceRequest         (..)
+     , EGRequestForServiceStatusCode      (..)
      , EGRequestForServiceRequestLocation (..)
      , EGRequestForServiceRequestVehicle  (..)
 
@@ -84,10 +85,12 @@ data EGRequestForServiceRequest
        -- We probably don't need this value for our internal purposes.
 
    , statusCode :: EGRequestForServiceStatusCode
-       -- ^ In this particular integration point it can only be @\"SENT"@.
+       -- ^ See the description of the "EGRequestForServiceStatusCode" type.
        --
        -- Other integration points have the same field with different possible
        -- values.
+       --
+       -- Currently it doesn't matter whether it is "Sent" or "WorkInProgress".
 
    , statusTime :: EGDateTime
        -- ^ Last status update of this request for service.
@@ -187,11 +190,22 @@ instance FromJSON EGRequestForServiceRequestVehicle where
       (Proxy :: Proxy '(t, "EGRequestForServiceRequestVehicle", 1))
 
 
-data EGRequestForServiceStatusCode = Sent
+-- | Possible status codes of the \"request for service" request.
+--
+-- In the spec only the @\"SENT"@ value is presented in the example, but during
+-- the testing process we've received @\"WORK_IN_PROGRESS"@ value.
+-- We have been told that this set of values is equvalent to the one from
+-- "changeRequestStatus" integration point, but currently, in this integration
+-- point it supposed to be @\"WORK_IN_PROGRESS"@ only. So leaving that @\"SENT"@
+-- from the spec and the @\"WORK_IN_PROGRESS"@ from the real world.
+data EGRequestForServiceStatusCode
+   = Sent
+   | WorkInProgress
      deriving (Eq, Show, Enum, Bounded, Generic)
 
 instance StringyEnum EGRequestForServiceStatusCode where
-  toStringy Sent = "SENT"
+  toStringy Sent           = "SENT"
+  toStringy WorkInProgress = "WORK_IN_PROGRESS"
 
 instance ToJSON EGRequestForServiceStatusCode where
   toJSON = String . toStringy

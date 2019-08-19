@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings, QuasiQuotes, RecordWildCards, NamedFieldPuns #-}
 {-# LANGUAGE FlexibleContexts, ScopedTypeVariables, LambdaCase #-}
+{-# LANGUAGE DataKinds, TypeApplications #-}
 
 -- To add docs for every type or function defined in the module.
 {-# OPTIONS_HADDOCK ignore-exports #-}
@@ -13,15 +14,10 @@ import           Text.InterpolatedString.QM
 import           Data.Aeson
 import           Data.Time.Clock (addUTCTime)
 
-import           Control.Monad (void)
 import           Control.Monad.Reader (MonadReader, ReaderT)
 import           Control.Monad.Error.Class (MonadError (throwError, catchError))
 import           Control.Monad.Catch (MonadCatch)
-
-import           Control.Exception
-                   ( SomeException (SomeException)
-                   , displayException
-                   )
+import           Control.Exception (displayException)
 
 import           Database.Persist ((==.), (>=.))
 import           Database.Persist.Sql (SqlBackend, fromSqlKey)
@@ -44,7 +40,6 @@ import           Carma.Model.SubProgram.Persistent
 import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.Generic.DataType
 import           Carma.EraGlonass.Instances ()
-import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
 import           Carma.EraGlonass.Model.CaseEraGlonassCreateRequest.Persistent
 import           Carma.EraGlonass.Helpers
 import           Carma.EraGlonass.Server.Helpers
@@ -83,7 +78,7 @@ receiveRequestForServiceRequest (FailedToParse errMsg reqBody) = do
     and responding with HTTP 400 Bad Request error...
   |]
 
-  saveFailureIncidentInBackground [qm| Error message: {errMsg} |] $ Just reqBody
+  saveFailureIncidentInBackground reqBody [qm| Error message: {errMsg} |]
 
   throwError err400 { errBody = [qms|
     Failed to parse request body, error message: {errMsg}
@@ -97,10 +92,10 @@ receiveRequestForServiceRequest
         --   already wrapped by @runSqlProtected@ inside.
         errHandler :: ServantErr -> m ()
         errHandler e = do
-          saveFailureIncidentInBackground [qms|
+          saveFailureIncidentInBackground (toJSON reqBody) [qms|
             Acceptance of request for service is failed with exception:
             {displayException e}
-          |] $ Just $ toJSON reqBody
+          |]
 
           throwError e -- Throw it back again.
 
@@ -108,6 +103,17 @@ receiveRequestForServiceRequest
         handleTransaction m = flip catchError errHandler $ do
           time <- getCurrentTime
           runSqlProtected logSrc [qm| Transaction is failed! |] $ m time
+
+    let -- | This code does nothing but keep you informed when new status code
+        --   is added to the set of possible status code values, so you should
+        --   probably handle it here in some way.
+        --
+        -- Currently we have only "Sent" from spec and "WorkInProgress" from
+        -- real world (see "EGRequestForServiceStatusCode" for details) and it
+        -- doesn't matter which one we get.
+        _ = case statusCode of
+                 Sent           -> ()
+                 WorkInProgress -> ()
 
     handleTransaction $ \time ->
       case vehicle of
@@ -367,34 +373,11 @@ saveFailureIncidentInBackground
    , MonadPersistentSql m
    , MonadSTM m
    )
-  => Text
-  -> Maybe Value -- ^ Request body which failed to parse.
+  => Value
+  -> Text
   -> m ()
 
-saveFailureIncidentInBackground comment requestBody = go where
-  go :: m ()
-  go = do
-    ctime <- getCurrentTime
-    void $ inBackground $ runSqlInTime (insert $ record ctime) >>= resolve
-
-  record ctime =
-    CaseEraGlonassFailure
-      { caseEraGlonassFailureCtime            = ctime
-      , caseEraGlonassFailureIntegrationPoint = RequestForService
-      , caseEraGlonassFailureRequestId        = Nothing
-      , caseEraGlonassFailureRequestBody      = requestBody
-      , caseEraGlonassFailureResponseBody     = Nothing
-      , caseEraGlonassFailureComment          = Just comment
-      }
-
-  model = typeName (Proxy :: Proxy CaseEraGlonassFailure) :: Text
-
-  resolve (Right failureId) = srcLogError [qms|
-    Failure incident record is successfully saved to the database:
-    "{model}" id#{fromSqlKey failureId}.
-  |]
-
-  resolve (Left (SomeException e)) = srcLogError [qms|
-    Failed to save failure incident record into database,
-    it is failed with exception: {displayException e}
-  |]
+saveFailureIncidentInBackground requestBody =
+  reportToHouston
+    (FailureWithBody @'FailureRequestBodyType requestBody)
+    RequestForService

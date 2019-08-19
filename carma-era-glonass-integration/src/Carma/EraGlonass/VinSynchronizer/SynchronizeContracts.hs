@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts, OverloadedStrings, NamedFieldPuns, LambdaCase #-}
-{-# LANGUAGE ScopedTypeVariables, TypeFamilies #-}
-{-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
+{-# LANGUAGE ScopedTypeVariables, GADTs, QuasiQuotes, TemplateHaskell #-}
 
 -- To add docs for every type or function defined in the module.
 {-# OPTIONS_HADDOCK ignore-exports #-}
@@ -15,6 +14,7 @@ import           Data.Proxy
 import           Data.Semigroup (Semigroup ((<>)))
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
+import           Data.List (genericLength)
 import           Data.List.NonEmpty (NonEmpty ((:|)), toList, partition)
 import           Data.Foldable (find)
 import           Data.Time.Calendar (Day)
@@ -22,7 +22,7 @@ import           Data.Time.Calendar (Day)
 import           Control.Monad (forM, forM_)
 import           Control.Monad.Trans.Class (lift)
 import           Control.Monad.Reader (MonadReader, ReaderT, asks)
-import           Control.Monad.Catch (MonadThrow (throwM))
+import           Control.Monad.Catch (MonadThrow (throwM), MonadCatch)
 import           Control.Exception (AssertionFailed (AssertionFailed))
 
 import           Database.Persist.Sql (SqlBackend, fromSqlKey)
@@ -37,6 +37,7 @@ import           Carma.Model.SubProgram.Persistent
 import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.Generic.DataType
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Helpers (FailureBody (FailureWithoutBody))
 import           Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persistent
 import           Carma.EraGlonass.Types.AppContext (AppContext (..))
 import           Carma.EraGlonass.Types.EGBindVehiclesRequest
@@ -56,7 +57,9 @@ synchronizeContracts
    , MonadPersistentSql m
    , MonadServantClient m
    , MonadClock m
-   , MonadThrow m
+   , MonadCatch m
+   , MonadThread m
+   , MonadSTM m
    )
   => Day
   -- ^ Current day, when synchronization have been initiated
@@ -67,27 +70,35 @@ synchronizeContracts
   -> ReaderT SqlBackend m ()
 
 synchronizeContracts nowDay alreadyHandled egSubProgramKeys = do
-  srcLogDebug $
-    let subProgram = typeName (Proxy :: Proxy SubProgram) :: Text in [qms|
-      Marking VINs which belong to Era Glonass participant "{subProgram}" as
-      handled by us (except those which are already marked as handled by us)
-      is initiated.
-    |] <> "\n" <> [qmb|
-      \  Count of already handled VINs: {length alreadyHandled}.
-      \  Count of active Era Glonass participant "{subProgram}"s: \
-           {length egSubProgramKeys}
-    |]
+  let subProgramModelName = typeName (Proxy :: Proxy SubProgram) :: Text
+  let contractModelName   = typeName (Proxy :: Proxy Contract)   :: Text
+
+  srcLogDebug $ [qms|
+    Marking VINs which belong to Era Glonass participant "{subProgramModelName}"
+    as handled by us (except those which are already marked as handled by us)
+    is initiated.
+  |] <> "\n" <> [qmb|
+    \  Count of already handled VINs: {length alreadyHandled}.
+    \  Count of active Era Glonass participant "{subProgramModelName}"s: \
+         {length egSubProgramKeys}
+  |]
 
   -- Contracts to synchronize
-  (contractVINs :: [(ContractId, EGVin)]) <-
+  (contractVINs :: ([ExtrudeContractVinError Text], [(ContractId, EGVin)])) <-
     let
       alreadyHandledVins =
         alreadyHandled <&> \Entity { entityVal } ->
           Just $ eraGlonassSynchronizedContractVin entityVal
 
-      extract :: Entity Contract -> m (ContractId, EGVin)
-      extract e@Entity { entityKey } =
-        (,) <$> pure entityKey <*> extrudeContractVIN e
+      extract
+        :: Entity Contract
+        -> ([ExtrudeContractVinError Text], [(ContractId, EGVin)])
+        -> ([ExtrudeContractVinError Text], [(ContractId, EGVin)])
+
+      extract e@Entity { entityKey } (errors, succeeded) =
+        case extrudeContractVIN e of
+             Right x -> (errors, (entityKey, x) : succeeded)
+             Left  x -> (x : errors, succeeded)
 
       contractStillValidFilter
         =   [ ContractValidUntil ==. Nothing ]
@@ -104,23 +115,63 @@ synchronizeContracts nowDay alreadyHandled egSubProgramKeys = do
         <>
         contractStillValidFilter
     in
-      selectList contractFilter [] >>= lift . sequenceA . fmap extract
+      selectList contractFilter [] <&> foldr extract ([], [])
 
   case contractVINs of
-       [] -> srcLogDebug $
-         let subProgram = typeName (Proxy :: Proxy SubProgram) :: Text in [qms|
-           It seems that all VINs which belong to Era Glonass participant
-           "{subProgram}" are already marked as handled by us, so we have
-           nothing to do.
+       ([], []) -> srcLogDebug [qms|
+         It seems that all VINs which belong to Era Glonass participant
+         "{subProgramModelName}" are already marked as handled by us,
+         so we have nothing to do.
+       |]
+
+       (x : xs, []) -> lift $ do
+         srcLogDebug [qms|
+           All "{contractModelName}"s which belong to Era Glonass participant
+           "{subProgramModelName}" are failed to parse, so we have nothing to do
+           since we have no valid VINs to bind as handled by us.
          |]
 
-       x : xs -> do
+         let errorMessage = [qms|
+           All "{contractModelName}"s which belong to Era Glonass participant
+           "{subProgramModelName}" are failed to parse with these errors:
+           {getErrorMessageOfExtrudingContractVINs $ x :| xs :: Text}
+         |]
+
+         srcLogError errorMessage
+         saveFailureIncidentInBackground FailureWithoutBody errorMessage
+
+       (errors, x : xs) -> do
+         let succeededVINs = x :| xs
+         let errorsLen = genericLength errors :: Word
+
+         let failedToParseMsg =
+               if errorsLen == minBound
+                  then mempty :: Text
+                  else [qms| \ (while {errorsLen} "{contractModelName}"s
+                                are failed to parse) |]
+
          srcLogDebug [qms|
-           Found {length contractVINs} VINs to mark as handled by us,
+           Found {length succeededVINs}\
+           {if errorsLen > minBound then " valid" else mempty :: Text} VINs to
+           mark as handled by us{failedToParseMsg},
            marking them as handled by us...
          |]
 
-         bindVINs $ x :| xs
+         case errors of
+              [] -> pure ()
+
+              e : es -> lift $ do
+                let errorMessage = [qms|
+                  Some of "{contractModelName}"s which belong to Era Glonass
+                  participant "{subProgramModelName}" are failed to parse
+                  with these errors:
+                  {getErrorMessageOfExtrudingContractVINs $ e :| es :: Text}
+                |]
+
+                srcLogError errorMessage
+                saveFailureIncidentInBackground FailureWithoutBody errorMessage
+
+         bindVINs succeededVINs
 
 
 -- | Next step in case there's some VINs which are supposed to be marked as
