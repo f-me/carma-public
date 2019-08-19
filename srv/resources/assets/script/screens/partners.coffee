@@ -35,7 +35,7 @@ screenSetup = (viewName, args) ->
 
   tableParams =
     tableName : "partner"
-    objURL    : "/_/Partner?limit=5000"
+    objURL    : "/_/Partner"
 
   table = screenMan
     .addScreen modelName, (->)
