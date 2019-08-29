@@ -282,13 +282,14 @@ synchronizeVins =
 
   ) -> repeatWholeOperation) -> do
 
-  handledContracts <- do
+  (handledSynchronizedContracts, handledVINs) <- do
     srcLogDebug [qns|
       Getting list of currently handled VINs to check if some of them
       should be marked for EG service as not handled by CaRMa anymore...
     |]
 
     selectList [ EraGlonassSynchronizedContractIsHandledByCarma ==. True ] []
+      <&> (id &&& toEraGlonassSynchronizedContractVins)
 
   egSubPrograms <- do
     srcLogDebug $
@@ -301,11 +302,6 @@ synchronizeVins =
 
   nowDay <- utctDay <$> lift getCurrentTime
 
-  let -- | Prepared to be used in DB requests list of VINs.
-      handledVINs :: [Text]
-      handledVINs =
-        handledContracts <&> eraGlonassSynchronizedContractVin . entityVal
-
   contractsToUnmarkAsHandled <- do
     srcLogDebug $
       let contract = typeName (Proxy :: Proxy Contract) :: Text in [qms|
@@ -316,7 +312,7 @@ synchronizeVins =
 
     flip selectList []
       $ -- @Contract@'s VIN is handled by CaRMa.
-        ( ContractVin <-. fmap Just handledVINs )
+        ( ContractVin <-. fromEraGlonassSynchronizedContractVins handledVINs )
 
       : (   -- @Contract@ has been deactivated.
             [ ContractIsActive ==. False ]
@@ -342,17 +338,18 @@ synchronizeVins =
         handle these anymore)...
       |]
 
-    selectList [ ContractVin <-. fmap Just handledVINs ] []
-      <&> fmap (entityVal ? contractVin) ? catMaybes -- Extracting only VINs
+    let vins = fromEraGlonassSynchronizedContractVins handledVINs
+
+    selectList [ ContractVin !=. Nothing, ContractVin <-. vins ] []
+      <&> fmap (entityVal ? contractVin)
       <&> \contractVINs ->
-            let vinLens = entityVal ? eraGlonassSynchronizedContractVin
-
-                f acc x =
-                  if vinLens x `notElem` contractVINs
-                     then x : acc
-                     else acc
-
-                in foldl f [] handledContracts
+            let
+              f acc x@(Entity { entityVal =
+                                  eraGlonassSynchronizedContractVin -> vin })
+                | Just vin `notElem` contractVINs = x : acc
+                | otherwise = acc
+            in
+              foldl f [] handledSynchronizedContracts
 
   do
     srcLogDebug [qns|
@@ -448,4 +445,4 @@ synchronizeVins =
                 [] -> srcLogDebug $ logMsg False
                 x : xs -> do
                   srcLogDebug $ logMsg True
-                  synchronizeContracts nowDay handledContracts $ x :| xs
+                  synchronizeContracts nowDay handledVINs $ x :| xs

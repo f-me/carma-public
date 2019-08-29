@@ -63,13 +63,13 @@ synchronizeContracts
    )
   => Day
   -- ^ Current day, when synchronization have been initiated
-  -> [Entity EraGlonassSynchronizedContract]
+  -> EraGlonassSynchronizedContractVins
   -- ^ A list of VINs already handled by CaRMa (already marked)
   -> NonEmpty SubProgramId
   -- ^ IDs of Era Glonass participant @SubProgram@s
   -> ReaderT SqlBackend m ()
 
-synchronizeContracts nowDay alreadyHandled egSubProgramKeys = do
+synchronizeContracts nowDay alreadyHandledVins egSubProgramKeys = do
   let subProgramModelName = typeName (Proxy :: Proxy SubProgram) :: Text
   let contractModelName   = typeName (Proxy :: Proxy Contract)   :: Text
 
@@ -78,7 +78,8 @@ synchronizeContracts nowDay alreadyHandled egSubProgramKeys = do
     as handled by us (except those which are already marked as handled by us)
     is initiated.
   |] <> "\n" <> [qmb|
-    \  Count of already handled VINs: {length alreadyHandled}.
+    \  Count of already handled VINs: \
+         {length $ fromEraGlonassSynchronizedContractVins alreadyHandledVins}.
     \  Count of active Era Glonass participant "{subProgramModelName}"s: \
          {length egSubProgramKeys}
   |]
@@ -86,10 +87,6 @@ synchronizeContracts nowDay alreadyHandled egSubProgramKeys = do
   -- Contracts to synchronize
   (contractVINs :: ([ExtrudeContractVinError Text], [(ContractId, EGVin)])) <-
     let
-      alreadyHandledVins =
-        alreadyHandled <&> \Entity { entityVal } ->
-          Just $ eraGlonassSynchronizedContractVin entityVal
-
       extract
         :: Entity Contract
         -> ([ExtrudeContractVinError Text], [(ContractId, EGVin)])
@@ -110,7 +107,8 @@ synchronizeContracts nowDay alreadyHandled egSubProgramKeys = do
         [ ContractIsActive    ==. True
         , ContractSubprogram  <-. (Just <$> toList egSubProgramKeys)
         , ContractVin         !=. Nothing
-        , ContractVin        /<-. alreadyHandledVins
+        , ContractVin        /<-. fromEraGlonassSynchronizedContractVins
+                                  alreadyHandledVins
         ]
         <>
         contractStillValidFilter

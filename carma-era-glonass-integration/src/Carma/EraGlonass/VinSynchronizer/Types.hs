@@ -12,12 +12,21 @@ module Carma.EraGlonass.VinSynchronizer.Types
 
      , type BodyParseFailure (..)
      , type FailureScenario (..)
+
+     , type EraGlonassSynchronizedContractVins
+     , toEraGlonassSynchronizedContractVins
+     , fromEraGlonassSynchronizedContractVins
      ) where
 
+import           Data.Text (type Text)
 import           Data.List.NonEmpty (type NonEmpty)
 import           Data.Aeson (type Value)
 
 import           Control.Exception (type Exception)
+
+import           Database.Persist.Types (type Entity (entityVal))
+
+import           Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persistent
 
 
 -- | Helper type for VINs unmarking.
@@ -69,3 +78,27 @@ newtype FailureScenario
       } deriving Show
 
 instance Exception FailureScenario
+
+
+-- | It's wrapped to @Maybe@ because in most places
+--   it's supposed to be wrapped to @Just@.
+--
+-- There are no @Nothing@ elements inside.
+newtype EraGlonassSynchronizedContractVins
+      = EraGlonassSynchronizedContractVins [Maybe Text]
+        deriving (Eq, Show)
+
+toEraGlonassSynchronizedContractVins
+  :: [Entity EraGlonassSynchronizedContract]
+  -> EraGlonassSynchronizedContractVins
+
+toEraGlonassSynchronizedContractVins
+  = EraGlonassSynchronizedContractVins
+  . fmap (Just . eraGlonassSynchronizedContractVin . entityVal)
+
+fromEraGlonassSynchronizedContractVins
+  :: EraGlonassSynchronizedContractVins
+  -> [Maybe Text]
+
+fromEraGlonassSynchronizedContractVins (EraGlonassSynchronizedContractVins x) =
+  x
