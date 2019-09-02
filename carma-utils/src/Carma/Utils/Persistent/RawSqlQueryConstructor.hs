@@ -50,6 +50,7 @@ import           Carma.Utils.Cons
 ------------------------------------------------------------------------------
 
 
+-- | General structure of a piece of raw SQL query.
 data RawSqlPiece (f :: * -> *)
    = RawPlain Text
    -- ^ A piece of plain SQL text
@@ -121,8 +122,14 @@ data RawSqlPiece (f :: * -> *)
    => RawWrap' (Text, Text) (f (RawSqlPiece f))
    -- ^ Like "RawWrap" but with custom open and close wrapping symbols.
 
+-- | Token to share between defining a table and requesting it
+--   or something from it.
 data TableAliasToken (model :: *) (alias :: Symbol) = TableAliasToken
 
+-- | Token to share between defining a field and a value for/of it
+--   (or to compare with that field).
+--
+-- It helps to make sure you compare a field with the same type.
 newtype TableAliasFieldToken (model :: *) (alias :: Symbol) (fieldType :: *)
       = TableAliasFieldToken (EntityField model fieldType)
 
@@ -487,6 +494,17 @@ buildRawSql = x where
 ------------------------------------------------------------------------------
 
 
+-- | Make a token of a table with an alias name which can be used both for
+--   defining such a table name (with @AS@ alias) or requesting that table by
+--   its alias name.
+--
+-- Better to use it with @TypeApplications@ extension.
+--
+-- Usage example:
+--
+-- @
+-- mkTableAliasToken @Contract @"c"
+-- @
 mkTableAliasToken
   :: forall model alias. (PersistEntity model, KnownSymbol alias)
   => TableAliasToken model alias
@@ -494,6 +512,16 @@ mkTableAliasToken
 mkTableAliasToken = TableAliasToken
 
 
+-- | Makes a field token of a table with an alias name.
+--
+-- Useful for accessing a field of a table by table's alias name.
+--
+-- Usage example:
+--
+-- @
+-- let contractT = mkTableAliasToken @Contract @"c"
+-- let vinFieldT = mkTableAliasFieldToken contractT ContractVin
+-- @
 mkTableAliasFieldToken
   :: forall model alias fieldType
    . (PersistEntity model, KnownSymbol alias, Typeable fieldType)
@@ -509,7 +537,9 @@ mkTableAliasFieldToken TableAliasToken = TableAliasFieldToken
 ------------------------------------------------------------------------------
 
 
--- | @fieldType@ doesn't matter here.
+-- | Extracts "EntityDef" of a model by its field.
+--
+-- @fieldType@ doesn't matter here.
 entityDefByField
   :: forall model fieldType. PersistEntity model
   => EntityField model fieldType
@@ -518,6 +548,7 @@ entityDefByField
 entityDefByField _ = entityDef (pure undefined :: Identity model)
 
 
+-- | Extracts "EntityDef" of a model provided as a type wrapped in @Proxy@.
 entityDefByModelProxy
   :: forall model. PersistEntity model
   => Proxy model
@@ -526,6 +557,7 @@ entityDefByModelProxy
 entityDefByModelProxy Proxy = entityDef (pure undefined :: Identity model)
 
 
+-- | Polymorphic helper to extract "EntityDef" from an alias token.
 class EntityDefByTableAliasToken t where
   entityDefByTableAliasToken :: t -> EntityDef
 
@@ -547,6 +579,8 @@ instance ( PersistEntity model
     entityDef (pure undefined :: Identity model)
 
 
+-- | Polymorphic helper to extract alias name
+--   as a term-level string from an alias token.
 class AliasByTableAliasToken t where
   aliasByTableAliasToken :: t -> String
 
@@ -567,6 +601,8 @@ instance ( PersistEntity model
     symbolVal (Proxy :: Proxy alias)
 
 
+-- | Extracts "FieldDef" from a field of a model provided by
+--   "TableAliasFieldToken".
 fieldDefByTableAliasFieldToken
   :: forall model alias fieldType
    . (PersistEntity model, KnownSymbol alias, Typeable fieldType)
@@ -576,6 +612,7 @@ fieldDefByTableAliasFieldToken
 fieldDefByTableAliasFieldToken (TableAliasFieldToken x) = persistFieldDef x
 
 
+-- | Transforms predefined "RawBasic" word into raw SQL text as "RawSqlPiece".
 raw :: Foldable f => RawBasic -> RawSqlPiece f
 raw = RawPlain . (\x -> " " `mappend` x `mappend` " ") . \case
   SELECT            -> "SELECT"
@@ -604,6 +641,10 @@ raw = RawPlain . (\x -> " " `mappend` x `mappend` " ") . \case
   IN                -> "IN"
   NOW               -> "NOW()"
 
+-- | Predefined basic raw SQL words.
+--
+-- By using these with "raw" you'd avoid typos which tend to appear when writing
+-- raw SQL queries.
 data RawBasic
    = SELECT | FROM | WHERE | ORDER_BY | ASC | DESC | LIMIT | OFFSET | WITH
    | AND | OR | STAR | COMMA | SEMICOLON | EQUALS | GREATER | LESS
@@ -611,6 +652,9 @@ data RawBasic
      deriving (Eq, Show)
 
 
+-- | Selects everything from virtual (or a real) table by an alias.
+--
+-- Useful when accessing something defined in @WITH@ section by an alias.
 rawSelectAlias
   ::
    ( Cons' f result
@@ -629,7 +673,8 @@ rawSelectAlias p@Proxy
   $ raw SELECT <| raw STAR <| raw FROM <| pure (RawAlias p)
 
 
--- | Wraps list into parenthesis and separates its values with comma.
+-- | Wraps list into provided custom open-close symbols and separates its values
+--   with provided (as "RawSqlPiece") custom separator.
 rawIntersected
   ::
    ( Cons' f piece
@@ -653,6 +698,9 @@ rawIntersected openCloseSymbols separator =
 
 
 -- | Just separates values with comma automatically.
+--
+-- Useful for enumerating fields, you don't have to write @raw COMMA@ between
+-- entries manually, and you wouldn't accidentally miss one such a separator.
 rawSeq
   ::
    ( Cons' f piece
@@ -668,6 +716,10 @@ rawSeq
 rawSeq = rawIntersected (mempty, mempty) $ raw COMMA
 
 
+-- | Gets a field and returns "RawSqlPiece" of its model table.
+--
+-- Helps to avoid cases when requested model differs from the model of fields,
+-- it's kinda like an additional type-level protection.
 getTableByItsField
   :: forall model fieldType f
    . (PersistEntity model, Typeable fieldType, Foldable f)
