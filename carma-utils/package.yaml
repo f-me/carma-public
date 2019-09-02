@@ -12,10 +12,13 @@ description:
 dependencies:
   - aeson
   - base
+  - lens
+  - persistent
   - qm-interpolated-string
   - swagger2
   - text
   - unordered-containers
+  - vector
 
 ghc-options:
   - -Wall
