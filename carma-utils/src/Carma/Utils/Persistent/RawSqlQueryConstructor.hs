@@ -21,13 +21,21 @@ module Carma.Utils.Persistent.RawSqlQueryConstructor
 
      , buildRawSql
 
+     , getTableByItsField
+
      , RawBasic (..)
      , raw
      , rawSelectAlias
      , rawIntersected
      , rawSeq
-
-     , getTableByItsField
+     , rawSome
+     , rawAll
+     , rawLimitTo
+     , rawOffsetBy
+     , rawPaging
+     , OrderBy (..)
+     , RawOrderByField
+     , rawOrderBy
      ) where
 
 import           GHC.TypeLits
@@ -326,34 +334,47 @@ type AliasesAccumulator =
 -- result <-
 --  let
 --    inferTypes
---      :: forall model a b x
---       . x ~ (Single a, Single b)
+--      :: forall model a b c x
+--       . x ~ (Single a, Single b, Single c)
 --      => Proxy model
 --      -> EntityField model a
 --      -> EntityField model b
+--      -> EntityField model c
 --      -> ReaderT SqlBackend m [x]
 --      -> ReaderT SqlBackend m [x]
 --
---    inferTypes Proxy _ _ = id
+--    inferTypes Proxy _ _ _ = id
 --
---    contract = Proxy :: Proxy Contract
---    idField  = ContractId
---    vinField = ContractVin
+--    contract      = Proxy :: Proxy Contract
+--    idField       = ContractId
+--    vinField      = ContractVin
+--    isActiveField = ContractIsActive
 --  in
---    inferTypes contract idField vinField
+--    inferTypes contract idField vinField isActiveField
 --      $ uncurry rawEsqueletoSql
 --      $ buildRawSql
 --      [ raw SELECT
---      ,   rawSeq [RawField idField, RawField vinField]
+--      ,   rawSeq [RawField idField, RawField vinField, RawField isActiveField]
 --      , raw FROM
 --      ,   getTableByItsField idField
 --      , raw WHERE
---      ,   let field = ContractIsActive
---           in RawWrap [RawField field, raw EQUALS, RawFieldValue field True]
---      , raw AND
---      ,   RawWrap [RawField vinField, raw IS, raw NOT, raw NULL]
---      , raw ORDER_BY, RawField idField, raw DESC
---      , raw LIMIT, RawValue (10 :: Word)
+--      ,   rawAll
+--            [ RawWrap
+--                [ RawField isActiveField
+--                ,   raw EQUAL
+--                ,     RawFieldValue isActiveField True
+--                ]
+--
+--            , RawWrap [RawField vinField, raw IS, raw NOT, raw NULL]
+--
+--            , RawWrap
+--                [ RawField vinField
+--                ,   raw NOT_EQUAL
+--                ,     RawFieldValue vinField $ Just ""
+--                ]
+--            ]
+--      , rawOrderBy [Ascending vinField, Descending idField]
+--      , rawLimitTo 10
 --      ]
 -- @
 buildRawSql
@@ -612,6 +633,30 @@ fieldDefByTableAliasFieldToken
 fieldDefByTableAliasFieldToken (TableAliasFieldToken x) = persistFieldDef x
 
 
+-- | Gets a field and returns "RawSqlPiece" of its model table.
+--
+-- Helps to avoid cases when requested model differs from the model of fields,
+-- it's kinda like an additional type-level protection.
+getTableByItsField
+  :: forall model fieldType f
+   . (PersistEntity model, Typeable fieldType, Foldable f)
+  => EntityField model fieldType
+  -> RawSqlPiece f
+
+getTableByItsField _ = RawTable (Proxy :: Proxy model)
+
+
+-- | Predefined basic raw SQL words.
+--
+-- By using these with "raw" you'd avoid typos which tend to appear when writing
+-- raw SQL queries.
+data RawBasic
+   = SELECT | FROM | WHERE | ORDER_BY | ASC | DESC | LIMIT | OFFSET | WITH
+   | AND | OR | STAR | COMMA | SEMICOLON | EQUAL | NOT_EQUAL | GREATER | LESS
+   | GREATER_OR_EQUALS | LESS_OR_EQUALS | NOT | NULL | AS | IS | IN | NOW
+     deriving (Eq, Show)
+
+
 -- | Transforms predefined "RawBasic" word into raw SQL text as "RawSqlPiece".
 raw :: Foldable f => RawBasic -> RawSqlPiece f
 raw = RawPlain . (\x -> " " `mappend` x `mappend` " ") . \case
@@ -629,7 +674,8 @@ raw = RawPlain . (\x -> " " `mappend` x `mappend` " ") . \case
   STAR              -> "*"
   COMMA             -> ","
   SEMICOLON         -> ";"
-  EQUALS            -> "="
+  EQUAL             -> "="
+  NOT_EQUAL         -> "<>"
   GREATER           -> ">"
   GREATER_OR_EQUALS -> ">="
   LESS              -> "<"
@@ -640,16 +686,6 @@ raw = RawPlain . (\x -> " " `mappend` x `mappend` " ") . \case
   IS                -> "IS"
   IN                -> "IN"
   NOW               -> "NOW()"
-
--- | Predefined basic raw SQL words.
---
--- By using these with "raw" you'd avoid typos which tend to appear when writing
--- raw SQL queries.
-data RawBasic
-   = SELECT | FROM | WHERE | ORDER_BY | ASC | DESC | LIMIT | OFFSET | WITH
-   | AND | OR | STAR | COMMA | SEMICOLON | EQUALS | GREATER | LESS
-   | GREATER_OR_EQUALS | LESS_OR_EQUALS | NOT | NULL | AS | IS | IN | NOW
-     deriving (Eq, Show)
 
 
 -- | Selects everything from virtual (or a real) table by an alias.
@@ -694,7 +730,7 @@ rawIntersected openCloseSymbols separator =
     Nothing -> RawPlain mempty
     Just (x, xs) ->
       RawWrap' openCloseSymbols $
-        x <| foldl (\acc y -> separator <| y <| acc) mempty xs
+        x <| foldr (\y acc -> separator <| y <| acc) mempty xs
 
 
 -- | Just separates values with comma automatically.
@@ -713,17 +749,150 @@ rawSeq
   => f piece
   -> piece
 
-rawSeq = rawIntersected (mempty, mempty) $ raw COMMA
+rawSeq = rawIntersected mempty $ raw COMMA
 
 
--- | Gets a field and returns "RawSqlPiece" of its model table.
+-- | A chain of conditions wrapped into parenthesis and joined with "OR".
 --
--- Helps to avoid cases when requested model differs from the model of fields,
--- it's kinda like an additional type-level protection.
-getTableByItsField
-  :: forall model fieldType f
-   . (PersistEntity model, Typeable fieldType, Foldable f)
-  => EntityField model fieldType
-  -> RawSqlPiece f
+-- Helps to not forget to add the "OR" SQL word.
+rawSome
+  ::
+   ( Foldable f
+   , Cons' f piece
+   , Monoid (f piece)
+   , Show (f piece)
+   , Eq (f piece)
+   , piece ~ RawSqlPiece f
+   )
+  => f piece
+  -> piece
 
-getTableByItsField _ = RawTable (Proxy :: Proxy model)
+rawSome =
+  uncons ? \case
+    Nothing -> RawPlain mempty
+    Just (x, xs) ->
+      RawWrap $ x <| foldr (\y acc -> raw OR <| y <| acc) mempty xs
+
+
+-- | A chain of conditions wrapped into parenthesis and joined with "AND".
+--
+-- Helps to not forget to add the "AND" SQL word.
+rawAll
+  ::
+   ( Foldable f
+   , Cons' f piece
+   , Monoid (f piece)
+   , Show (f piece)
+   , Eq (f piece)
+   , piece ~ RawSqlPiece f
+   )
+  => f piece
+  -> piece
+
+rawAll =
+  uncons ? \case
+    Nothing -> RawPlain mempty
+    Just (x, xs) ->
+      RawWrap $ x <| foldr (\y acc -> raw AND <| y <| acc) mempty xs
+
+
+-- | Safe pattern for @[raw LIMIT, RawValue (x :: Word)]@
+rawLimitTo
+  ::
+   ( Foldable f
+   , Applicative f
+   , Cons' f piece
+   , Show (f piece)
+   , Eq (f piece)
+   , piece ~ RawSqlPiece f
+   )
+  => Word
+  -> piece
+
+rawLimitTo = RawWrap' mempty . (raw LIMIT <|) . pure . RawValue
+
+
+-- | Safe pattern for @[raw OFFSET, RawValue (x :: Word)]@
+rawOffsetBy
+  ::
+   ( Foldable f
+   , Applicative f
+   , Cons' f piece
+   , Show (f piece)
+   , Eq (f piece)
+   , piece ~ RawSqlPiece f
+   )
+  => Word
+  -> piece
+
+rawOffsetBy = RawWrap' mempty . (raw OFFSET <|) . pure . RawValue
+
+
+type PageSize = Word
+type Page = Word
+
+-- | Safe pattern for pagination based on "LIMIT" and "OFFSET".
+rawPaging
+  ::
+   ( Foldable f
+   , Applicative f
+   , Cons' f piece
+   , Show (f piece)
+   , Eq (f piece)
+   , piece ~ RawSqlPiece f
+   )
+  => PageSize
+  -> Page
+  -> piece
+
+rawPaging pageSize page
+  | page < 2 = rawLimitTo pageSize
+  | otherwise =
+      RawWrap' mempty $
+        raw LIMIT  <| RawValue pageSize <|
+        raw OFFSET <| pure (RawValue $ pageSize * pred page)
+
+
+data OrderBy
+   = forall field. RawOrderByField field => Ascending  field
+   | forall field. RawOrderByField field => Descending field
+
+
+rawOrderBy
+  :: forall f piece
+   .
+   ( Applicative f
+   , Foldable f
+   , Functor f
+   , piece ~ RawSqlPiece f
+   , Cons' f piece
+   , Monoid (f piece)
+   , Show (f piece)
+   , Eq (f piece)
+   )
+  => f OrderBy
+  -> piece
+
+rawOrderBy = go where
+  go = RawWrap' mempty . (raw ORDER_BY <|) . pure . rawSeq . fmap f
+
+  f :: OrderBy -> RawSqlPiece f
+  f (Ascending x)  = RawWrap' mempty $ rawOrderByField x <| pure (raw ASC)
+  f (Descending x) = RawWrap' mempty $ rawOrderByField x <| pure (raw DESC)
+
+
+class RawOrderByField field where
+  rawOrderByField :: field -> RawSqlPiece f
+
+instance ( PersistEntity model
+         , Typeable fieldType
+         ) => RawOrderByField (EntityField model fieldType) where
+
+  rawOrderByField = RawField
+
+instance ( PersistEntity model
+         , KnownSymbol alias
+         , Typeable fieldType
+         ) => RawOrderByField (TableAliasFieldToken model alias fieldType) where
+
+  rawOrderByField = RawTableAliasField
