@@ -24,6 +24,7 @@ module Carma.Utils.Persistent.RawSqlQueryConstructor
      , getTableByItsField
 
      , RawBasic (..)
+     , RawBasicJoin (..)
      , raw
      , rawSelectAlias
      , rawIntersected
@@ -651,23 +652,54 @@ getTableByItsField _ = RawTable (Proxy :: Proxy model)
 -- By using these with "raw" you'd avoid typos which tend to appear when writing
 -- raw SQL queries.
 data RawBasic
-   = SELECT | FROM | WHERE | ORDER_BY | ASC | DESC | LIMIT | OFFSET | WITH
-   | AND | OR | STAR | COMMA | SEMICOLON | EQUAL | NOT_EQUAL | GREATER | LESS
-   | GREATER_OR_EQUALS | LESS_OR_EQUALS | NOT | NULL | AS | IS | IN | NOW
+   = INSERT_INTO | SELECT | UPDATE | DELETE_FROM
+   | FROM | JOIN RawBasicJoin | WHERE | ORDER_BY | ASC | DESC | LIMIT | OFFSET
+   | SET | DEFAULT | RETURNING | VALUES | USING | WITH
+   | AND | OR | STAR | COMMA | SEMICOLON | EQUAL | NOT_EQUAL | GREATER
+   | GREATER_OR_EQUALS | LESS | LESS_OR_EQUALS | NOT | NULL | AS | IS | IN | ON
+   | BETWEEN | LIKE Bool -- ^ @Bool@ indicates whether it's case-sensitive
+   | NOW
+     deriving (Eq, Show)
+
+-- | To specify which kind of @JOIN@ it is.
+data RawBasicJoin
+   = INNER -- ^ Returns records that have matching values in both tables.
+
+   | LEFT  -- ^ Returns all records from the left table,
+           --   and the matched records from the right table.
+
+   | RIGHT -- ^ Returns all records from the right table,
+           --   and the matched records from the left table.
+
+   | FULL  -- ^ Returns all records when there is a match in either
+           --   left or right table.
+
      deriving (Eq, Show)
 
 
 -- | Transforms predefined "RawBasic" word into raw SQL text as "RawSqlPiece".
 raw :: Foldable f => RawBasic -> RawSqlPiece f
 raw = RawPlain . (\x -> " " `mappend` x `mappend` " ") . \case
+  INSERT_INTO       -> "INSERT INTO"
   SELECT            -> "SELECT"
+  UPDATE            -> "UPDATE"
+  DELETE_FROM       -> "DELETE_FROM"
   FROM              -> "FROM"
+  JOIN INNER        -> "INNER JOIN"
+  JOIN LEFT         -> "LEFT OUTER JOIN"
+  JOIN RIGHT        -> "RIGHT OUTER JOIN"
+  JOIN FULL         -> "FULL OUTER JOIN"
   WHERE             -> "WHERE"
   ORDER_BY          -> "ORDER BY"
   ASC               -> "ASC"
   DESC              -> "DESC"
   LIMIT             -> "LIMIT"
   OFFSET            -> "OFFSET"
+  SET               -> "SET"
+  DEFAULT           -> "DEFAULT"
+  RETURNING         -> "RETURNING"
+  VALUES            -> "VALUES"
+  USING             -> "USING"
   WITH              -> "WITH"
   AND               -> "AND"
   OR                -> "OR"
@@ -685,6 +717,10 @@ raw = RawPlain . (\x -> " " `mappend` x `mappend` " ") . \case
   AS                -> "AS"
   IS                -> "IS"
   IN                -> "IN"
+  ON                -> "ON"
+  BETWEEN           -> "BETWEEN"
+  LIKE True         -> "LIKE"
+  LIKE False        -> "ILIKE"
   NOW               -> "NOW()"
 
 
