@@ -1,5 +1,6 @@
 {-# LANGUAGE RankNTypes, ScopedTypeVariables, ExistentialQuantification #-}
-{-# LANGUAGE KindSignatures, DataKinds, GADTs, UndecidableInstances #-}
+{-# LANGUAGE KindSignatures, DataKinds, GADTs, ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts, UndecidableInstances #-}
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, LambdaCase #-}
 
 -- | Helper to build kinda interpolated relatively safe RAW SQL.
@@ -23,6 +24,9 @@ module Carma.Utils.Persistent.RawSqlQueryConstructor
 
      , getTableByItsField
 
+     , RawFieldConstructor (..)
+     , RawFieldValueConstructor (..)
+
      , RawBasic (..)
      , RawBasicJoin (..)
      , raw
@@ -35,8 +39,16 @@ module Carma.Utils.Persistent.RawSqlQueryConstructor
      , rawOffsetBy
      , rawPaging
      , OrderBy (..)
-     , RawOrderByField
      , rawOrderBy
+     , RawFilterByValue
+     , rawEqual
+     , rawNotEqual
+     , rawGreater
+     , rawGreaterOrEqual
+     , rawLess
+     , rawLessOrEqual
+     , rawIsNull
+     , rawIsNotNull
      ) where
 
 import           GHC.TypeLits
@@ -59,6 +71,21 @@ import           Carma.Utils.Cons
 ------------------------------------------------------------------------------
 
 
+type RawPieceConstraint f =
+   ( Functor f
+   , Applicative f
+   , Foldable f
+   , Cons' f (RawSqlPiece f)
+   , Show (f (RawSqlPiece f))
+   , Eq (f (RawSqlPiece f))
+   )
+
+type RawValueConstraint fieldType =
+   ( PersistField fieldType
+   , Typeable fieldType
+   , Show fieldType
+   )
+
 -- | General structure of a piece of raw SQL query.
 data RawSqlPiece (f :: * -> *)
    = RawPlain Text
@@ -70,24 +97,24 @@ data RawSqlPiece (f :: * -> *)
    -- ^ Table name
 
    | forall model fieldType
-   . PersistEntity model
+   . (PersistEntity model, RawValueConstraint fieldType)
    => RawField (EntityField model fieldType)
    -- ^ Field name in context of table name
 
    | forall a
-   . (Show a, PersistField a)
+   . RawValueConstraint a
    => RawValue a
    -- ^ An interpolated value
 
-   | forall model a
-   . (PersistEntity model, PersistField a, Show a)
-   => RawFieldValue (EntityField model a) a
+   | forall model fieldType
+   . (PersistEntity model, RawValueConstraint fieldType)
+   => RawFieldValue (EntityField model fieldType) fieldType
    -- ^ A proven table field interpolated value
    --   (proven type of that value by provided field).
 
-   | forall m alias a
-   . (PersistEntity m, KnownSymbol alias, Typeable a, PersistField a, Show a)
-   => RawTableAliasFieldValue (TableAliasFieldToken m alias a) a
+   | forall m alias fieldType
+   . (PersistEntity m, KnownSymbol alias, RawValueConstraint fieldType)
+   => RawTableAliasFieldValue (TableAliasFieldToken m alias fieldType) fieldType
    -- ^ A proven table field interpolated value in context of alias
    --   (proven type of that value by provided field).
 
@@ -98,7 +125,7 @@ data RawSqlPiece (f :: * -> *)
    --   ("AS" and then alias name, usual for "FROM"-statement).
 
    | forall model alias fieldType
-   . (PersistEntity model, KnownSymbol alias, Typeable fieldType)
+   . (PersistEntity model, KnownSymbol alias, RawValueConstraint fieldType)
    => RawTableAliasField (TableAliasFieldToken model alias fieldType)
    -- ^ Field in context of table alias.
 
@@ -333,50 +360,44 @@ type AliasesAccumulator =
 --
 -- @
 -- result <-
---  let
---    inferTypes
---      :: forall model a b c x
---       . x ~ (Single a, Single b, Single c)
---      => Proxy model
---      -> EntityField model a
---      -> EntityField model b
---      -> EntityField model c
---      -> ReaderT SqlBackend m [x]
---      -> ReaderT SqlBackend m [x]
+--   let
+--     inferTypes
+--       :: forall model a b c x
+--        . x ~ (Single a, Single b, Single c)
+--       => Proxy model
+--       -> EntityField model a
+--       -> EntityField model b
+--       -> EntityField model c
+--       -> ReaderT SqlBackend m [x]
+--       -> ReaderT SqlBackend m [x]
 --
---    inferTypes Proxy _ _ _ = id
+--     inferTypes Proxy _ _ _ = id
 --
---    contract      = Proxy :: Proxy Contract
---    idField       = ContractId
---    vinField      = ContractVin
---    isActiveField = ContractIsActive
---  in
---    inferTypes contract idField vinField isActiveField
---      $ uncurry rawEsqueletoSql
---      $ buildRawSql
---      [ raw SELECT
---      ,   rawSeq [RawField idField, RawField vinField, RawField isActiveField]
---      , raw FROM
---      ,   getTableByItsField idField
---      , raw WHERE
---      ,   rawAll
---            [ RawWrap
---                [ RawField isActiveField
---                ,   raw EQUAL
---                ,     RawFieldValue isActiveField True
---                ]
---
---            , RawWrap [RawField vinField, raw IS, raw NOT, raw NULL]
---
---            , RawWrap
---                [ RawField vinField
---                ,   raw NOT_EQUAL
---                ,     RawFieldValue vinField $ Just ""
---                ]
---            ]
---      , rawOrderBy [Ascending vinField, Descending idField]
---      , rawLimitTo 10
---      ]
+--     contract      = Proxy :: Proxy Contract
+--     idField       = ContractId
+--     vinField      = ContractVin
+--     isActiveField = ContractIsActive
+--   in
+--     inferTypes contract idField vinField isActiveField
+--       $ uncurry rawEsqueletoSql
+--       $ buildRawSql
+--       [ raw SELECT
+--       ,   rawSeq
+--       ,     [ RawField idField
+--             , RawField vinField
+--             , RawField isActiveField
+--             ]
+--       , raw FROM
+--       ,   getTableByItsField idField
+--       , raw WHERE
+--       ,   rawAll
+--             [ isActiveField `rawEqual` True
+--             , rawIsNotNull vinField
+--             , vinField `rawNotEqual` Just ""
+--             ]
+--       , rawOrderBy [Ascending vinField, Descending idField]
+--       , rawLimitTo 10
+--       ]
 -- @
 buildRawSql
   :: forall f. Foldable f
@@ -546,7 +567,7 @@ mkTableAliasToken = TableAliasToken
 -- @
 mkTableAliasFieldToken
   :: forall model alias fieldType
-   . (PersistEntity model, KnownSymbol alias, Typeable fieldType)
+   . (PersistEntity model, KnownSymbol alias, RawValueConstraint fieldType)
   => TableAliasToken model alias
   -> EntityField model fieldType
   -> TableAliasFieldToken model alias fieldType
@@ -563,7 +584,7 @@ mkTableAliasFieldToken TableAliasToken = TableAliasFieldToken
 --
 -- @fieldType@ doesn't matter here.
 entityDefByField
-  :: forall model fieldType. PersistEntity model
+  :: forall model fieldType. (PersistEntity model, RawValueConstraint fieldType)
   => EntityField model fieldType
   -> EntityDef
 
@@ -592,7 +613,7 @@ instance ( PersistEntity model
 
 instance ( PersistEntity model
          , KnownSymbol alias
-         , Typeable fieldType
+         , RawValueConstraint fieldType
          ) => EntityDefByTableAliasToken
          ( TableAliasFieldToken model alias fieldType
          ) where
@@ -614,7 +635,7 @@ instance ( PersistEntity model
 
 instance ( PersistEntity model
          , KnownSymbol alias
-         , Typeable fieldType
+         , RawValueConstraint fieldType
          ) => AliasByTableAliasToken
          ( TableAliasFieldToken model alias fieldType
          ) where
@@ -626,8 +647,7 @@ instance ( PersistEntity model
 -- | Extracts "FieldDef" from a field of a model provided by
 --   "TableAliasFieldToken".
 fieldDefByTableAliasFieldToken
-  :: forall model alias fieldType
-   . (PersistEntity model, KnownSymbol alias, Typeable fieldType)
+  :: (PersistEntity model, KnownSymbol alias, RawValueConstraint fieldType)
   => TableAliasFieldToken model alias fieldType
   -> FieldDef
 
@@ -640,11 +660,45 @@ fieldDefByTableAliasFieldToken (TableAliasFieldToken x) = persistFieldDef x
 -- it's kinda like an additional type-level protection.
 getTableByItsField
   :: forall model fieldType f
-   . (PersistEntity model, Typeable fieldType, Foldable f)
+   . (PersistEntity model, RawValueConstraint fieldType, RawPieceConstraint f)
   => EntityField model fieldType
   -> RawSqlPiece f
 
 getTableByItsField _ = RawTable (Proxy :: Proxy model)
+
+
+-- | Polymorphic between "RawField" and "RawTableAliasField".
+class RawFieldConstructor field where
+  rawFieldConstructor :: field -> RawSqlPiece f
+
+instance ( PersistEntity model
+         , RawValueConstraint fieldType
+         ) => RawFieldConstructor (EntityField model fieldType) where
+
+  rawFieldConstructor = RawField
+
+instance ( PersistEntity model
+         , KnownSymbol alias
+         , RawValueConstraint fieldType
+         ) => RawFieldConstructor
+         ( TableAliasFieldToken model alias fieldType
+         ) where
+
+  rawFieldConstructor = RawTableAliasField
+
+
+-- | Polymorphic between "RawFieldValue" and "RawTableAliasFieldValue".
+class RawFieldValueConstructor t where
+  rawFieldValueConstructor :: RawValueConstraint v => t v -> v -> RawSqlPiece f
+
+instance PersistEntity m => RawFieldValueConstructor (EntityField m) where
+  rawFieldValueConstructor = RawFieldValue
+
+instance ( PersistEntity model
+         , KnownSymbol alias
+         ) => RawFieldValueConstructor (TableAliasFieldToken model alias) where
+
+  rawFieldValueConstructor = RawTableAliasFieldValue
 
 
 -- | Predefined basic raw SQL words.
@@ -656,7 +710,7 @@ data RawBasic
    | FROM | JOIN RawBasicJoin | WHERE | ORDER_BY | ASC | DESC | LIMIT | OFFSET
    | SET | DEFAULT | RETURNING | VALUES | USING | WITH
    | AND | OR | STAR | COMMA | SEMICOLON | EQUAL | NOT_EQUAL | GREATER
-   | GREATER_OR_EQUALS | LESS | LESS_OR_EQUALS | NOT | NULL | AS | IS | IN | ON
+   | GREATER_OR_EQUAL | LESS | LESS_OR_EQUAL | NOT | NULL | AS | IS | IN | ON
    | BETWEEN | LIKE Bool -- ^ @Bool@ indicates whether it's case-sensitive
    | NOW
      deriving (Eq, Show)
@@ -680,65 +734,57 @@ data RawBasicJoin
 -- | Transforms predefined "RawBasic" word into raw SQL text as "RawSqlPiece".
 raw :: Foldable f => RawBasic -> RawSqlPiece f
 raw = RawPlain . (\x -> " " `mappend` x `mappend` " ") . \case
-  INSERT_INTO       -> "INSERT INTO"
-  SELECT            -> "SELECT"
-  UPDATE            -> "UPDATE"
-  DELETE_FROM       -> "DELETE_FROM"
-  FROM              -> "FROM"
-  JOIN INNER        -> "INNER JOIN"
-  JOIN LEFT         -> "LEFT OUTER JOIN"
-  JOIN RIGHT        -> "RIGHT OUTER JOIN"
-  JOIN FULL         -> "FULL OUTER JOIN"
-  WHERE             -> "WHERE"
-  ORDER_BY          -> "ORDER BY"
-  ASC               -> "ASC"
-  DESC              -> "DESC"
-  LIMIT             -> "LIMIT"
-  OFFSET            -> "OFFSET"
-  SET               -> "SET"
-  DEFAULT           -> "DEFAULT"
-  RETURNING         -> "RETURNING"
-  VALUES            -> "VALUES"
-  USING             -> "USING"
-  WITH              -> "WITH"
-  AND               -> "AND"
-  OR                -> "OR"
-  STAR              -> "*"
-  COMMA             -> ","
-  SEMICOLON         -> ";"
-  EQUAL             -> "="
-  NOT_EQUAL         -> "<>"
-  GREATER           -> ">"
-  GREATER_OR_EQUALS -> ">="
-  LESS              -> "<"
-  LESS_OR_EQUALS    -> "<="
-  NOT               -> "NOT"
-  NULL              -> "NULL"
-  AS                -> "AS"
-  IS                -> "IS"
-  IN                -> "IN"
-  ON                -> "ON"
-  BETWEEN           -> "BETWEEN"
-  LIKE True         -> "LIKE"
-  LIKE False        -> "ILIKE"
-  NOW               -> "NOW()"
+  INSERT_INTO      -> "INSERT INTO"
+  SELECT           -> "SELECT"
+  UPDATE           -> "UPDATE"
+  DELETE_FROM      -> "DELETE_FROM"
+  FROM             -> "FROM"
+  JOIN INNER       -> "INNER JOIN"
+  JOIN LEFT        -> "LEFT OUTER JOIN"
+  JOIN RIGHT       -> "RIGHT OUTER JOIN"
+  JOIN FULL        -> "FULL OUTER JOIN"
+  WHERE            -> "WHERE"
+  ORDER_BY         -> "ORDER BY"
+  ASC              -> "ASC"
+  DESC             -> "DESC"
+  LIMIT            -> "LIMIT"
+  OFFSET           -> "OFFSET"
+  SET              -> "SET"
+  DEFAULT          -> "DEFAULT"
+  RETURNING        -> "RETURNING"
+  VALUES           -> "VALUES"
+  USING            -> "USING"
+  WITH             -> "WITH"
+  AND              -> "AND"
+  OR               -> "OR"
+  STAR             -> "*"
+  COMMA            -> ","
+  SEMICOLON        -> ";"
+  EQUAL            -> "="
+  NOT_EQUAL        -> "<>"
+  GREATER          -> ">"
+  GREATER_OR_EQUAL -> ">="
+  LESS             -> "<"
+  LESS_OR_EQUAL    -> "<="
+  NOT              -> "NOT"
+  NULL             -> "NULL"
+  AS               -> "AS"
+  IS               -> "IS"
+  IN               -> "IN"
+  ON               -> "ON"
+  BETWEEN          -> "BETWEEN"
+  LIKE True        -> "LIKE"
+  LIKE False       -> "ILIKE"
+  NOW              -> "NOW()"
 
 
 -- | Selects everything from virtual (or a real) table by an alias.
 --
 -- Useful when accessing something defined in @WITH@ section by an alias.
 rawSelectAlias
-  ::
-   ( Cons' f result
-   , Foldable f
-   , Applicative f
-   , Show (f result)
-   , Eq (f result)
-   , KnownSymbol a
-   , result ~ RawSqlPiece f
-   )
+  :: (RawPieceConstraint f, KnownSymbol a)
   => Proxy a
-  -> result
+  -> RawSqlPiece f
 
 rawSelectAlias p@Proxy
   = RawWrap
@@ -748,18 +794,11 @@ rawSelectAlias p@Proxy
 -- | Wraps list into provided custom open-close symbols and separates its values
 --   with provided (as "RawSqlPiece") custom separator.
 rawIntersected
-  ::
-   ( Cons' f piece
-   , Foldable f
-   , Monoid (f piece)
-   , Show (f piece)
-   , Eq (f piece)
-   , piece ~ RawSqlPiece f
-   )
+  :: (RawPieceConstraint f, Monoid (f (RawSqlPiece f)))
   => (Text, Text)
-  -> piece
-  -> f piece
-  -> piece
+  -> RawSqlPiece f
+  -> f (RawSqlPiece f)
+  -> RawSqlPiece f
 
 rawIntersected openCloseSymbols separator =
   uncons ? \case
@@ -774,16 +813,9 @@ rawIntersected openCloseSymbols separator =
 -- Useful for enumerating fields, you don't have to write @raw COMMA@ between
 -- entries manually, and you wouldn't accidentally miss one such a separator.
 rawSeq
-  ::
-   ( Cons' f piece
-   , Foldable f
-   , Monoid (f piece)
-   , Show (f piece)
-   , Eq (f piece)
-   , piece ~ RawSqlPiece f
-   )
-  => f piece
-  -> piece
+  :: (RawPieceConstraint f, Monoid (f (RawSqlPiece f)))
+  => f (RawSqlPiece f)
+  -> RawSqlPiece f
 
 rawSeq = rawIntersected mempty $ raw COMMA
 
@@ -792,16 +824,9 @@ rawSeq = rawIntersected mempty $ raw COMMA
 --
 -- Helps to not forget to add the "OR" SQL word.
 rawSome
-  ::
-   ( Foldable f
-   , Cons' f piece
-   , Monoid (f piece)
-   , Show (f piece)
-   , Eq (f piece)
-   , piece ~ RawSqlPiece f
-   )
-  => f piece
-  -> piece
+  :: (RawPieceConstraint f, Monoid (f (RawSqlPiece f)))
+  => f (RawSqlPiece f)
+  -> RawSqlPiece f
 
 rawSome =
   uncons ? \case
@@ -814,16 +839,9 @@ rawSome =
 --
 -- Helps to not forget to add the "AND" SQL word.
 rawAll
-  ::
-   ( Foldable f
-   , Cons' f piece
-   , Monoid (f piece)
-   , Show (f piece)
-   , Eq (f piece)
-   , piece ~ RawSqlPiece f
-   )
-  => f piece
-  -> piece
+  :: (RawPieceConstraint f, Monoid (f (RawSqlPiece f)))
+  => f (RawSqlPiece f)
+  -> RawSqlPiece f
 
 rawAll =
   uncons ? \case
@@ -833,33 +851,15 @@ rawAll =
 
 
 -- | Safe pattern for @[raw LIMIT, RawValue (x :: Word)]@
-rawLimitTo
-  ::
-   ( Foldable f
-   , Applicative f
-   , Cons' f piece
-   , Show (f piece)
-   , Eq (f piece)
-   , piece ~ RawSqlPiece f
-   )
-  => Word
-  -> piece
-
+rawLimitTo :: RawPieceConstraint f => Word -> RawSqlPiece f
 rawLimitTo = RawWrap' mempty . (raw LIMIT <|) . pure . RawValue
 
 
 -- | Safe pattern for @[raw OFFSET, RawValue (x :: Word)]@
 rawOffsetBy
-  ::
-   ( Foldable f
-   , Applicative f
-   , Cons' f piece
-   , Show (f piece)
-   , Eq (f piece)
-   , piece ~ RawSqlPiece f
-   )
+  :: (RawPieceConstraint f, RawPieceConstraint f)
   => Word
-  -> piece
+  -> RawSqlPiece f
 
 rawOffsetBy = RawWrap' mempty . (raw OFFSET <|) . pure . RawValue
 
@@ -868,19 +868,7 @@ type PageSize = Word
 type Page = Word
 
 -- | Safe pattern for pagination based on "LIMIT" and "OFFSET".
-rawPaging
-  ::
-   ( Foldable f
-   , Applicative f
-   , Cons' f piece
-   , Show (f piece)
-   , Eq (f piece)
-   , piece ~ RawSqlPiece f
-   )
-  => PageSize
-  -> Page
-  -> piece
-
+rawPaging :: RawPieceConstraint f => PageSize -> Page -> RawSqlPiece f
 rawPaging pageSize page
   | page < 2 = rawLimitTo pageSize
   | otherwise =
@@ -890,45 +878,97 @@ rawPaging pageSize page
 
 
 data OrderBy
-   = forall field. RawOrderByField field => Ascending  field
-   | forall field. RawOrderByField field => Descending field
+   = forall field. RawFieldConstructor field => Ascending  field
+   | forall field. RawFieldConstructor field => Descending field
 
 
 rawOrderBy
-  :: forall f piece
-   .
-   ( Applicative f
-   , Foldable f
-   , Functor f
-   , piece ~ RawSqlPiece f
-   , Cons' f piece
-   , Monoid (f piece)
-   , Show (f piece)
-   , Eq (f piece)
-   )
+  :: forall f. (RawPieceConstraint f, Monoid (f (RawSqlPiece f)))
   => f OrderBy
-  -> piece
+  -> RawSqlPiece f
 
 rawOrderBy = go where
   go = RawWrap' mempty . (raw ORDER_BY <|) . pure . rawSeq . fmap f
 
   f :: OrderBy -> RawSqlPiece f
-  f (Ascending x)  = RawWrap' mempty $ rawOrderByField x <| pure (raw ASC)
-  f (Descending x) = RawWrap' mempty $ rawOrderByField x <| pure (raw DESC)
+  f (Ascending x)  = RawWrap' mempty $ rawFieldConstructor x <| pure (raw ASC)
+  f (Descending x) = RawWrap' mempty $ rawFieldConstructor x <| pure (raw DESC)
 
 
-class RawOrderByField field where
-  rawOrderByField :: field -> RawSqlPiece f
+type RawFilterByValue t f v =
+   ( RawPieceConstraint f
+   , RawValueConstraint v
+   , RawFieldConstructor (t v)
+   , RawFieldValueConstructor t
+   ) => t v -> v -> RawSqlPiece f
 
-instance ( PersistEntity model
-         , Typeable fieldType
-         ) => RawOrderByField (EntityField model fieldType) where
 
-  rawOrderByField = RawField
+rawFilterByValue
+  ::
+   ( RawPieceConstraint f
+   , RawFieldConstructor (t fieldType)
+   , RawFieldValueConstructor t
+   , RawValueConstraint fieldType
+   )
+  => RawSqlPiece f
+  -> t fieldType
+  -> fieldType
+  -> RawSqlPiece f
 
-instance ( PersistEntity model
-         , KnownSymbol alias
-         , Typeable fieldType
-         ) => RawOrderByField (TableAliasFieldToken model alias fieldType) where
+rawFilterByValue pieceInBetween field value
+   = RawWrap
+   $ rawFieldConstructor field
+  <| pieceInBetween
+  <| pure (rawFieldValueConstructor field value)
 
-  rawOrderByField = RawTableAliasField
+
+rawEqual :: RawFilterByValue t f v
+rawEqual = rawFilterByValue $ raw EQUAL
+
+rawNotEqual :: RawFilterByValue t f v
+rawNotEqual = rawFilterByValue $ raw NOT_EQUAL
+
+rawGreater :: RawFilterByValue t f v
+rawGreater = rawFilterByValue $ raw GREATER
+
+rawGreaterOrEqual :: RawFilterByValue t f v
+rawGreaterOrEqual = rawFilterByValue $ raw GREATER_OR_EQUAL
+
+rawLess :: RawFilterByValue t f v
+rawLess = rawFilterByValue $ raw LESS
+
+rawLessOrEqual :: RawFilterByValue t f v
+rawLessOrEqual = rawFilterByValue $ raw LESS_OR_EQUAL
+
+
+type RawFilterByNullability f t v x =
+   ( RawPieceConstraint f
+   , RawFieldConstructor (t v)
+   , RawValueConstraint x
+   , v ~ Maybe x
+   )
+
+rawFilterByNullability
+  :: RawFilterByNullability f t v x
+  => Bool
+  -> t v
+  -> RawSqlPiece f
+
+rawFilterByNullability isNull field = go where
+  go = RawWrap $ rawFieldConstructor field <| raw IS <| f (pure $ raw NULL)
+  f = if isNull then id else (raw NOT <|)
+
+
+rawIsNull
+  :: RawFilterByNullability f t v x
+  => t v
+  -> RawSqlPiece f
+
+rawIsNull = rawFilterByNullability True
+
+rawIsNotNull
+  :: RawFilterByNullability f t v x
+  => t v
+  -> RawSqlPiece f
+
+rawIsNotNull = rawFilterByNullability False
