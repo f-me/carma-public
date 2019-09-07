@@ -49,6 +49,8 @@ module Carma.Utils.Persistent.RawSqlQueryConstructor
      , rawLessOrEqual
      , rawIsNull
      , rawIsNotNull
+     , rawIn
+     , rawNotIn
      ) where
 
 import           GHC.TypeLits
@@ -900,21 +902,12 @@ type RawFilterByValue t f v =
    , RawValueConstraint v
    , RawFieldConstructor (t v)
    , RawFieldValueConstructor t
-   ) => t v -> v -> RawSqlPiece f
-
-
-rawFilterByValue
-  ::
-   ( RawPieceConstraint f
-   , RawFieldConstructor (t fieldType)
-   , RawFieldValueConstructor t
-   , RawValueConstraint fieldType
    )
-  => RawSqlPiece f
-  -> t fieldType
-  -> fieldType
+  => t v
+  -> v
   -> RawSqlPiece f
 
+rawFilterByValue :: RawSqlPiece f -> RawFilterByValue t f v
 rawFilterByValue pieceInBetween field value
    = RawWrap
    $ rawFieldConstructor field
@@ -947,28 +940,38 @@ type RawFilterByNullability f t v x =
    , RawValueConstraint x
    , v ~ Maybe x
    )
-
-rawFilterByNullability
-  :: RawFilterByNullability f t v x
-  => Bool
-  -> t v
+  => t v
   -> RawSqlPiece f
 
+rawFilterByNullability :: Bool -> RawFilterByNullability f t v x
 rawFilterByNullability isNull field = go where
   go = RawWrap $ rawFieldConstructor field <| raw IS <| f (pure $ raw NULL)
   f = if isNull then id else (raw NOT <|)
 
 
-rawIsNull
-  :: RawFilterByNullability f t v x
-  => t v
-  -> RawSqlPiece f
-
+rawIsNull :: RawFilterByNullability f t v x
 rawIsNull = rawFilterByNullability True
 
-rawIsNotNull
-  :: RawFilterByNullability f t v x
-  => t v
+rawIsNotNull :: RawFilterByNullability f t v x
+rawIsNotNull = rawFilterByNullability False
+
+
+type RawWhetherIn f field
+   = (RawPieceConstraint f, RawFieldConstructor field)
+  => field
+  -> RawSqlPiece f
   -> RawSqlPiece f
 
-rawIsNotNull = rawFilterByNullability False
+rawWhetherIn :: Bool -> RawWhetherIn f field
+rawWhetherIn isIn field inWhere = go where
+  go = RawWrap $ rawFieldConstructor field <| f (raw IN <| pure x)
+  f = if isIn then id else (raw NOT <|)
+  x = RawWrap $ pure inWhere
+
+
+rawIn :: RawWhetherIn f field
+rawIn = rawWhetherIn True
+
+
+rawNotIn :: RawWhetherIn f field
+rawNotIn = rawWhetherIn False
