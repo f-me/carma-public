@@ -1,6 +1,6 @@
 {-# LANGUAGE RankNTypes, ScopedTypeVariables, ExistentialQuantification #-}
 {-# LANGUAGE KindSignatures, DataKinds, GADTs, ConstraintKinds #-}
-{-# LANGUAGE FlexibleContexts, UndecidableInstances #-}
+{-# LANGUAGE FlexibleContexts, UndecidableInstances, TypeApplications #-}
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, LambdaCase #-}
 
 -- | Helper to build kinda interpolated relatively safe RAW SQL.
@@ -16,9 +16,13 @@ module Carma.Utils.Persistent.RawSqlQueryConstructor
 
      , TableAliasToken
      , mkTableAliasToken
+     , tableAliasTokenAliasProxy
 
      , TableAliasFieldToken
      , mkTableAliasFieldToken
+     , tableAliasFieldTokenAliasProxy
+
+     , AliasByTableAliasToken (..)
 
      , buildRawSql
 
@@ -61,6 +65,7 @@ import           Data.Proxy
 import           Data.Typeable
 import           Data.Functor.Identity
 import qualified Data.Vector as V
+import           Data.String (IsString (fromString))
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 
@@ -203,7 +208,7 @@ instance Eq (f (RawSqlPiece f)) => Eq (RawSqlPiece f) where
 
   RawTableAliasFieldValue          x y == RawTableAliasFieldValue        a b =
     entityDefByTableAliasToken     x   == entityDefByTableAliasToken     a   &&
-    aliasByTableAliasToken         x   == aliasByTableAliasToken         a   &&
+    aliasByTableAliasToken'        x   == aliasByTableAliasToken'        a   &&
     fieldDefByTableAliasFieldToken x   == fieldDefByTableAliasFieldToken a   &&
     toPersistValue                   y == toPersistValue                   b
 
@@ -211,13 +216,13 @@ instance Eq (f (RawSqlPiece f)) => Eq (RawSqlPiece f) where
 
   RawTableAlias                x == RawTableAlias              y =
     entityDefByTableAliasToken x == entityDefByTableAliasToken y &&
-    aliasByTableAliasToken     x == aliasByTableAliasToken     y
+    aliasByTableAliasToken'    x == aliasByTableAliasToken'    y
 
   RawTableAlias _ == _ = False
 
   RawTableAliasField               x == RawTableAliasField             y =
     entityDefByTableAliasToken     x == entityDefByTableAliasToken     y &&
-    aliasByTableAliasToken         x == aliasByTableAliasToken         y &&
+    aliasByTableAliasToken'        x == aliasByTableAliasToken'        y &&
     fieldDefByTableAliasFieldToken x == fieldDefByTableAliasFieldToken y
 
   RawTableAliasField _ == _ = False
@@ -293,7 +298,7 @@ instance Show (f (RawSqlPiece f)) => Show (RawSqlPiece f) where
       RawTableAliasFieldValue (
         model name: "{unHaskellName $ entityHaskell model}", \
         table name (as in database): "{unDBName $ entityDB model}", \
-        table alias: "{aliasByTableAliasToken x}", \
+        table alias: "{aliasByTableAliasToken' x}", \
         field name: "{unHaskellName $ fieldHaskell field}", \
         field name (as in database): "{unDBName $ fieldDB field}", \
         value: {show y}
@@ -307,7 +312,7 @@ instance Show (f (RawSqlPiece f)) => Show (RawSqlPiece f) where
       RawTableAlias (
         model name: "{unHaskellName $ entityHaskell model}", \
         table name (as in database): "{unDBName $ entityDB model}", \
-        table alias: "{aliasByTableAliasToken x}"
+        table alias: "{aliasByTableAliasToken' x}"
       )
     |]
 
@@ -319,7 +324,7 @@ instance Show (f (RawSqlPiece f)) => Show (RawSqlPiece f) where
       RawTableAliasField (
         model name: "{unHaskellName $ entityHaskell model}", \
         table name (as in database): "{unDBName $ entityDB model}", \
-        table alias: "{aliasByTableAliasToken x}",
+        table alias: "{aliasByTableAliasToken' x}",
         field name: "{unHaskellName $ fieldHaskell field}", \
         field name (as in database): "{unDBName $ fieldDB field}"
       )
@@ -553,10 +558,18 @@ buildRawSql = x where
 -- mkTableAliasToken @Contract @"c"
 -- @
 mkTableAliasToken
-  :: forall model alias. (PersistEntity model, KnownSymbol alias)
+  :: (PersistEntity model, KnownSymbol alias)
   => TableAliasToken model alias
 
 mkTableAliasToken = TableAliasToken
+
+
+tableAliasTokenAliasProxy
+  :: forall model alias. (PersistEntity model, KnownSymbol alias)
+  => TableAliasToken model alias
+  -> Proxy alias
+
+tableAliasTokenAliasProxy TableAliasToken = Proxy
 
 
 -- | Makes a field token of a table with an alias name.
@@ -570,13 +583,20 @@ mkTableAliasToken = TableAliasToken
 -- let vinFieldT = mkTableAliasFieldToken contractT ContractVin
 -- @
 mkTableAliasFieldToken
-  :: forall model alias fieldType
-   . (PersistEntity model, KnownSymbol alias, RawValueConstraint fieldType)
+  :: (PersistEntity model, KnownSymbol alias, RawValueConstraint fieldType)
   => TableAliasToken model alias
   -> EntityField model fieldType
   -> TableAliasFieldToken model alias fieldType
 
 mkTableAliasFieldToken TableAliasToken = TableAliasFieldToken
+
+
+tableAliasFieldTokenAliasProxy
+  :: (PersistEntity model, KnownSymbol alias, RawValueConstraint fieldType)
+  => TableAliasFieldToken model alias fieldType
+  -> Proxy alias
+
+tableAliasFieldTokenAliasProxy (TableAliasFieldToken _) = Proxy
 
 
 ------------------------------------------------------------------------------
@@ -629,13 +649,13 @@ instance ( PersistEntity model
 -- | Polymorphic helper to extract alias name
 --   as a term-level string from an alias token.
 class AliasByTableAliasToken t where
-  aliasByTableAliasToken :: t -> String
+  aliasByTableAliasToken :: IsString s => t -> s
 
 instance ( PersistEntity model
          , KnownSymbol alias
          ) => AliasByTableAliasToken (TableAliasToken model alias) where
 
-  aliasByTableAliasToken TableAliasToken = symbolVal (Proxy :: Proxy alias)
+  aliasByTableAliasToken TableAliasToken = fromString $ symbolVal $ Proxy @alias
 
 instance ( PersistEntity model
          , KnownSymbol alias
@@ -645,7 +665,12 @@ instance ( PersistEntity model
          ) where
 
   aliasByTableAliasToken (TableAliasFieldToken _) =
-    symbolVal (Proxy :: Proxy alias)
+    fromString $ symbolVal $ Proxy @alias
+
+
+-- | "aliasByTableAliasToken" bounded to "String".
+aliasByTableAliasToken' :: AliasByTableAliasToken t => t -> String
+aliasByTableAliasToken' = aliasByTableAliasToken
 
 
 -- | Extracts "FieldDef" from a field of a model provided by
