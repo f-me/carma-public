@@ -13,6 +13,8 @@
 -- this builder of raw SQL queries inside such a monad.
 module Carma.Utils.Persistent.RawSqlQueryConstructor
      ( RawSqlPiece (..)
+     , RawPieceConstraint
+     , RawValueConstraint
 
      , TableAliasToken
      , mkTableAliasToken
@@ -31,10 +33,10 @@ module Carma.Utils.Persistent.RawSqlQueryConstructor
      , RawFieldConstructor (..)
      , RawFieldValueConstructor (..)
 
-     , RawBasic (..)
+     , RawBasic (..), raw
      , RawBasicJoin (..)
+     , RawBasicType (..), toRawSqlType
 
-     , raw
      , rawSelectAlias
      , rawIntersected
      , rawSeq
@@ -55,8 +57,21 @@ module Carma.Utils.Persistent.RawSqlQueryConstructor
      , rawLess,            rawLess'
      , rawLessOrEqual,     rawLessOrEqual'
 
-     , rawIsNull, rawIsNotNull
-     , rawIn,     rawNotIn
+     , rawIsNull,  rawIsNotNull
+     , rawIsNull', rawIsNotNull'
+     , rawIn,      rawNotIn
+
+     , rawCount
+     , rawCoalesce
+     , rawNullIf
+     , rawBranching
+     , rawConcat
+     , rawLength
+     , rawCast
+     , rawNow
+
+     , rawMatchRegex,    rawMatchRegex'
+     , rawNotMatchRegex, rawNotMatchRegex'
      ) where
 
 import           GHC.TypeLits
@@ -82,8 +97,8 @@ import           Carma.Utils.Cons
 
 type RawPieceConstraint f =
    ( Functor f
-   , Applicative f
    , Foldable f
+   , Applicative f
    , Cons' f (RawSqlPiece f)
    , Show (f (RawSqlPiece f))
    , Eq (f (RawSqlPiece f))
@@ -741,7 +756,7 @@ data RawBasic
    | AND | OR | STAR | COMMA | SEMICOLON | EQUAL | NOT_EQUAL | GREATER
    | GREATER_OR_EQUAL | LESS | LESS_OR_EQUAL | NOT | NULL | AS | IS | IN | ON
    | BETWEEN | LIKE Bool -- ^ @Bool@ indicates whether it's case-sensitive
-   | NOW
+   | CASE | WHEN | THEN | ELSE | END
      deriving (Eq, Show)
 
 -- | To specify which kind of @JOIN@ it is.
@@ -760,13 +775,12 @@ data RawBasicJoin
      deriving (Eq, Show)
 
 
--- | Transforms predefined "RawBasic" word into raw SQL text as "RawSqlPiece".
-raw :: Foldable f => RawBasic -> RawSqlPiece f
-raw = RawPlain . (\x -> " " `mappend` x `mappend` " ") . \case
+rawBasicSql :: RawBasic -> Text
+rawBasicSql = \case
   INSERT_INTO      -> "INSERT INTO"
   SELECT           -> "SELECT"
   UPDATE           -> "UPDATE"
-  DELETE_FROM      -> "DELETE_FROM"
+  DELETE_FROM      -> "DELETE FROM"
   FROM             -> "FROM"
   JOIN INNER       -> "INNER JOIN"
   JOIN LEFT        -> "LEFT OUTER JOIN"
@@ -804,7 +818,16 @@ raw = RawPlain . (\x -> " " `mappend` x `mappend` " ") . \case
   BETWEEN          -> "BETWEEN"
   LIKE True        -> "LIKE"
   LIKE False       -> "ILIKE"
-  NOW              -> "NOW()"
+  CASE             -> "CASE"
+  WHEN             -> "WHEN"
+  THEN             -> "THEN"
+  ELSE             -> "ELSE"
+  END              -> "END"
+
+
+-- | Transforms predefined "RawBasic" word into raw SQL text as "RawSqlPiece".
+raw :: Foldable f => RawBasic -> RawSqlPiece f
+raw = RawPlain . (\x -> " " `mappend` x `mappend` " ") . rawBasicSql
 
 
 -- | Selects everything from virtual (or a real) table by an alias.
@@ -987,22 +1010,52 @@ type RawFilterByNullability f t v x =
    ( RawPieceConstraint f
    , RawFieldConstructor (t v)
    , RawValueConstraint x
-   , v ~ Maybe x
    )
-  => t v
+
+rawFilterByNullability
+  :: (RawFilterByNullability f t v x)
+  => Proxy x
+  -> Bool
+  -> t v
   -> RawSqlPiece f
 
-rawFilterByNullability :: Bool -> RawFilterByNullability f t v x
-rawFilterByNullability isNull field = go where
+rawFilterByNullability Proxy isNull field = go where
   go = RawWrap $ rawFieldConstructor field <| raw IS <| f (pure $ raw NULL)
   f = if isNull then id else (raw NOT <|)
 
 
-rawIsNull :: RawFilterByNullability f t v x
-rawIsNull = rawFilterByNullability True
+rawIsNull
+  :: forall f t v x. (RawFilterByNullability f t v x, v ~ Maybe x)
+  => t v
+  -> RawSqlPiece f
 
-rawIsNotNull :: RawFilterByNullability f t v x
-rawIsNotNull = rawFilterByNullability False
+rawIsNull = rawFilterByNullability (Proxy @(Maybe x)) True
+
+
+-- | "rawIsNull" without constraint of a field optionality.
+rawIsNull'
+  :: forall f t v. RawFilterByNullability f t v v
+  => t v
+  -> RawSqlPiece f
+
+rawIsNull' = rawFilterByNullability (Proxy @v) True
+
+
+rawIsNotNull
+  :: forall f t v x. (RawFilterByNullability f t v x, v ~ Maybe x)
+  => t v
+  -> RawSqlPiece f
+
+rawIsNotNull = rawFilterByNullability (Proxy @(Maybe x)) False
+
+
+-- | "rawIsNotNull" without constraint of a field optionality.
+rawIsNotNull'
+  :: forall f t v. RawFilterByNullability f t v v
+  => t v
+  -> RawSqlPiece f
+
+rawIsNotNull' = rawFilterByNullability (Proxy @v) False
 
 
 type RawWhetherIn f field
@@ -1024,3 +1077,186 @@ rawIn = rawWhetherIn True
 
 rawNotIn :: RawWhetherIn f field
 rawNotIn = rawWhetherIn False
+
+
+type Condition f = RawSqlPiece f
+type Result    f = RawSqlPiece f
+
+-- | Generic conditional expression,
+--   similar to if/else statements in other programming languages.
+--
+-- Usual @CASE@-@WHEN@-@THEN@-@ELSE@-@END@ SQL branching.
+rawBranching
+  :: (RawPieceConstraint f, Cons' f (Condition f, Result f))
+  => (Condition f, Result f)
+  -- ^ First condition and result (at least one condition is required).
+  -> f (Condition f, Result f)
+  -- ^ Optional list (allowed to be empty) of pairs of condition and result.
+  -> Maybe (Result f)
+  -- ^ Optional @ELSE@-clause result.
+  -> RawSqlPiece f
+  -- ^ End-point result.
+
+rawBranching x xs else' = go where
+  go = RawWrap $ raw CASE <| conditions (x <| xs) (elseFn $ pure $ raw END)
+  elseFn = maybe id (\y ys -> raw ELSE <| RawWrap (pure y) <| ys) else'
+  conditions ys ending = foldr condReducer ending ys
+
+  condReducer (cond, result) ending
+     = raw WHEN <| RawWrap (pure cond)
+    <| raw THEN <| RawWrap (pure result)
+    <| ending
+
+
+-- | Predefined basic raw SQL function names.
+data RawBasicFunction
+   = COUNT | COALESCE | NULLIF | CONCAT | LENGTH | CAST | NOW
+     deriving (Eq, Show)
+
+
+-- | Wrapping for a function call (see "RawWrap'").
+rawFnWrap :: RawBasicFunction -> (Text, Text)
+rawFnWrap fnName = ([qm|\ {fnName}(|], ") ")
+
+
+rawCount :: RawPieceConstraint f => RawSqlPiece f -> RawSqlPiece f
+rawCount = RawWrap' (rawFnWrap COUNT) . pure
+
+
+rawCoalesce
+  :: (RawPieceConstraint f, Monoid (f (RawSqlPiece f)))
+  => f (RawSqlPiece f)
+  -> RawSqlPiece f
+
+rawCoalesce = rawFnWrap COALESCE `rawIntersected` raw COMMA
+
+
+rawNullIf
+  :: RawPieceConstraint f
+  => RawSqlPiece f
+  -> RawSqlPiece f
+  -> RawSqlPiece f
+
+rawNullIf arg1 arg2 = RawWrap' (rawFnWrap NULLIF) (arg1 <| pure arg2)
+
+
+-- | Concat strings function.
+rawConcat
+  :: (RawPieceConstraint f, Monoid (f (RawSqlPiece f)))
+  => f (RawSqlPiece f)
+  -> RawSqlPiece f
+
+rawConcat = rawFnWrap CONCAT `rawIntersected` raw COMMA
+
+
+-- | Length of an SQL string function.
+rawLength :: RawPieceConstraint f => RawSqlPiece f -> RawSqlPiece f
+rawLength = RawWrap' (rawFnWrap LENGTH) . pure
+
+
+-- | Extend it when you need it.
+--
+-- @Maybe Word@ indicates optional size of a type.
+--
+-- See https://www.postgresql.org/docs/9.3/datatype.html
+data RawBasicType
+   = CHAR    (Maybe Word)
+   | VARCHAR (Maybe Word)
+   | TEXT
+   | INT
+   | REAL
+   | BOOL
+   | DATE
+   | TIME      | TIMETZ      -- ^ "TIME" with time zone
+   | TIMESTAMP | TIMESTAMPTZ -- ^ "TIMESTAMP" with time zone
+   | ARRAY (Maybe Word) RawBasicType
+     deriving (Show, Eq)
+
+
+toRawSqlType :: RawPieceConstraint f => RawBasicType -> RawSqlPiece f
+toRawSqlType = go where
+  go             = RawPlain . f
+
+  applySize      = maybe mempty $ \n -> [qm|({n})|] :: Text
+  applyArraySize = maybe mempty $ \n -> [qm|[{n}]|] :: Text
+
+  f = \case
+    CHAR    size -> [qm|    CHAR{applySize size} |]
+    VARCHAR size -> [qm| VARCHAR{applySize size} |]
+    TEXT         -> "TEXT"
+    INT          -> "INTEGER"
+    REAL         -> "REAL"
+    BOOL         -> "BOOLEAN"
+    DATE         -> "DATE"
+    TIME         -> "TIME WITHOUT TIME ZONE"
+    TIMETZ       -> "TIME WITH TIME ZONE"
+    TIMESTAMP    -> "TIMESTAMP WITHOUT TIME ZONE"
+    TIMESTAMPTZ  -> "TIMESTAMP WITH TIME ZONE"
+    ARRAY size t -> [qm| {f t} ARRAY{applyArraySize size} |]
+
+
+-- | "CAST"ing one type to another.
+rawCast
+  :: RawPieceConstraint f
+  => RawBasicType  -- ^ Type to cast to.
+  -> RawSqlPiece f -- ^ Value you're casting.
+  -> RawSqlPiece f -- ^ Whole "CAST" expression.
+
+rawCast type' value
+  = RawWrap' (rawFnWrap CAST)
+  $ RawWrap (pure value) <| RawPlain " AS " <| pure (toRawSqlType type')
+
+
+rawNow :: RawPieceConstraint f => RawSqlPiece f
+rawNow = RawPlain [qm|\ {NOW}() \|]
+
+
+type RawMatchRegex f
+   = Bool          -- ^ Indicates whether regex is case-sensitive.
+  -> RawSqlPiece f -- ^ A value to test with provided regex.
+  -> Text          -- ^ A regular expression to test with.
+  -> RawSqlPiece f -- ^ Whole expression wrapped into parenthesis.
+
+
+-- | Tests whether an SQL value matches provided regular expression.
+rawMatchRegex :: RawPieceConstraint f => RawMatchRegex f
+rawMatchRegex isCaseSensitive valueToTest regEx =
+  rawMatchRegex' isCaseSensitive valueToTest $ RawValue regEx
+
+
+-- | Negative version of "rawMatchRegex".
+rawNotMatchRegex :: RawPieceConstraint f => RawMatchRegex f
+rawNotMatchRegex isCaseSensitive valueToTest regEx =
+  rawNotMatchRegex' isCaseSensitive valueToTest $ RawValue regEx
+
+
+type RawMatchRegex' f
+   = Bool          -- ^ Indicates whether regex is case-sensitive.
+  -> RawSqlPiece f -- ^ A value to test with provided regex.
+  -> RawSqlPiece f -- ^ A regular expression to test with.
+  -> RawSqlPiece f -- ^ Whole expression wrapped into parenthesis.
+
+
+-- | First @Bool@ indicates whether a value is supposed to
+--   match or to mismatch provided regular expression.
+rawWhetherMatchRegex :: RawPieceConstraint f => Bool -> RawMatchRegex' f
+rawWhetherMatchRegex isPositive isCaseSensitive valueToTest regEx = go where
+  go           = RawWrap $ valueToTest' <| RawPlain operator <| pure regEx'
+  valueToTest' = RawWrap $ pure valueToTest
+  regEx'       = RawWrap $ pure regEx
+
+  operator = [qm|
+    \ {if isPositive      then mempty else "!" :: Text}
+     ~{if isCaseSensitive then mempty else "*" :: Text} \
+  |]
+
+
+-- | Version of "rawMatchRegex" that isn't constrained on a string value
+--   with a regex but accepts any "RawSqlPiece".
+rawMatchRegex' :: RawPieceConstraint f => RawMatchRegex' f
+rawMatchRegex' = rawWhetherMatchRegex True
+
+
+-- | Negative version of "rawMatchRegex'".
+rawNotMatchRegex' :: RawPieceConstraint f => RawMatchRegex' f
+rawNotMatchRegex' = rawWhetherMatchRegex False

@@ -17,6 +17,7 @@ dependencies:
   - qm-interpolated-string
   - swagger2
   - text
+  - type-operators
   - unordered-containers
   - vector
 
