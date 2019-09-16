@@ -784,3 +784,12 @@ synchronizeVins =
 
                 srcLogDebug $ logMsg True vinsToSynchronizeCount
                 synchronizeContracts (x :| xs) vinsToSynchronizeCount
+
+                unless (vinsToSynchronizeCount < batchSize) $
+                  repeatWholeOperation <* srcLogDebug [qms|
+                    Total count ({vinsToSynchronizeCount}) of VINs to
+                    synchronize  isn't less than batch size limit ({batchSize})
+                    it means there are probably more VINs to mark as handled by
+                    CaRMa, so, repeating whole operation for next batch
+                    iteration...
+                  |]
