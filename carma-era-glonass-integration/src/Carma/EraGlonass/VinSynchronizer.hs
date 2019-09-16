@@ -754,7 +754,7 @@ synchronizeVins =
                            [ rawIsNull validUntilFieldT
                            , rawAll
                                [ rawIsNotNull validUntilFieldT
-                               , validUntilFieldT `rawLess'` RawValue nowDay
+                               , validUntilFieldT `rawGreater'` RawValue nowDay
                                ]
                            ]
                        ]
