@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveGeneric, ScopedTypeVariables, TypeFamilies, InstanceSigs #-}
-{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
+{-# LANGUAGE OverloadedStrings, QuasiQuotes, LambdaCase #-}
 
 -- | @Internal@ module for @EGVin@ type.
 --
@@ -10,6 +10,7 @@ module Carma.EraGlonass.Types.EGVin.Internal
      ( EGVin (..)
      , egVinParser
      , textToProvedEGVin
+     , egVinPosixRegex
      ) where
 
 import           GHC.Generics
@@ -29,10 +30,12 @@ import qualified Data.Attoparsec.ByteString.Char8 as Parsec (Parser)
 import           Data.Attoparsec.ByteString.Char8 hiding (Parser)
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
-import           Data.List (delete)
 import           Data.Char (toUpper)
 import           Data.Monoid ((<>))
 import           Data.Either.Combinators (mapLeft)
+
+import           Database.Persist.Class (PersistField (..))
+import           Database.Persist.Types (PersistValue (..))
 
 import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.Generic.DataType
@@ -75,9 +78,20 @@ instance ToSchema EGVin where
     { _schemaParamSchema = mempty
         { _paramSchemaType    = SwaggerString
         , _paramSchemaFormat  = Just "VIN"
-        , _paramSchemaPattern = Just [qn| ^[A-HJ-NPR-Z0-9]{17}$ |]
+        , _paramSchemaPattern = Just egVinPosixRegex
         }
     }
+
+instance PersistField EGVin where
+  toPersistValue = PersistByteString . fromEGVin
+
+  fromPersistValue = go where
+    parseEGVin = mapLeft fromString . parseOnly egVinParser
+
+    go = \case
+      PersistByteString x -> parseEGVin x
+      PersistText       x -> parseEGVin $ encodeUtf8 x
+      x -> Left [qm| Expected EGVin, received: {x} |]
 
 
 textToProvedEGVin :: IsString e => Text -> Either e EGVin
@@ -96,5 +110,16 @@ egVinParser = go where
 
   isVinChar = toUpper ? (`elem` vinChars)
 
-  -- Also correct: @['A'..'H'] <> ['J'..'N'] <> ('P':['R'..'Z'])@
-  vinChars = foldr delete ['A'..'Z'] ("IOQ" :: String) <> ['0'..'9']
+  -- | List of allowed chars for a VIN.
+  --
+  -- Also correct:
+  --
+  -- @
+  -- foldr Data.List.delete ['A'..'Z'] ("IOQ" :: String) <> ['0'..'9']
+  -- @
+  vinChars :: [Char]
+  vinChars = ['A'..'H'] <> ['J'..'N'] <> ('P':['R'..'Z']) <> ['0'..'9']
+
+
+egVinPosixRegex :: IsString s => s
+egVinPosixRegex = "^[A-HJ-NPR-Z0-9]{17}$"

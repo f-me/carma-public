@@ -13,28 +13,19 @@ import           Data.Proxy
 import           Data.Semigroup (Semigroup ((<>)))
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
-import           Data.List.NonEmpty (NonEmpty ((:|)), nub, toList)
-import           Data.Either.Combinators (mapLeft)
+import           Data.List.NonEmpty (NonEmpty)
 
-import           Control.Monad (unless)
+import           Control.Monad (forM_)
 import           Control.Monad.Trans.Class (lift)
 import           Control.Monad.Reader (MonadReader, ReaderT, asks)
 import           Control.Monad.Catch (MonadThrow (throwM))
-import           Control.Exception (AssertionFailed (AssertionFailed))
 
-import           Database.Persist ((=.), (<-.))
-import           Database.Persist.Class (persistFieldDef)
-import           Database.Persist.Sql (SqlBackend, fromSqlKey)
-
-import           Database.Persist.Types
-                   ( Entity (..)
-                   , FieldDef (fieldHaskell)
-                   , HaskellName
-                   )
+import           Database.Persist ((=.), (==.))
+import           Database.Persist.Sql (SqlBackend)
 
 import           Carma.Monad
 import           Carma.Model.Contract.Persistent
-import           Carma.Utils.Operators
+import           Carma.Utils
 import           Carma.Utils.TypeSafe.Generic.DataType
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persistent
@@ -59,103 +50,35 @@ unmarkAsHandled
    , MonadClock m
    )
   => OneOrTwoNonEmptyLists
-       (Entity Contract)
-       (Entity EraGlonassSynchronizedContract)
+       (ContractId, EGVin)
+       (EraGlonassSynchronizedContractId, EGVin)
+  -> (Word, Word, Word)
+  -- ^ Total VINs count, no longer handled VINs count, ephemeral VINs count.
   -> ReaderT SqlBackend m ()
 
-unmarkAsHandled lists = do
-  let (contractsLength, ephemeralsLength) = oneOrTwoNonEmptyListsLengths lists
-
+unmarkAsHandled lists (totalCount, contractsCount, ephemeralsCount) = do
   srcLogDebug [qmb|
     Received some VINs to "unmark" them as handled by us.
     Counts of VINs which are supposed to be "unmarked":
-    \  {contractsLogInfix}: {contractsLength}
-    \  {ephemeralsLogInfix}: {ephemeralsLength}
+    \  Total: {totalCount}
+    \  {contractsLogInfix}: {contractsCount}
+    \  {ephemeralsLogInfix}: {ephemeralsCount}
   |]
-
-  let -- | Obtaining valid @EGVin@s from regular @Text@ fields.
-      extrudeEphemeralVins
-        :: forall t. t ~ EraGlonassSynchronizedContract
-        => NonEmpty (Entity t)
-        -> m (NonEmpty EGVin)
-
-      extrudeEphemeralVins = go where
-        go = either (throwM . AssertionFailed) pure . sequenceA . fmap parse
-
-        parse ( Entity id' EraGlonassSynchronizedContract
-                             { eraGlonassSynchronizedContractVin = vin } )
-          = parseFailureErr id' `mapLeft` stringToProvedEGVin vin
-
-        fieldName :: EntityField t typ -> HaskellName
-        fieldName = fieldHaskell . persistFieldDef
-
-        modelName   = typeName (Proxy :: Proxy t) :: String
-        idFieldName = fieldName EraGlonassSynchronizedContractId
-
-        parseFailureErr id' (msg :: String) = [qms|
-          {modelName} {idFieldName}#{fromSqlKey id'}
-          unexpectedly has incorrect VIN. Parsing error message: {msg}
-        |]
-
-  (allVins :: NonEmpty EGVin) <- lift $
-    let
-      extrudeContractVINsWithFailureHandling =
-        extrudeContractVINs ? foldr reducer ([], []) ? \case
-          ([], x : xs) -> pure $ x :| xs
-
-          (e : es, _) -> throwM $ AssertionFailed $
-            getErrorMessageOfExtrudingContractVINs $ e :| es
-
-          ([], []) -> throwM $ AssertionFailed [qns|
-            Unexpected and impossible case, either of lists must be not
-            empty, since source list is "NonEmpty" list.
-          |]
-
-      reducer
-        :: Either (ExtrudeContractVinError String) EGVin
-        -> ([ExtrudeContractVinError String], [EGVin])
-        -> ([ExtrudeContractVinError String], [EGVin])
-
-      reducer (Left  x) (l,  _) = (x : l, [])
-      reducer (Right x) ([], r) = ([], x : r)
-      reducer (Right _) acc     = acc
-    in
-      case lists of
-           (FirstNonEmptyList x) -> extrudeContractVINsWithFailureHandling x
-           (SecondNonEmptyList y) -> extrudeEphemeralVins y
-           (BothNonEmptyLists x y) ->
-              (<>) <$> extrudeContractVINsWithFailureHandling x
-                   <*> extrudeEphemeralVins y
-
-  let allVinsLen = length allVins
-
-  do
-    let sumLen = contractsLength + ephemeralsLength
-
-    unless (fromIntegral allVinsLen /= sumLen) $
-      throwM $ AssertionFailed [qms|
-        Count of all parsed "EGVin"s ({allVinsLen}) unexpectedly isn't equal to
-        sum of {contractsLogInfix} ({contractsLength}) and
-        {ephemeralsLogInfix} ({ephemeralsLength}): {sumLen},
-        something went wrong.
-      |]
-
-  do
-    let countOfUniqueVins = length $ nub allVins
-
-    unless (allVinsLen /= countOfUniqueVins) $
-      throwM $ AssertionFailed [qms|
-        Count of all parsed "EGVin"s ({allVinsLen}) unexpectedly isn't equal to
-        count of unique elements of that list ({countOfUniqueVins}), all VINs
-        are supposed to be unique, something went wrong.
-      |]
 
   unbindRequest <-
     lift (asks vinSynchronizerContractId) <&> \contractId' ->
-      EGBindVehiclesRequest
-        { contractId = contractId'
-        , vins       = allVins
-        }
+      let
+        allVins :: NonEmpty EGVin
+        allVins =
+          case lists of
+               FirstNonEmptyList  xs    -> fmap snd xs
+               SecondNonEmptyList    ys -> fmap snd ys
+               BothNonEmptyLists  xs ys -> fmap snd xs <> fmap snd ys
+      in
+        EGBindVehiclesRequest
+          { contractId = contractId'
+          , vins       = allVins
+          }
 
   response <-
     lift (asks egClientEnv)
@@ -199,7 +122,7 @@ unmarkAsHandled lists = do
                      description
 
          let errorMsg = [qms|
-               "Unmarking" {allVinsLen} VINs as handled by us is failed due to
+               "Unmarking" {totalCount} VINs as handled by us is failed due to
                failure case in the response from EG service, result code is
                {resultCode}, textual failure description{descriptionText}
              |]
@@ -209,9 +132,9 @@ unmarkAsHandled lists = do
 
   currentTime <- lift getCurrentTime
 
-  srcLogDebug [qns|
-    VINs are successfully "unmarked" as handled by us by request to Era Glonass
-    service. Now "unmarking" them on our side...
+  srcLogDebug [qms|
+    {totalCount}V INs are successfully "unmarked" as handled by us by request to
+    Era Glonass service. Now "unmarking" {totalCount} those VINs on our side...
   |]
 
   let unmarkUpdate =
@@ -219,15 +142,22 @@ unmarkAsHandled lists = do
         , EraGlonassSynchronizedContractLastStatusChangeTime =. Just currentTime
         ]
 
-  flip (maybe $ pure ()) (getSecondNonEmptyList lists) $ \ephemerals -> do
-    srcLogDebug [qm| "Unmarking" {ephemeralsLogInfix} on our side... |]
-    let ids = toList $ ephemerals <&> \Entity { entityKey } -> entityKey
-    updateWhere [EraGlonassSynchronizedContractId <-. ids] unmarkUpdate
+  getFirstNonEmptyList lists `possibly` \contracts -> do
+    srcLogDebug [qms|
+      "Unmarking" {contractsCount} {contractsLogInfix} on our side...
+    |]
 
-  flip (maybe $ pure ()) (getFirstNonEmptyList lists) $ \contracts -> do
-    srcLogDebug [qm| "Unmarking" {contractsLogInfix} on our side... |]
-    let ids = toList $ contracts <&> \Entity { entityKey } -> entityKey
-    updateWhere [EraGlonassSynchronizedContractContract <-. ids] unmarkUpdate
+    forM_ contracts $ \(id', vin) ->
+      updateWhere [ EraGlonassSynchronizedContractContract ==. id'
+                  , EraGlonassSynchronizedContractVin ==. egVinToString vin
+                  ] unmarkUpdate
+
+  getSecondNonEmptyList lists `possibly` \ephemerals -> do
+    srcLogDebug [qms|
+      "Unmarking" {ephemeralsCount} {ephemeralsLogInfix} on our side...
+    |]
+
+    forM_ ephemerals $ \(id', _) -> update id' unmarkUpdate
 
   srcLogDebug [qn| Successfully finished "unmarking" VINs. |]
 

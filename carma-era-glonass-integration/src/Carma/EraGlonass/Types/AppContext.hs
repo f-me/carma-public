@@ -62,6 +62,9 @@ data AppContext
        -- ^ An interval (in microseconds) between next VIN synchronization
        --   attempt if previous one is failed.
 
+   , vinSynchronizerBatchSize :: Word
+       -- ^ A limit of how many VINs to synchronize per one request.
+
    , vinSynchronizerContractId :: EGContractId 'BindVehicles
        -- ^ Predefined on Era Glonass side code.
 

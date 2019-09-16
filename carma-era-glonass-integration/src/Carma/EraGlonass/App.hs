@@ -134,6 +134,9 @@ app appMode' withDbConnection = do
   !(vinSynchronizerRetryInterval' :: Float) <-
     liftIO $ Conf.require cfg "vin-synchronizer.retry-interval"
 
+  !(vinSynchronizerBatchSize' :: Word) <-
+    liftIO $ Conf.require cfg "vin-synchronizer.batch-size"
+
   !(carmaVinSynchronizerContractId :: EGContractId 'BindVehicles) <-
     liftIO $ Conf.require cfg "vin-synchronizer.carma-contract-id"
 
@@ -186,6 +189,7 @@ app appMode' withDbConnection = do
                     round $ vinSynchronizerTimeout' * (10 ** 6)
                 , vinSynchronizerRetryInterval =
                     round $ vinSynchronizerRetryInterval' * 60 * (10 ** 6)
+                , vinSynchronizerBatchSize = vinSynchronizerBatchSize'
                 , vinSynchronizerTriggerBus = vinSynchronizerTriggerBus'
                 }
 
