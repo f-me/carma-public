@@ -355,10 +355,12 @@ synchronizeVins =
               ,   rawAll
                     [ isHandledByCarmaField `rawEqual` True
 
-                    , rawMatchRegex
-                        False
-                        (RawTableAliasField vinField)
-                        egVinPosixRegex
+                    -- -- Let's assume all VINs are correct and validated
+                    -- -- when they appear in this table.
+                    -- , rawMatchRegex
+                    --     False
+                    --     (RawTableAliasField vinField)
+                    --     egVinPosixRegex
                     ]
               ]
 
@@ -451,10 +453,12 @@ synchronizeVins =
                         [ rawIsNotNull vinFieldT
                         , vinFieldT `rawNotEqual` Just ""
 
-                        , rawMatchRegex
-                            False
-                            (rawFieldConstructor vinFieldT)
-                            egVinPosixRegex
+                        -- -- Let's assume it's correct since it's presented
+                        -- -- in @alreadyHandledVinsOnlyP@ table.
+                        -- , rawMatchRegex
+                        --     False
+                        --     (rawFieldConstructor vinFieldT)
+                        --     egVinPosixRegex
 
                         , -- @Contract@'s VIN is handled by CaRMa.
                           vinFieldT `rawIn`
@@ -510,7 +514,7 @@ synchronizeVins =
                         , -- Validity date of a @Contract@ has been expired.
                           rawAll
                             [ rawIsNotNull validUntilFieldT
-                            , validUntilFieldT `rawGreaterOrEqual` Just nowDay
+                            , validUntilFieldT `rawLessOrEqual` Just nowDay
                             ]
                         ]
                   ]
@@ -737,7 +741,8 @@ synchronizeVins =
                        , rawIsNotNull vinFieldT
                        , vinFieldT `rawNotEqual` Just ""
 
-                       , rawMatchRegex
+                       , -- Some @Contract@s may have incorrect VIN field.
+                         rawMatchRegex
                            False
                            (rawFieldConstructor vinFieldT)
                            egVinPosixRegex
