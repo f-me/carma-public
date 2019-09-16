@@ -133,7 +133,7 @@ unmarkAsHandled lists (totalCount, contractsCount, ephemeralsCount) = do
   currentTime <- lift getCurrentTime
 
   srcLogDebug [qms|
-    {totalCount}V INs are successfully "unmarked" as handled by us by request to
+    {totalCount} VINs are successfully "unmarked" as handled by us by request to
     Era Glonass service. Now "unmarking" {totalCount} those VINs on our side...
   |]
 
