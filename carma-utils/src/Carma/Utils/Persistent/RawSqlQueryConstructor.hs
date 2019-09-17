@@ -50,12 +50,12 @@ module Carma.Utils.Persistent.RawSqlQueryConstructor
      , OrderBy (..)
      , rawOrderBy
 
-     , rawEqual,           rawEqual'
-     , rawNotEqual,        rawNotEqual'
-     , rawGreater,         rawGreater'
-     , rawGreaterOrEqual,  rawGreaterOrEqual'
-     , rawLess,            rawLess'
-     , rawLessOrEqual,     rawLessOrEqual'
+     , rawEqual,           rawEqual',          rawEqualField
+     , rawNotEqual,        rawNotEqual',       rawNotEqualField
+     , rawGreater,         rawGreater',        rawGreaterField
+     , rawGreaterOrEqual,  rawGreaterOrEqual', rawGreaterOrEqualField
+     , rawLess,            rawLess',           rawLessField
+     , rawLessOrEqual,     rawLessOrEqual',    rawLessOrEqualField
 
      , rawIsNull,  rawIsNotNull
      , rawIsNull', rawIsNotNull'
@@ -954,8 +954,7 @@ type RawFilterByValue t f v inputValue =
    , RawFieldValueConstructor t
    )
   => t v
-  -> inputValue
-  -- ^ Either a protected value or a raw piece of SQL.
+  -> inputValue -- ^ Either a protected value or a raw piece of SQL.
   -> RawSqlPiece f
 
 rawFilterByValue
@@ -969,11 +968,34 @@ rawFilterByValue pieceInBetween field value
   <| pure (value & either (rawFieldValueConstructor field) id)
 
 
+-- | For comparing two fields of probably different models.
+type RawFilterByField t1 t2 f v =
+   ( RawPieceConstraint f
+   , RawValueConstraint v
+   , RawFieldConstructor (t1 v)
+   , RawFieldConstructor (t2 v)
+   , RawFieldValueConstructor t1
+   , RawFieldValueConstructor t2
+   )
+  => t1 v -- ^ Field A
+  -> t2 v -- ^ Field B
+  -> RawSqlPiece f
+
+rawFilterByField :: RawSqlPiece f -> RawFilterByField t1 t2 f v
+rawFilterByField pieceInBetween fieldA fieldB
+  = rawFilterByValue pieceInBetween fieldA
+  $ Right (rawFieldConstructor fieldB)
+
+
 rawEqual :: RawFilterByValue t f v v
 rawEqual t v = Left v & rawFilterByValue (raw EQUAL) t
 
 rawEqual' :: RawFilterByValue t f v (RawSqlPiece f)
 rawEqual' t v = Right v & rawFilterByValue (raw EQUAL) t
+
+rawEqualField :: RawFilterByField t1 t2 f v
+rawEqualField = rawFilterByField (raw EQUAL)
+
 
 rawNotEqual :: RawFilterByValue t f v v
 rawNotEqual t v = Left v & rawFilterByValue (raw NOT_EQUAL) t
@@ -981,11 +1003,19 @@ rawNotEqual t v = Left v & rawFilterByValue (raw NOT_EQUAL) t
 rawNotEqual' :: RawFilterByValue t f v (RawSqlPiece f)
 rawNotEqual' t v = Right v & rawFilterByValue (raw NOT_EQUAL) t
 
+rawNotEqualField :: RawFilterByField t1 t2 f v
+rawNotEqualField = rawFilterByField (raw NOT_EQUAL)
+
+
 rawGreater :: RawFilterByValue t f v v
 rawGreater t v = Left v & rawFilterByValue (raw GREATER) t
 
 rawGreater' :: RawFilterByValue t f v (RawSqlPiece f)
 rawGreater' t v = Right v & rawFilterByValue (raw GREATER) t
+
+rawGreaterField :: RawFilterByField t1 t2 f v
+rawGreaterField = rawFilterByField (raw GREATER)
+
 
 rawGreaterOrEqual :: RawFilterByValue t f v v
 rawGreaterOrEqual t v = Left v & rawFilterByValue (raw GREATER_OR_EQUAL) t
@@ -993,17 +1023,28 @@ rawGreaterOrEqual t v = Left v & rawFilterByValue (raw GREATER_OR_EQUAL) t
 rawGreaterOrEqual' :: RawFilterByValue t f v (RawSqlPiece f)
 rawGreaterOrEqual' t v = Right v & rawFilterByValue (raw GREATER_OR_EQUAL) t
 
+rawGreaterOrEqualField :: RawFilterByField t1 t2 f v
+rawGreaterOrEqualField = rawFilterByField (raw GREATER_OR_EQUAL)
+
+
 rawLess :: RawFilterByValue t f v v
 rawLess t v = Left v & rawFilterByValue (raw LESS) t
 
 rawLess' :: RawFilterByValue t f v (RawSqlPiece f)
 rawLess' t v = Right v & rawFilterByValue (raw LESS) t
 
+rawLessField :: RawFilterByField t1 t2 f v
+rawLessField = rawFilterByField (raw LESS)
+
+
 rawLessOrEqual :: RawFilterByValue t f v v
 rawLessOrEqual t v = Left v & rawFilterByValue (raw LESS_OR_EQUAL) t
 
 rawLessOrEqual' :: RawFilterByValue t f v (RawSqlPiece f)
 rawLessOrEqual' t v = Right v & rawFilterByValue (raw LESS_OR_EQUAL) t
+
+rawLessOrEqualField :: RawFilterByField t1 t2 f v
+rawLessOrEqualField = rawFilterByField (raw LESS_OR_EQUAL)
 
 
 type RawFilterByNullability f t v x =
