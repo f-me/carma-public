@@ -42,6 +42,7 @@ import           Database.Esqueleto (Single (..))
 
 import           Carma.Monad
 import           Carma.Model.Contract.Persistent
+import           Carma.Model.Program.Persistent
 import           Carma.Model.SubProgram.Persistent
 import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.Generic.DataType
@@ -387,11 +388,21 @@ synchronizeVins =
                 mkTableAliasFieldToken
                   egSubProgramsT
                   SubProgramEraGlonassParticipant
+
+              parentProgramField =
+                mkTableAliasFieldToken egSubProgramsT SubProgramParent
             in
               [ raw SELECT
               ,   RawTableAliasField idField
               , raw FROM
               ,   RawTableAlias egSubProgramsT
+              , raw $ JOIN INNER
+              ,   RawTable (Proxy @Program)
+              , raw ON
+              ,   rawAll
+                    [ ProgramId     `rawEqualField` parentProgramField
+                    , ProgramActive `rawEqual`      True
+                    ]
               , raw WHERE
               ,   rawAll
                     [ activeField        `rawEqual` True
