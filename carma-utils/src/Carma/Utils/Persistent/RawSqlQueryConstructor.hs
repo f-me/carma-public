@@ -36,7 +36,12 @@ module Carma.Utils.Persistent.RawSqlQueryConstructor
      , RawBasic (..), raw
      , RawBasicJoin (..)
      , RawBasicType (..), toRawSqlType
+     , RawAliasAs' (..)
 
+     , rawSelect
+     , rawSelectDistinct
+     , rawSelectDistinctOn
+     , rawWith
      , rawSelectAlias
      , rawIntersected
      , rawSeq
@@ -346,7 +351,7 @@ instance Show (f (RawSqlPiece f)) => Show (RawSqlPiece f) where
     |]
 
   show (RawAliasAs x y) = [qm|
-    RawTableAliasField (alias: "{symbolVal x}", innards: {y})
+    RawAliasAs (alias: "{symbolVal x}", innards: {y})
   |]
 
   show (RawAlias x) = [qm| RawAlias "{symbolVal x}" |]
@@ -405,12 +410,11 @@ type AliasesAccumulator =
 --     inferTypes contract idField vinField isActiveField
 --       $ uncurry rawEsqueletoSql
 --       $ buildRawSql
---       [ raw SELECT
---       ,   rawSeq
---       ,     [ RawField idField
---             , RawField vinField
---             , RawField isActiveField
---             ]
+--       [ rawSelect
+--           [ RawField idField
+--           , RawField vinField
+--           , RawField isActiveField
+--           ]
 --       , raw FROM
 --       ,   getTableByItsField idField
 --       , raw WHERE
@@ -750,7 +754,7 @@ instance ( PersistEntity model
 -- By using these with "raw" you'd avoid typos which tend to appear when writing
 -- raw SQL queries.
 data RawBasic
-   = INSERT_INTO | SELECT | UPDATE | DELETE_FROM
+   = INSERT_INTO | SELECT | SELECT_DISTINCT | UPDATE | DELETE_FROM
    | FROM | JOIN RawBasicJoin | WHERE | ORDER_BY | ASC | DESC | LIMIT | OFFSET
    | SET | DEFAULT | RETURNING | VALUES | USING | WITH
    | AND | OR | STAR | COMMA | SEMICOLON | EQUAL | NOT_EQUAL | GREATER
@@ -792,6 +796,7 @@ rawBasicSql = \case
   DESC             -> "DESC"
   LIMIT            -> "LIMIT"
   OFFSET           -> "OFFSET"
+  SELECT_DISTINCT  -> rawBasicSql SELECT `mappend` " DISTINCT"
   SET              -> "SET"
   DEFAULT          -> "DEFAULT"
   RETURNING        -> "RETURNING"
@@ -828,6 +833,173 @@ rawBasicSql = \case
 -- | Transforms predefined "RawBasic" word into raw SQL text as "RawSqlPiece".
 raw :: Foldable f => RawBasic -> RawSqlPiece f
 raw = RawPlain . (\x -> " " `mappend` x `mappend` " ") . rawBasicSql
+
+
+-- | Selects some values (just values, fields, etc.)
+--
+-- @
+-- rawSelect [RawField ContractId, RawField ContractVin]
+-- @
+--
+-- Equals to:
+--
+-- @
+-- RawWrap' mempty
+--   [ raw SELECT
+--   ,   rawSeq [RawField ContractId, RawField ContractVin]
+--   ]
+-- @
+--
+-- Or in a list of "buildRawSql":
+--
+-- @
+-- [ raw SELECT
+-- ,   rawSeq [RawField ContractId, RawField ContractVin]
+-- , ...
+-- ]
+-- @
+rawSelect
+  :: (RawPieceConstraint f, Monoid (f (RawSqlPiece f)))
+  => f (RawSqlPiece f)
+  -> RawSqlPiece f
+
+rawSelect x = RawWrap' mempty $ raw SELECT <| pure (rawSeq x)
+
+
+-- | See description of "rawSelect".
+--
+-- @
+-- rawSelectDistinct [RawField ContractId, RawField ContractVin]
+-- @
+--
+-- Equals to:
+--
+-- @
+-- RawWrap' mempty
+--   [ raw SELECT_DISTINCT
+--   ,   rawSeq [RawField ContractId, RawField ContractVin]
+--   ]
+-- @
+--
+-- Or in a list of "buildRawSql":
+--
+-- @
+-- [ raw SELECT_DISTINCT
+-- ,   rawSeq [RawField ContractId, RawField ContractVin]
+-- , ...
+-- ]
+-- @
+rawSelectDistinct
+  :: (RawPieceConstraint f, Monoid (f (RawSqlPiece f)))
+  => f (RawSqlPiece f)
+  -> RawSqlPiece f
+
+rawSelectDistinct x = RawWrap' mempty $ raw SELECT_DISTINCT <| pure (rawSeq x)
+
+
+-- | See description of "rawSelect".
+--
+-- @
+-- rawSelectDistinctOn
+--   [ContractVin, ContractValidUntil]
+--   [RawField ContractId, RawField ContractVin]
+-- @
+--
+-- Equals to:
+--
+-- @
+-- RawWrap' mempty
+--   [ raw SELECT_DISTINCT, raw ON
+--   ,   rawIntersected ("(", ")") (raw COMMA) [ContractVin, ContractValidUntil]
+--   ,   rawSeq [RawField ContractId, RawField ContractVin]
+--   ]
+-- @
+--
+-- Or in a list of "buildRawSql":
+--
+-- @
+-- [ raw SELECT_DISTINCT, raw ON
+-- ,   rawIntersected ("(", ")") (raw COMMA) [ContractVin, ContractValidUntil]
+-- ,   rawSeq [RawField ContractId, RawField ContractVin]
+-- , ...
+-- ]
+-- @
+rawSelectDistinctOn
+  :: (RawPieceConstraint f, Monoid (f (RawSqlPiece f)))
+  => f (RawSqlPiece f) -- ^ A list of distinction criterias ("ON" expression)
+  -> f (RawSqlPiece f) -- ^ A list of values to select
+  -> RawSqlPiece f
+
+rawSelectDistinctOn onList valuesList
+   = RawWrap' mempty
+   $ raw SELECT_DISTINCT
+  <| raw ON
+  <| rawIntersected ("(", ")") (raw COMMA) onList
+  <| pure (rawSeq valuesList)
+
+
+-- | Declare @WITH@-statement using provided set of aliases.
+--
+-- @
+-- rawWith
+--   [ RawAlias (Proxy @"contract")
+--       [rawSelect [raw STAR], raw FROM, RawTable (Proxy @Contract)]
+--   , RawAlias (Proxy @"program")
+--       [rawSelect [raw STAR], raw FROM, RawTable (Proxy @Program)]
+--   ]
+-- @
+--
+-- Equals to:
+--
+-- @
+-- RawWrap' mempty
+--   [ raw WITH
+--   ,   rawSeq
+--         [ RawAlias (Proxy @"contract")
+--             [rawSelect [raw STAR], raw FROM, RawTable (Proxy @Contract)]
+--         , RawAlias (Proxy @"program")
+--             [rawSelect [raw STAR], raw FROM, RawTable (Proxy @Program)]
+--         ]
+--   ]
+-- @
+--
+-- Or in a list of "buildRawSql":
+--
+-- @
+-- [ raw WITH
+-- ,   rawSeq
+--       [ RawAlias (Proxy @"contract")
+--           [rawSelect [raw STAR], raw FROM, RawTable (Proxy @Contract)]
+--       , RawAlias (Proxy @"program")
+--           [rawSelect [raw STAR], raw FROM, RawTable (Proxy @Program)]
+--       ]
+-- , ...
+-- ]
+-- @
+rawWith
+  :: (RawPieceConstraint f, Monoid (f (RawSqlPiece f)))
+  => f (RawAliasAs' f)
+  -> RawSqlPiece f
+
+rawWith cteList = go where
+  go = RawWrap' mempty $ raw WITH <| pure (rawSeq $ f <$> cteList)
+  f (RawAliasAs' p x) = RawAliasAs p x
+
+
+data RawAliasAs' f
+   = forall alias
+   . (KnownSymbol alias, Show (f (RawSqlPiece f)), Eq (f (RawSqlPiece f)))
+   => RawAliasAs' (Proxy alias) (f (RawSqlPiece f))
+
+instance Eq (RawAliasAs' f) => Eq (RawAliasAs' f) where
+  RawAliasAs' x y == RawAliasAs' a b =
+    symbolVal x   == symbolVal   a   &&
+                y ==               b
+
+instance Show (RawAliasAs' f) => Show (RawAliasAs' f) where
+  show (RawAliasAs' x y) = [qm|
+    RawAliasAs' (alias: "{symbolVal x}", innards: {y})
+  |]
 
 
 -- | Selects everything from virtual (or a real) table by an alias.

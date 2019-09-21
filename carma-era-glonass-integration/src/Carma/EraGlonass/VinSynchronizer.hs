@@ -276,6 +276,7 @@ synchronizeVins
   => ReaderT SqlBackend m ()
 
 synchronizeVins =
+  -- @(1 &)@ means it's first iteration.
   (srcLogInfo [qn| Synchronizing VINs... |] >>) $ (1 &) $ fix $ \((
 
     let
@@ -324,11 +325,13 @@ synchronizeVins =
       -- 1. "alreadyHandledP"
       -- 2. "alreadyHandledVinsOnlyP"
       -- 3. "egSubProgramsP"
-      sharedCTESelects :: [RawSqlPiece []]
+      sharedCTESelects :: [RawAliasAs' []]
       sharedCTESelects =
         [ -- VINs we're currently handling at the moment,
           -- which are currently marked as handled by CaRMa.
-          RawAliasAs alreadyHandledP $
+          -- Some of them we may have to "unmark" as handled by us,
+          -- that's what we're going to find out.
+          RawAliasAs' alreadyHandledP $
             let
               idField =
                 mkTableAliasFieldToken
@@ -345,11 +348,10 @@ synchronizeVins =
                   alreadyHandledT
                   EraGlonassSynchronizedContractIsHandledByCarma
             in
-              [ raw SELECT
-              ,   rawSeq
-                    [ RawTableAliasField idField
-                    , RawTableAliasField vinField
-                    ]
+              [ rawSelect
+                  [ RawTableAliasField idField
+                  , RawTableAliasField vinField
+                  ]
               , raw FROM
               ,   RawTableAlias alreadyHandledT
               , raw WHERE
@@ -365,9 +367,9 @@ synchronizeVins =
                     ]
               ]
 
-        , RawAliasAs alreadyHandledVinsOnlyP
-            [ raw SELECT
-            ,   RawTableAliasField $
+        , RawAliasAs' alreadyHandledVinsOnlyP
+            [ rawSelect $ pure $
+                RawTableAliasField $
                   mkTableAliasFieldToken
                     alreadyHandledT
                     EraGlonassSynchronizedContractVin
@@ -377,7 +379,7 @@ synchronizeVins =
 
         , -- @SubProgram@s which are marked as Era Glonass integration
           -- participants.
-          RawAliasAs egSubProgramsP $
+          RawAliasAs' egSubProgramsP $
             let
               idField = mkTableAliasFieldToken egSubProgramsT SubProgramId
 
@@ -392,8 +394,8 @@ synchronizeVins =
               parentProgramField =
                 mkTableAliasFieldToken egSubProgramsT SubProgramParent
             in
-              [ raw SELECT
-              ,   RawTableAliasField idField
+              [ rawSelect $ pure $
+                  RawTableAliasField idField
               , raw FROM
               ,   RawTableAlias egSubProgramsT
               , raw $ JOIN INNER
@@ -444,19 +446,18 @@ synchronizeVins =
         $ uncurry rawEsqueletoSql
         $ buildRawSql
         $
-        [ raw WITH
-        , rawSeq $
+        [ rawWith $
             sharedCTESelects
             <>
             [ -- @Contract@s which have been previously marked
               -- as handled by CaRMa.
-              RawAliasAs handledContractsP $
+              RawAliasAs' handledContractsP $
                 let
                   vinFieldT =
                     mkTableAliasFieldToken handledContractsT ContractVin
                 in
-                  [ raw SELECT
-                  ,   raw STAR
+                  [ rawSelect $ pure $
+                      raw STAR
                   , raw FROM
                   ,   RawTableAlias handledContractsT
                   , raw WHERE
@@ -477,9 +478,9 @@ synchronizeVins =
                         ]
                   ]
 
-            , RawAliasAs handledContractsVinsOnlyP $
-                [ raw SELECT
-                ,   RawTableAliasField $
+            , RawAliasAs' handledContractsVinsOnlyP $
+                [ rawSelect $ pure $
+                    RawTableAliasField $
                       mkTableAliasFieldToken handledContractsT ContractVin
                 , raw FROM
                 ,   RawAlias handledContractsP
@@ -488,7 +489,7 @@ synchronizeVins =
             , -- @Contract@s VINs of which we have to "unmark" as handled by
               -- CaRMa due to some of reasons you can find inside in the
               -- comments below.
-              RawAliasAs contractsToUnmarkAsHandledP $
+              RawAliasAs' contractsToUnmarkAsHandledP $
                 let
                   idFieldT =
                     mkTableAliasFieldToken handledContractsT ContractId
@@ -505,11 +506,10 @@ synchronizeVins =
                   validUntilFieldT =
                     mkTableAliasFieldToken handledContractsT ContractValidUntil
                 in
-                  [ raw SELECT
-                  ,   rawSeq
-                        [ RawTableAliasField idFieldT
-                        , RawTableAliasField vinFieldT
-                        ]
+                  [ rawSelect
+                      [ RawTableAliasField idFieldT
+                      , RawTableAliasField vinFieldT
+                      ]
                   , raw FROM
                   ,   RawAlias handledContractsP
                   , raw WHERE
@@ -536,7 +536,7 @@ synchronizeVins =
               -- value of a @Contract@ and previous \"vin" have been marked as
               -- handled by CaRMa for EG service we supposed to notify EG that
               -- we don't handle these anymore)...
-              RawAliasAs ephemeralVINsToUnmarkAsHandledP $
+              RawAliasAs' ephemeralVINsToUnmarkAsHandledP $
                 let
                   idFieldT =
                     mkTableAliasFieldToken
@@ -548,11 +548,10 @@ synchronizeVins =
                       alreadyHandledT
                       EraGlonassSynchronizedContractVin
                 in
-                  [ raw SELECT
-                  ,   rawSeq
-                        [ RawTableAliasField idFieldT
-                        , RawTableAliasField vinFieldT
-                        ]
+                  [ rawSelect
+                      [ RawTableAliasField idFieldT
+                      , RawTableAliasField vinFieldT
+                      ]
                   , raw FROM
                   ,   RawAlias alreadyHandledP
                   , raw WHERE
@@ -560,8 +559,8 @@ synchronizeVins =
                         rawSelectAlias handledContractsVinsOnlyP
                   ]
             ]
-        , raw SELECT
-        ,   let
+        , rawSelect $
+            let
               contractIdField =
                 mkTableAliasFieldToken contractsToUnmarkAsHandledT ContractId
 
@@ -609,22 +608,22 @@ synchronizeVins =
                             ]
                 )
             in
-              rawSeq
-                [ rawBranching
-                    ( idFieldBranch
-                        contractIdField
-                        (Proxy @"ContractIdToUnmark")
-                    )
-                    [ idFieldBranch
-                        egSyncContractIdField
-                        (Proxy @"EraGlonassSynchronizedContractIdToUnmark")
-                    ]
-                    Nothing
-                , rawBranching
-                    (fieldBranch contractVinField)
-                    [fieldBranch egSyncContractVinField]
-                    Nothing
-                ]
+              [ rawBranching
+                  ( idFieldBranch
+                      contractIdField
+                      (Proxy @"ContractIdToUnmark")
+                  )
+                  [ idFieldBranch
+                      egSyncContractIdField
+                      (Proxy @"EraGlonassSynchronizedContractIdToUnmark")
+                  ]
+                  Nothing
+
+              , rawBranching
+                  (fieldBranch contractVinField)
+                  [fieldBranch egSyncContractVinField]
+                  Nothing
+              ]
         , raw FROM
         ,   RawAlias contractsToUnmarkAsHandledP
         , raw $ JOIN FULL
@@ -736,13 +735,12 @@ synchronizeVins =
                  validUntilFieldT =
                    mkTableAliasFieldToken contractsT ContractValidUntil
                in
-                 [ raw WITH
-                 ,   rawSeq sharedCTESelects
-                 , raw SELECT
-                 ,   rawSeq
-                       [ rawFieldConstructor idFieldT
-                       , rawFieldConstructor vinFieldT
-                       ]
+                 [ rawWith
+                     sharedCTESelects
+                 , rawSelect
+                     [ rawFieldConstructor idFieldT
+                     , rawFieldConstructor vinFieldT
+                     ]
                  , raw FROM
                  ,   RawTableAlias contractsT
                  , raw WHERE
