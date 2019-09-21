@@ -732,41 +732,67 @@ synchronizeVins =
                  subprogramFieldT =
                    mkTableAliasFieldToken contractsT ContractSubprogram
 
+                 validSinceFieldT =
+                   mkTableAliasFieldToken contractsT ContractValidSince
+
                  validUntilFieldT =
                    mkTableAliasFieldToken contractsT ContractValidUntil
+
+                 fieldsToSelect =
+                   [ rawFieldConstructor idFieldT
+                   , rawFieldConstructor vinFieldT
+                   ]
+
+                 -- | Nested inside parent DISTINCT selection.
+                 mainSelection = RawWrap
+                   [ rawSelect
+                       fieldsToSelect
+                   , raw FROM
+                   ,   RawTableAlias contractsT
+                   , raw WHERE
+                   ,   rawAll
+                         [ isActiveFieldT `rawEqual` True
+
+                         , subprogramFieldT `rawIn`
+                             rawSelectAlias egSubProgramsP
+
+                         , validSinceFieldT `rawGreaterOrEqual'` RawValue nowDay
+                         , validUntilFieldT `rawLessOrEqual'`    RawValue nowDay
+
+                         , rawIsNotNull vinFieldT
+                         , vinFieldT `rawNotEqual` Just ""
+
+                         , -- Some @Contract@s may have incorrect VIN field.
+                           rawMatchRegex
+                             False
+                             (rawFieldConstructor vinFieldT)
+                             egVinPosixRegex
+
+                         , vinFieldT `rawNotIn`
+                             rawSelectAlias alreadyHandledVinsOnlyP
+
+                         , rawSome
+                             [ rawIsNull validUntilFieldT
+                             , rawAll
+                                 [ rawIsNotNull validUntilFieldT
+
+                                 , validUntilFieldT `rawGreater'`
+                                     RawValue nowDay
+                                 ]
+                             ]
+                         ]
+                   , rawOrderBy [Descending validSinceFieldT]
+                   ]
                in
                  [ rawWith
                      sharedCTESelects
-                 , rawSelect
-                     [ rawFieldConstructor idFieldT
-                     , rawFieldConstructor vinFieldT
-                     ]
+                 , rawSelectDistinctOn
+                     [rawFieldConstructor vinFieldT]
+                     fieldsToSelect
                  , raw FROM
-                 ,   RawTableAlias contractsT
-                 , raw WHERE
-                 ,   rawAll
-                       [ isActiveFieldT `rawEqual` True
-                       , subprogramFieldT `rawIn` rawSelectAlias egSubProgramsP
-                       , rawIsNotNull vinFieldT
-                       , vinFieldT `rawNotEqual` Just ""
-
-                       , -- Some @Contract@s may have incorrect VIN field.
-                         rawMatchRegex
-                           False
-                           (rawFieldConstructor vinFieldT)
-                           egVinPosixRegex
-
-                       , vinFieldT `rawNotIn`
-                           rawSelectAlias alreadyHandledVinsOnlyP
-
-                       , rawSome
-                           [ rawIsNull validUntilFieldT
-                           , rawAll
-                               [ rawIsNotNull validUntilFieldT
-                               , validUntilFieldT `rawGreater'` RawValue nowDay
-                               ]
-                           ]
-                       ]
+                 ,   mainSelection
+                 ,     raw AS
+                 ,       RawAlias $ tableAliasTokenAliasProxy contractsT
                  , rawLimitTo batchSize
                  ]
 
