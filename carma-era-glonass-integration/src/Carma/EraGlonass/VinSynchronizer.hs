@@ -428,6 +428,7 @@ synchronizeVins =
       handledContractsT = mkTableAliasToken @Contract @"handledContracts"
       handledContractsP = tableAliasTokenAliasProxy handledContractsT
       handledContractsVinsOnlyP = Proxy @"handledContractsVinsOnly"
+      validContractsP = Proxy @"validContracts"
 
       contractsToUnmarkAsHandledT =
         mkTableAliasToken @Contract @"contractsToUnmarkAsHandled"
@@ -486,6 +487,47 @@ synchronizeVins =
                 ,   RawAlias handledContractsP
                 ]
 
+            , -- Few \"Contract"s may have the same VIN, so we check if a VIN is
+              -- presented in this table we must not \"unmark" it.
+              RawAliasAs' validContractsP $
+                let
+                  isActiveFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractIsActive
+
+                  vinFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractVin
+
+                  subProgramFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractSubprogram
+
+                  validSinceFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractValidSince
+
+                  validUntilFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractValidUntil
+                in
+                  [ rawSelectDistinctOn
+                      [rawFieldConstructor vinFieldT]
+                      [rawFieldConstructor vinFieldT]
+                  , raw FROM
+                  ,   RawAlias handledContractsP
+                  , raw WHERE
+                  ,   rawAll
+                        [ isActiveFieldT `rawEqual` True
+                        , subProgramFieldT `rawIn` rawSelectAlias egSubProgramsP
+
+                        , rawSome
+                            [ rawIsNull validSinceFieldT
+                            , validSinceFieldT `rawLessOrEqual` Just nowDay
+                            ]
+
+                        , rawSome
+                            [ rawIsNull validUntilFieldT
+                            , validUntilFieldT `rawGreater` Just nowDay
+                            ]
+                        ]
+                  ]
+
             , -- @Contract@s VINs of which we have to "unmark" as handled by
               -- CaRMa due to some of reasons you can find inside in the
               -- comments below.
@@ -503,6 +545,9 @@ synchronizeVins =
                   subProgramFieldT =
                     mkTableAliasFieldToken handledContractsT ContractSubprogram
 
+                  validSinceFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractValidSince
+
                   validUntilFieldT =
                     mkTableAliasFieldToken handledContractsT ContractValidUntil
                 in
@@ -513,19 +558,28 @@ synchronizeVins =
                   , raw FROM
                   ,   RawAlias handledContractsP
                   , raw WHERE
-                  ,   rawSome
-                        [ -- @Contract@ has been deactivated.
-                          isActiveFieldT `rawEqual` False
+                  ,   rawAll
+                        [ vinFieldT `rawNotIn` rawSelectAlias validContractsP
+                        , rawSome
+                            [ -- @Contract@ has been deactivated.
+                              isActiveFieldT `rawEqual` False
 
-                        , -- @SubProgram@ of a @Contract@ has been unmarked
-                          -- as EG participant.
-                          subProgramFieldT `rawNotIn`
-                            rawSelectAlias egSubProgramsP
+                            , -- @SubProgram@ of a @Contract@ has been unmarked
+                              -- as EG participant.
+                              subProgramFieldT `rawNotIn`
+                                rawSelectAlias egSubProgramsP
 
-                        , -- Validity date of a @Contract@ has been expired.
-                          rawAll
-                            [ rawIsNotNull validUntilFieldT
-                            , validUntilFieldT `rawLessOrEqual` Just nowDay
+                            , -- Validity date of a @Contract@ isn't started yet.
+                              rawAll
+                                [ rawIsNotNull validSinceFieldT
+                                , validSinceFieldT `rawGreater` Just nowDay
+                                ]
+
+                            , -- Validity date of a @Contract@ has been expired.
+                              rawAll
+                                [ rawIsNotNull validUntilFieldT
+                                , validUntilFieldT `rawLessOrEqual` Just nowDay
+                                ]
                             ]
                         ]
                   ]
@@ -729,7 +783,7 @@ synchronizeVins =
                  isActiveFieldT =
                    mkTableAliasFieldToken contractsT ContractIsActive
 
-                 subprogramFieldT =
+                 subProgramFieldT =
                    mkTableAliasFieldToken contractsT ContractSubprogram
 
                  validSinceFieldT =
@@ -753,11 +807,18 @@ synchronizeVins =
                    ,   rawAll
                          [ isActiveFieldT `rawEqual` True
 
-                         , subprogramFieldT `rawIn`
+                         , subProgramFieldT `rawIn`
                              rawSelectAlias egSubProgramsP
 
-                         , validSinceFieldT `rawGreaterOrEqual'` RawValue nowDay
-                         , validUntilFieldT `rawLessOrEqual'`    RawValue nowDay
+                         , rawSome
+                             [ rawIsNull validSinceFieldT
+                             , validSinceFieldT `rawLessOrEqual` Just nowDay
+                             ]
+
+                         , rawSome
+                             [ rawIsNull validUntilFieldT
+                             , validUntilFieldT `rawGreater` Just nowDay
+                             ]
 
                          , rawIsNotNull vinFieldT
                          , vinFieldT `rawNotEqual` Just ""
@@ -770,16 +831,6 @@ synchronizeVins =
 
                          , vinFieldT `rawNotIn`
                              rawSelectAlias alreadyHandledVinsOnlyP
-
-                         , rawSome
-                             [ rawIsNull validUntilFieldT
-                             , rawAll
-                                 [ rawIsNotNull validUntilFieldT
-
-                                 , validUntilFieldT `rawGreater'`
-                                     RawValue nowDay
-                                 ]
-                             ]
                          ]
                    , rawOrderBy [Descending validSinceFieldT]
                    ]

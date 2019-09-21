@@ -910,7 +910,7 @@ rawSelectDistinct x = RawWrap' mempty $ raw SELECT_DISTINCT <| pure (rawSeq x)
 -- @
 -- RawWrap' mempty
 --   [ raw SELECT_DISTINCT, raw ON
---   ,   rawIntersected ("(", ")") (raw COMMA) [ContractVin, ContractValidUntil]
+--   ,   rawIntersected ("(", ") ") (raw COMMA) [ContractVin, ContractValidUntil]
 --   ,   rawSeq [RawField ContractId, RawField ContractVin]
 --   ]
 -- @
@@ -919,7 +919,7 @@ rawSelectDistinct x = RawWrap' mempty $ raw SELECT_DISTINCT <| pure (rawSeq x)
 --
 -- @
 -- [ raw SELECT_DISTINCT, raw ON
--- ,   rawIntersected ("(", ")") (raw COMMA) [ContractVin, ContractValidUntil]
+-- ,   rawIntersected ("(", ") ") (raw COMMA) [ContractVin, ContractValidUntil]
 -- ,   rawSeq [RawField ContractId, RawField ContractVin]
 -- , ...
 -- ]
@@ -934,7 +934,7 @@ rawSelectDistinctOn onList valuesList
    = RawWrap' mempty
    $ raw SELECT_DISTINCT
   <| raw ON
-  <| rawIntersected ("(", ")") (raw COMMA) onList
+  <| rawIntersected ("(", ") ") (raw COMMA) onList
   <| pure (rawSeq valuesList)
 
 
