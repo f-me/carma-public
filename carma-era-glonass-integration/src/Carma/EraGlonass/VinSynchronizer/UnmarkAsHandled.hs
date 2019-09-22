@@ -104,9 +104,10 @@ unmarkAsHandled lists (totalCount, contractsCount, ephemeralsCount) = do
        EGBindVehiclesResponseUnbindOk { errors }
          | null errors -> pure ()
          | otherwise   -> do
-             let alreadyUnboundVins = errors <&> \case
+             let alreadyUnboundVins :: [Text]
+                 alreadyUnboundVins = errors <&> \case
                    EGBindVehiclesResponseError
-                     { vin, errorCode = VinNotFound } -> vin
+                     { vin, errorCode = VinNotFound } -> egVinToString vin
 
              srcLogWarn [qms|
                These VINs were already "unmarked" as handled by us

@@ -129,7 +129,7 @@ synchronizeContracts vinsToMark vinsToMarkCount = do
   foldM reducer (minBound :: Word, minBound :: Word) vinsToMark >>= \case
     (newCount, updatedCount) ->
       srcLogDebug [qms|
-        Creted {newCount} new synchronization entities in the database for
+        Created {newCount} new synchronization entities in the database for
         new VINs marked as handled by us and updated {updatedCount}
         previously added entities.
       |]

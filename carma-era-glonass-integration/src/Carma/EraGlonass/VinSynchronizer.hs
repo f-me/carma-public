@@ -256,6 +256,14 @@ runVinSynchronizer tz = go where
     killThread manualTriggerThread
 
 
+-- | Log message about that VINs synchronization is finished successfully
+--   mentioning how many interations it have taken.
+doneSyncVinsLog :: MonadLoggerBus m => Word -> m ()
+doneSyncVinsLog iterations = srcLogInfo [qms|
+  Synchronizing VINs is successfully done, it took {iterations} iteration(s).
+|]
+
+
 -- | VINs synchronization logic handler.
 --
 -- If you don't see comments for code just look at log messages nearby,
@@ -291,7 +299,18 @@ synchronizeVins =
     in
       \m i -> preLog i >> transactionSave >> postLog (succ i) >> m (succ i)
 
-  ) -> repeat') -> \(repeat' -> repeatWholeOperation) -> do
+  -- @repeat'@ is an \"again" function produced by "Data.Function.fix",
+  -- but modified above by adding log messaging, commiting transaction.
+  --
+  -- @repeatWholeOperation@ is like \"again" with pre-applied iteration counter,
+  -- so you don't have to care about passing the argument and about correctness
+  -- of the value.
+  --
+  -- @doneLog@ is just pre-applied "doneSyncVinsLog" with iteration counter,
+  -- you either call @repeatWholeOperation@ or @doneLog@ at the end.
+  ) -> repeat') -> \( (repeat' &&& lift . doneSyncVinsLog . pred) ->
+                      (repeatWholeOperation, doneLog)
+                    ) -> do
 
   nowDay <- utctDay <$> lift getCurrentTime
   batchSize <- lift $ asks vinSynchronizerBatchSize
@@ -867,7 +886,7 @@ synchronizeVins =
                |] :: Text
 
          case vinsToSynchronize of
-              [] -> srcLogDebug $ logMsg False minBound
+              [] -> doneLog << srcLogDebug (logMsg False minBound)
 
               x : xs -> do
                 let vinsToSynchronizeCount =
@@ -876,11 +895,12 @@ synchronizeVins =
                 srcLogDebug $ logMsg True vinsToSynchronizeCount
                 synchronizeContracts (x :| xs) vinsToSynchronizeCount
 
-                unless (vinsToSynchronizeCount < batchSize) $
-                  repeatWholeOperation <* srcLogDebug [qms|
-                    Total count ({vinsToSynchronizeCount}) of VINs to
-                    synchronize  isn't less than batch size limit ({batchSize})
-                    it means there are probably more VINs to mark as handled by
-                    CaRMa, so, repeating whole operation for next batch
-                    iteration...
-                  |]
+                if vinsToSynchronizeCount < batchSize
+                   then doneLog
+                   else repeatWholeOperation << srcLogDebug [qms|
+                          Total count ({vinsToSynchronizeCount}) of VINs to
+                          synchronize isn't less than batch size limit
+                          ({batchSize}) it means there are probably more VINs to
+                          mark as handled by CaRMa, so, repeating whole
+                          operation for next batch iteration...
+                        |]
