@@ -308,7 +308,7 @@ synchronizeVins =
   --
   -- @doneLog@ is just pre-applied "doneSyncVinsLog" with iteration counter,
   -- you either call @repeatWholeOperation@ or @doneLog@ at the end.
-  ) -> repeat') -> \( (repeat' &&& lift . doneSyncVinsLog . pred) ->
+  ) -> repeat') -> \( (repeat' &&& lift . doneSyncVinsLog) ->
                       (repeatWholeOperation, doneLog)
                     ) -> do
 
