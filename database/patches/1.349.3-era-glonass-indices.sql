@@ -13,8 +13,6 @@ CREATE INDEX ON "EraGlonassSynchronizedContract" (lastStatusChangeTime);
 CREATE INDEX ON "CaseEraGlonassFailure" (ctime);
 CREATE INDEX ON "CaseEraGlonassFailure" (integrationPoint);
 CREATE INDEX ON "CaseEraGlonassFailure" (requestId);
-CREATE INDEX ON "CaseEraGlonassFailure" (comment);
-CREATE INDEX ON "CaseEraGlonassFailure" (repeats);
 
 
 COMMIT;
