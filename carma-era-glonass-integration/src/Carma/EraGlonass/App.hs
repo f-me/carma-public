@@ -61,10 +61,11 @@ import           Carma.Monad.Concurrently
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Server (serverApplicaton)
 import           Carma.EraGlonass.VinSynchronizer (runVinSynchronizer)
+import           Carma.EraGlonass.StatusSynchronizer (runStatusSynchronizer)
 import           Carma.EraGlonass.Types.AppContext
 import           Carma.EraGlonass.Types.EGContractId (EGContractId)
 import           Carma.EraGlonass.Types.EGIntegrationPoint
-                   ( EGIntegrationPoint (BindVehicles)
+                   ( EGIntegrationPoint (BindVehicles, ChangeProcessingStatus)
                    )
 
 foreign import ccall "exit" exit :: CInt -> IO ()
@@ -140,6 +141,18 @@ app appMode' withDbConnection = do
   !(carmaVinSynchronizerContractId :: EGContractId 'BindVehicles) <-
     liftIO $ Conf.require cfg "vin-synchronizer.carma-contract-id"
 
+  -- In minutes
+  !(statusSynchronizerInterval' :: Float) <-
+    liftIO $ Conf.require cfg "status-synchronizer.interval"
+
+  -- In seconds
+  !(statusSynchronizerTimeout' :: Float) <-
+    liftIO $ Conf.require cfg "status-synchronizer.timeout"
+
+  !( carmaStatusSynchronizerContractId ::
+     Maybe (EGContractId 'ChangeProcessingStatus) ) <-
+       liftIO $ Conf.lookup cfg "status-synchronizer.carma-contract-id"
+
   loggerBus' <- atomically newTQueue
 
   -- Running logger thread
@@ -160,8 +173,10 @@ app appMode' withDbConnection = do
 
   ( backgroundTasksCounter',
     vinSynchronizerTriggerBus',
+    statusSynchronizerTriggerBus',
     workersThreadFailureSem )
-      <- atomically $ (,,) <$> newTVar 0 <*> newEmptyTMVar <*> newTSem 0
+      <- atomically $
+           (,,,) <$> newTVar 0 <*> newEmptyTMVar <*> newEmptyTMVar <*> newTSem 0
 
   (workersThreadId, workersThreadSem) <-
     flip runReaderT loggerBus'
@@ -185,12 +200,21 @@ app appMode' withDbConnection = do
                 , egClientEnv = ClientEnv manager egBaseUrl
                 , vinSynchronizerContractId = carmaVinSynchronizerContractId
 
+                , statusSynchronizerContractId =
+                    carmaStatusSynchronizerContractId
+
                 , vinSynchronizerTimeout =
                     round $ vinSynchronizerTimeout' * (10 ** 6)
                 , vinSynchronizerRetryInterval =
                     round $ vinSynchronizerRetryInterval' * 60 * (10 ** 6)
                 , vinSynchronizerBatchSize = vinSynchronizerBatchSize'
                 , vinSynchronizerTriggerBus = vinSynchronizerTriggerBus'
+
+                , statusSynchronizerInterval =
+                    round $ statusSynchronizerInterval' * 60 * (10 ** 6)
+                , statusSynchronizerTimeout =
+                    round $ statusSynchronizerTimeout' * (10 ** 6)
+                , statusSynchronizerTriggerBus = statusSynchronizerTriggerBus'
                 }
 
           -- Semaphore for case when some worker is unexpectedly failed
@@ -213,19 +237,35 @@ app appMode' withDbConnection = do
           -- Running VIN synchronizer thread
           vinSynchronizer <-
             if appMode' == TestingAppMode
-               then do logWarn [qns| Not running VIN synchronizer because it is
-                                     testing mode. |]
+               then do logWarn [qns| Not running VIN synchronizer
+                                     because it is testing mode. |]
                        pure Nothing
 
                else fmap Just $ forkWithSem
                               $ handle (\e@(SomeException _) -> logError [qms|
-                                  VIN synchronizer worker thread is unexpectedly
-                                  failed with exception: {e}
+                                  VIN synchronizer worker thread is
+                                  unexpectedly failed with exception: {e}
                                 |] `finally` atomically (signalTSem failureSem))
                               $ do
 
-                      logInfo [qn| Running VIN synchronizer worker thread... |]
+                      logInfo "Running VIN synchronizer worker thread..."
                       runVinSynchronizer timeZone `runReaderT` appContext
+
+          statusSynchronizer <-
+            if appMode' == TestingAppMode
+               then do logWarn [qns| Not running Status Synchronizer
+                                     because it is testing mode. |]
+                       pure Nothing
+
+               else fmap Just $ forkWithSem
+                              $ handle (\e@(SomeException _) -> logError [qms|
+                                  Status Synchronizer worker thread is
+                                  unexpectedly failed with exception: {e}
+                                |] `finally` atomically (signalTSem failureSem))
+                              $ do
+
+                      logInfo "Running Status Synchronizer worker thread..."
+                      runStatusSynchronizer `runReaderT` appContext
 
           let waitForWorkers = runConcurrently x where
                 waitFor = atomically . waitTSem
@@ -238,15 +278,19 @@ app appMode' withDbConnection = do
                          Some of threads of workers is unexpectedly failed!
                        |]
 
-                workers = void $ (,)
-                 <$> Concurrently
-                     ( -- Wait for server thread
-                       waitFor serverThreadSem
-                     )
-                 <*> Concurrently
-                     ( -- Wait for VIN synchronizer thread
-                       maybe (pure ()) (snd ? waitFor) vinSynchronizer
-                     )
+                workers = void $ (,,)
+                  <$> Concurrently
+                      ( -- Wait for server thread
+                        waitFor serverThreadSem
+                      )
+                  <*> Concurrently
+                      ( -- Wait for VIN synchronizer thread
+                        maybe (pure ()) (snd ? waitFor) vinSynchronizer
+                      )
+                  <*> Concurrently
+                      ( -- Wait for Status Synchronizer thread
+                        maybe (pure ()) (snd ? waitFor) statusSynchronizer
+                      )
 
           waitForWorkers `catch` \e@KillWorkersException -> do
 
@@ -260,6 +304,12 @@ app appMode' withDbConnection = do
                  Nothing -> pure ()
                  Just (threadId, _) -> do
                    logDebug [qn| Killing VIN synchronizer thread... |]
+                   killThread threadId
+
+            case statusSynchronizer of
+                 Nothing -> pure ()
+                 Just (threadId, _) -> do
+                   logDebug [qn| Killing Status Synchronizer thread... |]
                    killThread threadId
 
   -- Trapping termination of the application

@@ -36,3 +36,18 @@ vin-synchronizer {
   # Predefined on Era Glonass side code.
   carma-contract-id = "CaRMa RuAMC"
 }
+
+status-synchronizer {
+  # In minutes.
+  # Interval before next check whether there's something to synchronize.
+  interval = 30.0
+
+  # In seconds.
+  # Synchronization iteration timeout.
+  # One iteration includes requests to EG side and own database requests.
+  timeout = 60.0
+
+  # Predefined on Era Glonass side code.
+  # [OPTIONAL]
+  # carma-contract-id = "CaRMa RuAMC"
+}

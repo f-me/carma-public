@@ -22,7 +22,10 @@ import           Carma.Monad.LoggerBus.Types (type LogMessage)
 
 import           Carma.EraGlonass.Types.EGContractId (type EGContractId)
 import           Carma.EraGlonass.Types.EGIntegrationPoint
-                   ( type EGIntegrationPoint (BindVehicles)
+                   ( type EGIntegrationPoint
+                        ( BindVehicles
+                        , ChangeProcessingStatus
+                        )
                    )
 
 
@@ -75,7 +78,7 @@ data AppContext
        -- scheduled launch or for next menual trigger.
        --
        -- When it's not empty it means VIN synchronization is in progress, after
-       -- VIN Synchronizer is done and reached next iteration is will flush this
+       -- VIN Synchronizer is done and reached next iteration it will flush this
        -- bus, leaving it empty, starting to wait again for next manual trigger.
        --
        -- When you trigger it you put current time to this bus, so you could
@@ -84,6 +87,36 @@ data AppContext
        -- In case VIN synchronization is triggered by schedule, it will itself
        -- fill this bus with time of start of that synchronization (to notify
        -- others it's busy).
+
+   , statusSynchronizerInterval :: Int
+       -- ^ An interval (in microseconds) between next statuses synchronization.
+
+   , statusSynchronizerTimeout :: Int
+       -- ^ Statuses synchronization iteration timeout in microseconds.
+       --
+       -- One iteration includes requests to EG side and own database requests.
+
+   , statusSynchronizerContractId
+       :: Maybe (EGContractId 'ChangeProcessingStatus)
+       -- ^ Predefined on Era Glonass side code.
+
+   , statusSynchronizerTriggerBus :: TMVar UTCTime
+       -- ^ Useful to manually trigger statuses synchronization.
+       --
+       -- When it's empty it means Status Synchronizer is waiting for next
+       -- scheduled launch or for next menual trigger.
+       --
+       -- When it's not empty it means statuses synchronization is in progress,
+       -- after Status Synchronizer is done and reached next iteration it will
+       -- flush this bus, leaving it empty, starting to wait again for next
+       -- manual trigger.
+       --
+       -- When you trigger it you put current time to this bus, so you could
+       -- check the time of start of currently processing synchronization.
+       --
+       -- In case statuses synchronization is triggered after regular interval,
+       -- it will itself fill this bus with time of start of that
+       -- synchronization (to notify others it's busy).
    }
 
 

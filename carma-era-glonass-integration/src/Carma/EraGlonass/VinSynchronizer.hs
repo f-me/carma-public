@@ -86,7 +86,7 @@ runVinSynchronizer tz = go where
 
   willBeRetried interval = [qms|
     Synchronization of VINs will be retried in
-    {printf "%.2f" (inHours interval) :: String} hour(s)
+    {printf "%.2f" $ inHours interval :: String} hour(s)
     (also it will wait for manual trigger in parallel, flushing manual
     triggering bus first, either scheduled retry or manual trigger will run next
     synchronization attempt)...
@@ -123,6 +123,7 @@ runVinSynchronizer tz = go where
           atomically *** atomically
 
       let -- | Deducing background threads counter when thread is done
+          onForkDeath :: m ()
           onForkDeath = atomically $ modifyTVar' bgThreadsCounter pred
 
       scheduleThread <-
@@ -251,7 +252,7 @@ runVinSynchronizer tz = go where
         done
 
     wait
-    srcLogInfo "Killing waiting threads before retrying VIN synchronization..."
+    srcLogDebug "Killing waiting threads before retrying VIN synchronization..."
     killThread scheduleThread
     killThread manualTriggerThread
 
