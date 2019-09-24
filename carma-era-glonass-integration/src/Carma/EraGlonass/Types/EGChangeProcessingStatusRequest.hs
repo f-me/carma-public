@@ -96,11 +96,11 @@ data EGChangeProcessingStatusRequest
        -- I believe it's a free string, we can write anything here,
        -- or also free to leave it empty.
 
-   , contractId :: EGContractId 'ChangeProcessingStatus
+   , contractId :: Maybe (EGContractId 'ChangeProcessingStatus)
        -- ^ Identity of a contract of a service provider (CaRMa).
        --
-       -- Spec says it as an optional field (@Maybe@) but we have been told by
-       -- EG that this field is actually required.
+       -- We've been told that we can omit this field since the service already
+       -- know who are sending a request.
        --
        -- See "Carma.EraGlonass.Types.EGContractId.EGContractId" datatype for
        -- details.
