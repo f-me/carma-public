@@ -89,6 +89,12 @@ xdg-open haddock/index.html
 curl -v 'http://127.0.0.1:8166/debug/vin-synchronizer/trigger.json' -XPOST | jq
 ```
 
+### To trigger statuses synchronization manually
+
+```bash
+curl -v 'http://127.0.0.1:8166/debug/status-synchronizer/trigger.json' -XPOST | jq
+```
+
 ### To see total count of registered failure incidents
 
 ```bash

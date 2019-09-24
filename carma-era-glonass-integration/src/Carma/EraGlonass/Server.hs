@@ -14,10 +14,12 @@ import           Data.Semigroup ((<>))
 import           Data.Maybe (isNothing)
 import           Data.Aeson (Value (String), encode)
 import           Data.Swagger (Swagger)
+import           Data.Char (toLower, toUpper)
 import           Data.Text (Text)
+import qualified Data.Text as T
 import           Text.InterpolatedString.QM
 
-import           Control.Monad (when)
+import           Control.Monad (when, guard)
 import           Control.Monad.Reader (MonadReader, asks, runReaderT, ReaderT)
 import           Control.Monad.Error.Class (MonadError, throwError)
 import           Control.Monad.Catch (MonadCatch)
@@ -86,6 +88,10 @@ type ServerAPI
                 # -- POST /debug/vin-synchronizer/trigger.json
                   "vin-synchronizer" :> "trigger.json"
                   :> Post '[JSON] RouteActionResponse
+
+                # -- POST /debug/status-synchronizer/trigger.json
+                  "status-synchronizer" :> "trigger.json"
+                  :> Post '[JSON] RouteActionResponse
                 )
 
 
@@ -125,6 +131,7 @@ server
     # (getFailuresCount # getFailuresList)
     # getBackgroundTasksCount
     # vinSynchronizerTrigger
+    # statusSynchronizerTrigger
     )
 
 
@@ -276,9 +283,48 @@ vinSynchronizerTrigger
    )
   => m t
 
-vinSynchronizerTrigger = do
-  srcLogDebug [qn| Triggering VIN synchronization manually... |]
-  bus <- asks vinSynchronizerTriggerBus
+vinSynchronizerTrigger =
+  manuallyTrigger (False, "VIN synchronization")
+    =<< asks vinSynchronizerTriggerBus
+
+
+statusSynchronizerTrigger
+  :: forall m t
+   .
+   ( MonadReader AppContext m
+   , MonadLoggerBus m
+   , MonadClock m
+   , MonadSTM m
+   , MonadError ServantErr m
+   , t ~ RouteActionResponse
+   )
+  => m t
+
+statusSynchronizerTrigger =
+  manuallyTrigger (True, "statuses synchronization")
+    =<< asks statusSynchronizerTriggerBus
+
+
+manuallyTrigger
+  :: forall m t
+   .
+   ( MonadLoggerBus m
+   , MonadClock m
+   , MonadSTM m
+   , MonadError ServantErr m
+   , t ~ RouteActionResponse
+   )
+  => (Bool, Text) -- ^ @Bool@ menas it can be capitalized
+  -> TMVar UTCTime
+  -> m t
+
+manuallyTrigger (isCapitalizable, actionTitle) bus = do
+  let (capitalizedActionTitle, uncapitalizedActionTitle) =
+        maybe (actionTitle, actionTitle)
+              (\(x, xs) -> (toUpper x `T.cons` xs, toLower x `T.cons` xs))
+              (guard isCapitalizable *> T.uncons actionTitle)
+
+  srcLogDebug [qm| Triggering {uncapitalizedActionTitle} manually... |]
 
   lastTriggerTime <-
     getCurrentTime >>= \currentTime -> atomically $ do
@@ -294,11 +340,11 @@ vinSynchronizerTrigger = do
          let rfc3339Time = showRFC3339DateTime currentTime
 
          srcLogDebug [qms|
-           VIN synchronization is successfully manually triggered at
+           {capitalizedActionTitle} is successfully manually triggered at
            {rfc3339Time}.
          |]
 
-         let msg = "VIN synchronization is successfully triggered."
+         let msg = [qm| {capitalizedActionTitle} is successfully triggered. |]
          let additional = [("triggered_at_time", String rfc3339Time)]
          pure (RouteActionResponseSuccess msg additional :: t)
 
@@ -306,8 +352,8 @@ vinSynchronizerTrigger = do
          let rfc3339Time = showRFC3339DateTime lastTime
 
          srcLogDebug [qms|
-           Couldn't trigger VIN synchronization manually because another
-           synchronization is still in progress since {rfc3339Time}.
+           Couldn't trigger {uncapitalizedActionTitle} manually because another
+           {uncapitalizedActionTitle} is still in progress since {rfc3339Time}.
          |]
 
          throwError err503
@@ -316,12 +362,11 @@ vinSynchronizerTrigger = do
 
            , errBody =
                let
-                 additional =
-                   [("last_synchronization_init_time", String rfc3339Time)]
+                 additional = [("last_trigger_time", String rfc3339Time)]
 
-                 msg = [qns|
-                   Cannot run VIN synchronization because another
-                   synchronization is still in progress.
+                 msg = [qms|
+                   Cannot run {uncapitalizedActionTitle} because another
+                   {uncapitalizedActionTitle} is still in progress.
                  |]
                in
                  encode (RouteActionResponseError msg additional :: t)
