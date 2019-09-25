@@ -28,6 +28,7 @@ dependencies:
   - exceptions
   - fast-logger
   - generic-deriving
+  - hsyslog
   - http-api-data
   - http-client
   - http-client-tls
@@ -36,7 +37,6 @@ dependencies:
   - lifted-base
   - monad-control
   - monad-logger
-  - monad-logger-syslog
   - MonadRandom
   - mtl
   - persistent

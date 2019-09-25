@@ -55,4 +55,7 @@ status-synchronizer {
 logger {
   # Possible values: "stdout", "stderr" or "syslog"
   sink = "stdout"
+
+  # Optional if "sink" is not "syslog".
+  syslog-ident = "carma-era-glonass-integration"
 }

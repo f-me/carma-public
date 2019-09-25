@@ -44,7 +44,6 @@ import           Foreign.C.Types (CInt (..))
 
 import           System.IO (hPutStrLn, stderr)
 import           System.Exit (exitFailure)
-import           System.Log.MonadLogger.Syslog (runSyslogLoggingT)
 import           System.Posix.Signals
                    ( installHandler
                    , Handler (Catch)
@@ -69,6 +68,7 @@ import           Carma.Monad.Delay
 import           Carma.Monad.STM
 import           Carma.Monad.Concurrently
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Logger.Syslog (runSyslogLoggingT)
 import           Carma.EraGlonass.Server (serverApplicaton)
 import           Carma.EraGlonass.VinSynchronizer (runVinSynchronizer)
 import           Carma.EraGlonass.StatusSynchronizer (runStatusSynchronizer)
@@ -169,7 +169,7 @@ app appMode' withDbConnection = do
     Conf.require cfg "logger.sink" >>= \case
       "stdout" -> pure runStdoutLoggingT
       "stderr" -> pure runStderrLoggingT
-      "syslog" -> pure runSyslogLoggingT
+      "syslog" -> runSyslogLoggingT <$> Conf.require cfg "logger.syslog-ident"
 
       (x :: String) ->
         let errMsg = [qm| Unexpected logger sink value: "{x}" |]
