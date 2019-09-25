@@ -4,7 +4,7 @@
 --
 -- It's a fork of (forked in order to support custom \"ident"):
 --   https://www.stackage.org/haddock/lts-9.21/monad-logger-syslog-0.1.4.0/src/System.Log.MonadLogger.Syslog.html
-module Carma.EraGlonass.Logger.Syslog
+module Carma.Utils.MonadLogger.Syslog
      ( runSyslogLoggingT
      ) where
 

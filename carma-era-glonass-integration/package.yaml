@@ -28,7 +28,6 @@ dependencies:
   - exceptions
   - fast-logger
   - generic-deriving
-  - hsyslog
   - http-api-data
   - http-client
   - http-client-tls

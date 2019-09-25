@@ -12,7 +12,11 @@ description:
 dependencies:
   - aeson
   - base
+  - bytestring
+  - fast-logger
+  - hsyslog
   - lens
+  - monad-logger
   - persistent
   - qm-interpolated-string
   - swagger2

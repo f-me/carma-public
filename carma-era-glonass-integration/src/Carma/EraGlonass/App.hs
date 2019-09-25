@@ -60,6 +60,7 @@ import           Database.Persist.Postgresql (PostgresConf (PostgresConf))
 import           Servant.Client (ClientEnv (ClientEnv), BaseUrl, parseBaseUrl)
 
 import           Carma.Utils.Operators
+import           Carma.Utils.MonadLogger.Syslog (runSyslogLoggingT)
 import           Carma.Monad.LoggerBus.Types (LogMessage)
 import           Carma.Monad.LoggerBus.MonadLogger
 import           Carma.Monad.LoggerBus
@@ -68,7 +69,6 @@ import           Carma.Monad.Delay
 import           Carma.Monad.STM
 import           Carma.Monad.Concurrently
 import           Carma.EraGlonass.Instances ()
-import           Carma.EraGlonass.Logger.Syslog (runSyslogLoggingT)
 import           Carma.EraGlonass.Server (serverApplicaton)
 import           Carma.EraGlonass.VinSynchronizer (runVinSynchronizer)
 import           Carma.EraGlonass.StatusSynchronizer (runStatusSynchronizer)
