@@ -36,6 +36,7 @@ dependencies:
   - lifted-base
   - monad-control
   - monad-logger
+  - monad-logger-syslog
   - MonadRandom
   - mtl
   - persistent

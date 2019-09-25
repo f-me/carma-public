@@ -8,6 +8,8 @@ module Carma.EraGlonass.App
      , app
      ) where
 
+import           Prelude hiding (fail)
+
 import           Data.Function ((&))
 import           Data.Typeable
 import           Data.Time.LocalTime (getCurrentTimeZone)
@@ -16,13 +18,18 @@ import           Data.String (fromString)
 import           Text.InterpolatedString.QM
 
 import           Control.Applicative
-import           Control.Monad
-import           Control.Monad.Reader
-import           Control.Monad.Logger (runStdoutLoggingT)
+import           Control.Monad hiding (fail)
+import           Control.Monad.Reader hiding (fail)
+import           Control.Monad.Logger
+                   ( LoggingT
+                   , runStdoutLoggingT
+                   , runStderrLoggingT
+                   )
 import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Control.Monad.Random.Class (MonadRandom)
 import           Control.Monad.Catch
+import           Control.Monad.Fail (MonadFail (fail))
 import           Control.Concurrent.MVar (tryReadMVar)
 import           Control.Concurrent.STM.TQueue
 import           Control.Concurrent.STM.TMVar
@@ -34,8 +41,10 @@ import           Control.Exception
                    )
 
 import           Foreign.C.Types (CInt (..))
+
 import           System.IO (hPutStrLn, stderr)
 import           System.Exit (exitFailure)
+import           System.Log.MonadLogger.Syslog (runSyslogLoggingT)
 import           System.Posix.Signals
                    ( installHandler
                    , Handler (Catch)
@@ -46,6 +55,7 @@ import           System.Posix.Signals
 import qualified Network.Wai.Handler.Warp as Warp
 import           Network.HTTP.Client (Manager, newManager)
 import           Network.HTTP.Client.TLS (tlsManagerSettings)
+
 import           Database.Persist.Postgresql (PostgresConf (PostgresConf))
 
 import           Servant.Client (ClientEnv (ClientEnv), BaseUrl, parseBaseUrl)
@@ -90,13 +100,15 @@ data AppConfig
 -- (they mustn't have any @IO@, @MonadIO@ or @MonadBaseControl IO@ in their
 -- dependencies).
 app
-  ::
+  :: forall m
+   .
    ( MonadIO m
    , MonadBaseControl IO m
    , MonadRandom m
    , MonadThrow m
    , MonadCatch m
    , MonadMask m
+   , MonadFail m
    )
   => AppMode
   -> ( AppConfig
@@ -153,13 +165,23 @@ app appMode' withDbConnection = do
      Maybe (EGContractId 'ChangeProcessingStatus) ) <-
        liftIO $ Conf.lookup cfg "status-synchronizer.carma-contract-id"
 
+  !(loggerSink :: LoggingT m () -> m ()) <- liftIO $
+    Conf.require cfg "logger.sink" >>= \case
+      "stdout" -> pure runStdoutLoggingT
+      "stderr" -> pure runStderrLoggingT
+      "syslog" -> pure runSyslogLoggingT
+
+      (x :: String) ->
+        let errMsg = [qm| Unexpected logger sink value: "{x}" |]
+         in error errMsg <$ hPutStrLn stderr errMsg `finally` exit 1
+
   loggerBus' <- atomically newTQueue
 
   -- Running logger thread
   (_, loggerThreadWaitBus) <-
     forkWithWaitBus $ do
       let logReader = writeLoggerBusEventsToMonadLogger `runReaderT` loggerBus'
-      runStdoutLoggingT logReader `catch` \(SomeException e) ->
+      loggerSink logReader `catch` \(SomeException e) ->
         liftIO $ hPutStrLn stderr [qms|
           Logger reader thread is failed with an unexpected exception:
           {displayException e}

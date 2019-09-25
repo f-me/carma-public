@@ -51,3 +51,8 @@ status-synchronizer {
   # [OPTIONAL]
   # carma-contract-id = "CaRMa RuAMC"
 }
+
+logger {
+  # Possible values: "stdout", "stderr" or "syslog"
+  sink = "stdout"
+}
