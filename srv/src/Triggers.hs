@@ -70,6 +70,7 @@ import qualified Carma.Model.Contract as Contract
 import qualified Carma.Model.ContractCheckStatus as CCS
 import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.CallType as CT
+import qualified Carma.Model.EraGlonassCaseStatusUpdate as EGCaseStatusUpdate
 
 import           Carma.Model.LegacyTypes
 
@@ -687,6 +688,40 @@ afterUpdate = Map.unionsWith (++)
                     = svc.$(F|Service.contractor_partnerId)$
               AND svc.$(F|Service.svcType)$::TEXT = s->>'type'
         |]
+
+  , trigOn Case.caseStatus $ \newStatus ->
+      when (newStatus `elem` [CS.back, CS.closed, CS.canceled]) $ do
+        caseId <- getIdent
+
+        if newStatus == CS.back
+
+           then void $ doApp $ uncurry SPG.execute [msql|
+                  INSERT INTO $(T|EGCaseStatusUpdate)$
+                    ( $(F|EGCaseStatusUpdate.caseId)$
+                    , $(F|EGCaseStatusUpdate.newCaseStatus)$
+                    ) VALUES
+                    ( $(V|caseId)$
+                    , $(V|newStatus)$
+                    )
+                |]
+
+           else do case' <- dbRead caseId
+
+                   void $ doApp $ uncurry SPG.execute [msql|
+                     INSERT INTO $(T|EGCaseStatusUpdate)$
+                       ( $(F|EGCaseStatusUpdate.caseId)$
+                       , $(F|EGCaseStatusUpdate.newCaseStatus)$
+                       , $(F|EGCaseStatusUpdate.customerName)$
+                       , $(F|EGCaseStatusUpdate.customerPhone)$
+                       , $(F|EGCaseStatusUpdate.terminalPhone)$
+                       ) VALUES
+                       ( $(V|caseId)$
+                       , $(V|newStatus)$
+                       , $(V|case' `get'` Case.contact_name)$
+                       , $(V|case' `get'` Case.contact_phone1)$
+                       , $(V|case' `get'` Case.contact_phone2)$
+                       )
+                   |]
   ]
 
 
