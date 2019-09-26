@@ -689,44 +689,45 @@ afterUpdate = Map.unionsWith (++)
               AND svc.$(F|Service.svcType)$::TEXT = s->>'type'
         |]
 
-  , trigOn Case.caseStatus $ \newStatus ->
-      when (newStatus `elem` [ CS.back
-                             , CS.needInfo
-                             , CS.closed
-                             , CS.canceled
-                             ]) $ do
-        caseId <- getIdent
+  , trigOn Case.caseStatus $ \newStatus -> do
+      caseId <- getIdent
+      case'  <- dbRead caseId
 
-        -- Work in progress, not closed yed.
-        if newStatus `elem` [CS.back, CS.needInfo]
+      let condition =
+            case' `get'` Case.isCreatedByEraGlonass &&
+            newStatus `elem` [CS.back, CS.needInfo, CS.closed, CS.canceled]
 
-           then void $ doApp $ uncurry SPG.execute [msql|
-                  INSERT INTO $(T|EGCaseStatusUpdate)$
-                    ( $(F|EGCaseStatusUpdate.caseId)$
-                    , $(F|EGCaseStatusUpdate.newCaseStatus)$
-                    ) VALUES
-                    ( $(V|caseId)$
-                    , $(V|newStatus)$
-                    )
-                |]
+      when condition $
+        void $ doApp $
 
-           else do case' <- dbRead caseId
+          -- Work in progress, not closed yed.
+          if newStatus `elem` [CS.back, CS.needInfo]
 
-                   void $ doApp $ uncurry SPG.execute [msql|
-                     INSERT INTO $(T|EGCaseStatusUpdate)$
-                       ( $(F|EGCaseStatusUpdate.caseId)$
-                       , $(F|EGCaseStatusUpdate.newCaseStatus)$
-                       , $(F|EGCaseStatusUpdate.customerName)$
-                       , $(F|EGCaseStatusUpdate.customerPhone)$
-                       , $(F|EGCaseStatusUpdate.terminalPhone)$
-                       ) VALUES
-                       ( $(V|caseId)$
-                       , $(V|newStatus)$
-                       , $(V|case' `get'` Case.contact_name)$
-                       , $(V|case' `get'` Case.contact_phone1)$
-                       , $(V|case' `get'` Case.contact_phone2)$
-                       )
-                   |]
+             then uncurry SPG.execute [msql|
+                    INSERT INTO $(T|EGCaseStatusUpdate)$
+                      ( $(F|EGCaseStatusUpdate.caseId)$
+                      , $(F|EGCaseStatusUpdate.newCaseStatus)$
+                      ) VALUES
+                      ( $(V|caseId)$
+                      , $(V|newStatus)$
+                      )
+                  |]
+
+             else uncurry SPG.execute [msql|
+                    INSERT INTO $(T|EGCaseStatusUpdate)$
+                      ( $(F|EGCaseStatusUpdate.caseId)$
+                      , $(F|EGCaseStatusUpdate.newCaseStatus)$
+                      , $(F|EGCaseStatusUpdate.customerName)$
+                      , $(F|EGCaseStatusUpdate.customerPhone)$
+                      , $(F|EGCaseStatusUpdate.terminalPhone)$
+                      ) VALUES
+                      ( $(V|caseId)$
+                      , $(V|newStatus)$
+                      , $(V|case' `get'` Case.contact_name)$
+                      , $(V|case' `get'` Case.contact_phone1)$
+                      , $(V|case' `get'` Case.contact_phone2)$
+                      )
+                  |]
   ]
 
 
