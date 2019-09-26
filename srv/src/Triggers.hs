@@ -690,10 +690,15 @@ afterUpdate = Map.unionsWith (++)
         |]
 
   , trigOn Case.caseStatus $ \newStatus ->
-      when (newStatus `elem` [CS.back, CS.closed, CS.canceled]) $ do
+      when (newStatus `elem` [ CS.back
+                             , CS.needInfo
+                             , CS.closed
+                             , CS.canceled
+                             ]) $ do
         caseId <- getIdent
 
-        if newStatus == CS.back
+        -- Work in progress, not closed yed.
+        if newStatus `elem` [CS.back, CS.needInfo]
 
            then void $ doApp $ uncurry SPG.execute [msql|
                   INSERT INTO $(T|EGCaseStatusUpdate)$
