@@ -290,12 +290,14 @@ synchronizeStatuses =
                              |] body
 
            case response of
-                EGChangeProcessingStatusResponseOk [] -> pure ()
-                EGChangeProcessingStatusResponseOk [x] -> srcLogWarn [qms|
-                  Got an error in response for status update
-                  #{fromSqlKey statusUpdateId}: {x}
-                |]
-                EGChangeProcessingStatusResponseOk xs -> error [qms|
+                EGChangeProcessingStatusResponseOk Nothing -> pure ()
+                EGChangeProcessingStatusResponseOk (Just []) -> pure ()
+                EGChangeProcessingStatusResponseOk (Just [x]) ->
+                  srcLogWarn [qms|
+                    Got an error in response for status update
+                    #{fromSqlKey statusUpdateId}: {x}
+                  |]
+                EGChangeProcessingStatusResponseOk (Just xs) -> error [qms|
                   Unexpected result for {ChangeRequestStatus} errors response
                   for status update #{fromSqlKey statusUpdateId}, errors list:
                   {xs}
@@ -361,12 +363,14 @@ synchronizeStatuses =
 
            -- We don't really care about such errors
            case response' of
-                EGChangeProcessingStatusResponseOk [] -> pure ()
-                EGChangeProcessingStatusResponseOk [x] -> srcLogWarn [qms|
-                  Got an error in response for status update
-                  #{fromSqlKey statusUpdateId}: {x}
-                |]
-                EGChangeProcessingStatusResponseOk xs -> error [qms|
+                EGChangeProcessingStatusResponseOk Nothing -> pure ()
+                EGChangeProcessingStatusResponseOk (Just []) -> pure ()
+                EGChangeProcessingStatusResponseOk (Just [x]) ->
+                  srcLogWarn [qms|
+                    Got an error in response for status update
+                    #{fromSqlKey statusUpdateId}: {x}
+                  |]
+                EGChangeProcessingStatusResponseOk (Just xs) -> error [qms|
                   Unexpected result for {ChangeProcessingStatus} errors response
                   for status update #{fromSqlKey statusUpdateId}, errors list:
                   {xs}

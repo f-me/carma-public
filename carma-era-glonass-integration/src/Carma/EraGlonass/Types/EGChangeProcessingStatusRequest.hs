@@ -143,7 +143,7 @@ data EGChangeProcessingStatusResponse
    -- as an indicator of having no /errors/, so it would be a redundant
    -- wrapper.
    = EGChangeProcessingStatusResponseOk
-   { errors :: [EGChangeProcessingStatusResponseError]
+   { errors :: Maybe [EGChangeProcessingStatusResponseError]
    }
 
    | EGChangeProcessingStatusResponseFailure
