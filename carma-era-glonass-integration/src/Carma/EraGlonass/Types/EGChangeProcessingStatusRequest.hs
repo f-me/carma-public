@@ -308,11 +308,14 @@ data EGChangeProcessingStatusResponseError
    } deriving (Eq, Show, Generic, ToJSON, FromJSON, ToSchema)
 
 
-data EGChangeProcessingStatusResponseErrorCode = RequestNotFound
+data EGChangeProcessingStatusResponseErrorCode
+   = RequestNotFound
+   | ContractNotFound
      deriving (Eq, Show, Enum, Bounded, Generic)
 
 instance StringyEnum EGChangeProcessingStatusResponseErrorCode where
-  toStringy RequestNotFound = "REQUEST_NOT_FOUND"
+  toStringy RequestNotFound  = "REQUEST_NOT_FOUND"
+  toStringy ContractNotFound = "CONTRACT_NOT_FOUND"
 
 instance ToJSON EGChangeProcessingStatusResponseErrorCode where
   toJSON = String . toStringy
