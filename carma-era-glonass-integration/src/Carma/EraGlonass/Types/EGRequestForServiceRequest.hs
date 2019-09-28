@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass, ScopedTypeVariables #-}
 {-# LANGUAGE DataKinds, TypeOperators, TypeFamilies, InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings, OverloadedLists, LambdaCase, NamedFieldPuns #-}
-{-# LANGUAGE FlexibleContexts, NoMonomorphismRestriction #-}
+{-# LANGUAGE FlexibleContexts, NoMonomorphismRestriction, QuasiQuotes #-}
 
 -- Fixes issue when record-fields aren't exported. Probably related to:
 --   https://stackoverflow.com/questions/46357747/haddock-data-record-fields-names-not-being-generated
@@ -25,31 +25,7 @@ import           Data.Aeson
 import           Data.Aeson.Types (Parser)
 import           Data.Swagger
 
-import           Database.PostgreSQL.Simple.FromField
-                   ( FromField (..)
-                   , fromJSONField
-                   )
-import           Database.PostgreSQL.Simple.ToField
-                   ( ToField (..)
-                   , toJSONField
-                   )
 import           Database.Persist.Postgresql.JSON ()
-import           Database.Persist.Sql (PersistFieldSql (sqlType))
-import           Database.Persist.Class
-                   ( PersistField (toPersistValue, fromPersistValue)
-                   , fromPersistValueJSON
-                   )
-
-import           Data.Model (fieldName, fieldDesc)
-
-import           Data.Model.Types
-                   ( PgTypeable (pgTypeOf)
-                   , PgType (PgType)
-                   , DefaultFieldView (defaultFieldView)
-                   , FieldView (..)
-                   , FF
-                   , fieldKindStr
-                   )
 
 import           Carma.Utils.Operators
 import           Carma.Utils.StringyEnum
@@ -127,36 +103,6 @@ instance FromJSON EGRequestForServiceRequest where
   parseJSON =
     parseJSONWithOptionalNonEmptyTextFields'
       (Proxy :: Proxy '(t, "EGRequestForServiceRequest", 4))
-
-instance PersistField EGRequestForServiceRequest where
-  toPersistValue = toPersistValue . toJSON
-  fromPersistValue = fromPersistValueJSON
-
-instance PersistFieldSql EGRequestForServiceRequest where
-  sqlType Proxy = sqlType (Proxy :: Proxy Value)
-
-instance PgTypeable EGRequestForServiceRequest where
-  pgTypeOf _ = PgType "json" True
-
-instance DefaultFieldView EGRequestForServiceRequest where
-  defaultFieldView f = x where
-    fieldToFieldKindProxy :: (m -> FF t nm desc a) -> Proxy a
-    fieldToFieldKindProxy _ = Proxy
-    x = FieldView
-      { fv_name = fieldName f
-      , fv_type = "JSON"
-      , fv_canWrite = False
-      , fv_meta =
-          [ ("label", String $ fieldDesc f)
-          , ("app",   String $ fieldKindStr $ fieldToFieldKindProxy f)
-          ]
-      }
-
-instance FromField EGRequestForServiceRequest where
-  fromField = fromJSONField
-
-instance ToField EGRequestForServiceRequest where
-  toField = toJSONField
 
 
 data EGRequestForServiceRequestLocation

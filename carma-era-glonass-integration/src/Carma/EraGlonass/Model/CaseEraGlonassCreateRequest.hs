@@ -6,6 +6,7 @@ module Carma.EraGlonass.Model.CaseEraGlonassCreateRequest where
 import           GHC.Generics (Generic)
 
 import           Data.Typeable
+import           Data.Aeson (Value)
 
 import           Data.Model
 import           Data.Model.View
@@ -15,8 +16,6 @@ import           Carma.Model.Case (Case)
 import           Carma.Model.Types ()
 import           Carma.Model.PgTypes ()
 import           Carma.EraGlonass.Types.EGRequestId (EGRequestId)
-import           Carma.EraGlonass.Types.EGRequestForServiceRequest
-                   (EGRequestForServiceRequest)
 
 
 data CaseEraGlonassCreateRequest
@@ -35,9 +34,10 @@ data CaseEraGlonassCreateRequest
        :: F EGRequestId "requestId" "Идентификатор запроса на оказание услуги"
 
    , requestBody
-       :: F EGRequestForServiceRequest
+       :: F Value
             "requestBody"
             "Полученные данные при поступлении запроса на оказание услуги"
+
    } deriving (Typeable, Generic)
 
 

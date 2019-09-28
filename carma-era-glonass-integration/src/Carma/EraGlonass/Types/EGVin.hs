@@ -2,6 +2,7 @@ module Carma.EraGlonass.Types.EGVin
      ( Internal.EGVin
      , Internal.egVinParser
      , Internal.textToProvedEGVin
+     , Internal.egVinPosixRegex
      , stringToProvedEGVin
      , egVinToString
      ) where

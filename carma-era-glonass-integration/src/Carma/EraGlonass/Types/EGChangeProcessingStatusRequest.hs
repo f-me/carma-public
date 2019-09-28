@@ -96,11 +96,11 @@ data EGChangeProcessingStatusRequest
        -- I believe it's a free string, we can write anything here,
        -- or also free to leave it empty.
 
-   , contractId :: EGContractId 'ChangeProcessingStatus
+   , contractId :: Maybe (EGContractId 'ChangeProcessingStatus)
        -- ^ Identity of a contract of a service provider (CaRMa).
        --
-       -- Spec says it as an optional field (@Maybe@) but we have been told by
-       -- EG that this field is actually required.
+       -- We've been told that we can omit this field since the service already
+       -- know who are sending a request.
        --
        -- See "Carma.EraGlonass.Types.EGContractId.EGContractId" datatype for
        -- details.
@@ -143,7 +143,7 @@ data EGChangeProcessingStatusResponse
    -- as an indicator of having no /errors/, so it would be a redundant
    -- wrapper.
    = EGChangeProcessingStatusResponseOk
-   { errors :: [EGChangeProcessingStatusResponseError]
+   { errors :: Maybe [EGChangeProcessingStatusResponseError]
    }
 
    | EGChangeProcessingStatusResponseFailure
@@ -308,11 +308,14 @@ data EGChangeProcessingStatusResponseError
    } deriving (Eq, Show, Generic, ToJSON, FromJSON, ToSchema)
 
 
-data EGChangeProcessingStatusResponseErrorCode = RequestNotFound
+data EGChangeProcessingStatusResponseErrorCode
+   = RequestNotFound
+   | ContractNotFound
      deriving (Eq, Show, Enum, Bounded, Generic)
 
 instance StringyEnum EGChangeProcessingStatusResponseErrorCode where
-  toStringy RequestNotFound = "REQUEST_NOT_FOUND"
+  toStringy RequestNotFound  = "REQUEST_NOT_FOUND"
+  toStringy ContractNotFound = "CONTRACT_NOT_FOUND"
 
 instance ToJSON EGChangeProcessingStatusResponseErrorCode where
   toJSON = String . toStringy

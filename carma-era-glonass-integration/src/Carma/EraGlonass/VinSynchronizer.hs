@@ -2,6 +2,7 @@
 {-# LANGUAGE QuasiQuotes, ViewPatterns, NamedFieldPuns, TypeApplications #-}
 {-# LANGUAGE ScopedTypeVariables, ConstraintKinds, TypeFamilies, DataKinds #-}
 {-# LANGUAGE UndecidableInstances, FlexibleInstances, FlexibleContexts #-}
+{-# LANGUAGE TypeOperators, RecordWildCards #-}
 
 -- To add docs for every type or function defined in the module.
 {-# OPTIONS_HADDOCK ignore-exports #-}
@@ -12,38 +13,41 @@ module Carma.EraGlonass.VinSynchronizer
      ) where
 
 import           Prelude hiding (fail)
+import           GHC.Generics
+import           GHC.TypeLits
 
 import           Data.Proxy
+import           Data.Semigroup ((<>))
+import           Data.Typeable (Typeable)
 import           Data.Function (fix)
 import           Data.Time.Clock (utctDay)
 import           Data.Time.LocalTime (TimeZone)
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 import           Text.Printf (printf)
-import           Data.Maybe (catMaybes)
-import           Data.List (intersect)
 import           Data.List.NonEmpty (NonEmpty ((:|)))
 
 import           Control.Arrow ((&&&), (***), (>>>))
 import           Control.Monad
 import           Control.Monad.Trans.Class (lift)
 import           Control.Monad.Reader (MonadReader, ReaderT, asks)
-import           Control.Monad.Catch (MonadCatch, MonadThrow (throwM))
+import           Control.Monad.Catch (MonadCatch)
 import           Control.Concurrent.STM.TMVar
 import           Control.Concurrent.STM.TVar
-import           Control.Exception.Base (AssertionFailed (AssertionFailed))
 import           Control.Exception (SomeException, fromException)
 
-import           Database.Persist ((==.), (!=.), (>=.), (<-.), (/<-.), (||.))
-import           Database.Persist.Types (Entity (..))
+import           Database.Persist.Class (PersistEntity, EntityField)
 import           Database.Persist.Sql (SqlBackend)
+import           Database.Esqueleto (Single (..))
 
 import           Carma.Monad
 import           Carma.Model.Contract.Persistent
+import           Carma.Model.Program.Persistent
 import           Carma.Model.SubProgram.Persistent
 import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.Generic.DataType
-import           Carma.Utils.TypeSafe.TypeFamilies (OneOf)
+import           Carma.Utils.TypeSafe.TypeFamilies
+import           Carma.Utils.Persistent.RawSqlQueryConstructor
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Instance.Persistent (TimeoutException (..))
 import           Carma.EraGlonass.Helpers
@@ -53,6 +57,7 @@ import           Carma.EraGlonass.VinSynchronizer.Helpers
 import           Carma.EraGlonass.VinSynchronizer.UnmarkAsHandled
 import           Carma.EraGlonass.VinSynchronizer.SynchronizeContracts
 import           Carma.EraGlonass.Types.AppContext (AppContext (..))
+import           Carma.EraGlonass.Types.EGVin (EGVin, egVinPosixRegex)
 import           Carma.EraGlonass.Types.Helpers.DateTime (showRFC3339DateTime)
 
 
@@ -65,6 +70,7 @@ runVinSynchronizer
    , MonadClock m
    , MonadDelay m -- To wait before synchronizations.
    , MonadPersistentSql m
+   , MonadRawEsqueleto m
    , MonadServantClient m
    , MonadThread m
    , MonadCatch m
@@ -80,7 +86,7 @@ runVinSynchronizer tz = go where
 
   willBeRetried interval = [qms|
     Synchronization of VINs will be retried in
-    {printf "%.2f" (inHours interval) :: String} hour(s)
+    {printf "%.2f" $ inHours interval :: String} hour(s)
     (also it will wait for manual trigger in parallel, flushing manual
     triggering bus first, either scheduled retry or manual trigger will run next
     synchronization attempt)...
@@ -117,6 +123,7 @@ runVinSynchronizer tz = go where
           atomically *** atomically
 
       let -- | Deducing background threads counter when thread is done
+          onForkDeath :: m ()
           onForkDeath = atomically $ modifyTVar' bgThreadsCounter pred
 
       scheduleThread <-
@@ -245,9 +252,17 @@ runVinSynchronizer tz = go where
         done
 
     wait
-    srcLogInfo "Killing waiting threads before retrying VIN synchronization..."
+    srcLogDebug "Killing waiting threads before retrying VIN synchronization..."
     killThread scheduleThread
     killThread manualTriggerThread
+
+
+-- | Log message about that VINs synchronization is finished successfully
+--   mentioning how many interations it have taken.
+doneSyncVinsLog :: MonadLoggerBus m => Word -> m ()
+doneSyncVinsLog iterations = srcLogInfo [qms|
+  Synchronizing VINs is successfully done, it took {iterations} iteration(s).
+|]
 
 
 -- | VINs synchronization logic handler.
@@ -255,10 +270,12 @@ runVinSynchronizer tz = go where
 -- If you don't see comments for code just look at log messages nearby,
 -- it may tell you a lot instead.
 synchronizeVins
-  ::
+  :: forall m
+   .
    ( MonadReader AppContext m
    , MonadLoggerBus m
    , MonadPersistentSql m
+   , MonadRawEsqueleto m
    , MonadServantClient m
    , MonadClock m
    , MonadCatch m
@@ -268,122 +285,453 @@ synchronizeVins
   => ReaderT SqlBackend m ()
 
 synchronizeVins =
-  (srcLogInfo [qn| Synchronizing VINs... |] >>) $ fix $ \((
+  -- @(1 &)@ means it's first iteration.
+  (srcLogInfo [qn| Synchronizing VINs... |] >>) $ (1 &) $ fix $ \((
 
     let
-      preLog = srcLogDebug [qns|
-        Committing VIN synchronization transaction
+      preLog (i :: Word) = srcLogDebug [qms|
+        Committing VIN synchronization transaction (interation: {i})
         before running whole operation again...
       |]
 
-      postLog = srcLogDebug [qn| Running VIN synchronization again... |]
+      postLog (i :: Word) = srcLogDebug [qms|
+        Running VIN synchronization again (interation: {i})...
+      |]
     in
-      (preLog >> transactionSave >> postLog >>)
+      \m i -> preLog i >> transactionSave >> postLog (succ i) >> m (succ i)
 
-  ) -> repeatWholeOperation) -> do
-
-  handledContracts <- do
-    srcLogDebug [qns|
-      Getting list of currently handled VINs to check if some of them
-      should be marked for EG service as not handled by CaRMa anymore...
-    |]
-
-    selectList [ EraGlonassSynchronizedContractIsHandledByCarma ==. True ] []
-
-  egSubPrograms <- do
-    srcLogDebug $
-      let subProgram = typeName (Proxy :: Proxy SubProgram) :: Text
-       in [qm| Getting list of active EG participants "{subProgram}"s... |]
-
-    selectKeysList [ SubProgramActive                ==. True
-                   , SubProgramEraGlonassParticipant ==. True
-                   ] []
+  -- @repeat'@ is an \"again" function produced by "Data.Function.fix",
+  -- but modified above by adding log messaging, commiting transaction.
+  --
+  -- @repeatWholeOperation@ is like \"again" with pre-applied iteration counter,
+  -- so you don't have to care about passing the argument and about correctness
+  -- of the value.
+  --
+  -- @doneLog@ is just pre-applied "doneSyncVinsLog" with iteration counter,
+  -- you either call @repeatWholeOperation@ or @doneLog@ at the end.
+  ) -> repeat') -> \( (repeat' &&& lift . doneSyncVinsLog) ->
+                      (repeatWholeOperation, doneLog)
+                    ) -> do
 
   nowDay <- utctDay <$> lift getCurrentTime
+  batchSize <- lift $ asks vinSynchronizerBatchSize
 
-  let -- | Prepared to be used in DB requests list of VINs.
-      handledVINs :: [Text]
-      handledVINs =
-        handledContracts <&> eraGlonassSynchronizedContractVin . entityVal
-
-  contractsToUnmarkAsHandled <- do
-    srcLogDebug $
-      let contract = typeName (Proxy :: Proxy Contract) :: Text in [qms|
-        Getting list of "{contract}"s (VINs actually) which are used to be
-        handled by us (now we need to notify EG service that they
-        aren't handled by CaRMa anymore)...
-      |]
-
-    flip selectList []
-      $ -- @Contract@'s VIN is handled by CaRMa.
-        ( ContractVin <-. fmap Just handledVINs )
-
-      : (   -- @Contract@ has been deactivated.
-            [ ContractIsActive ==. False ]
-
-        ||. -- @SubProgram@ of a @Contract@ has been unmarked
-            -- as EG participant.
-            [ ContractSubprogram /<-. fmap Just egSubPrograms ]
-
-        ||. -- Validity date of a @Contract@ has been expired.
-            [ ContractValidUntil !=. Nothing
-            , ContractValidUntil >=. Just nowDay
-            ]
-        )
-
-  ephemeralVINsToUnmarkAsHandled <- do
-    srcLogDebug $
-      let contract = typeName (Proxy :: Proxy Contract) :: Text in [qms|
-        Searching for incorrect data ("ephemeral VINs"), when some VIN is
-        handled by CaRMa but no longer represented in "{contract}"s list
-        (usually it doesn't happen but if for instance you change "vin" field
-        value of a "{contract}" and previous "vin" have been marked as
-        handled by CaRMa for EG service we supposed to notify EG that we don't
-        handle these anymore)...
-      |]
-
-    selectList [ ContractVin <-. fmap Just handledVINs ] []
-      <&> fmap (entityVal ? contractVin) ? catMaybes -- Extracting only VINs
-      <&> \contractVINs ->
-            let vinLens = entityVal ? eraGlonassSynchronizedContractVin
-
-                f acc x =
-                  if vinLens x `notElem` contractVINs
-                     then x : acc
-                     else acc
-
-                in foldl f [] handledContracts
-
-  do
-    srcLogDebug [qns|
-      Checking for data correctness
-      ("ephemeral VINs" and outdated/deactivated VINs cannot intersect)...
+  srcLogDebug $
+    let
+      contract = typeName (Proxy :: Proxy Contract) :: Text
+    in [qms|
+      Getting a list of "{contract}"s (VINs actually) which are used to be
+      handled by us (now we need to notify EG service that they
+      aren't handled by CaRMa anymore)
+      and incorrect data ("ephemeral VINs"), when some VIN is
+      handled by CaRMa but no longer represented in "{contract}"s list
+      (usually it doesn't happen but if for instance you change "vin" field
+      value of a "{contract}" and previously "vin" of that "{contract}" have
+      been marked as handled by CaRMa for EG service we supposed to notify EG
+      that we don't handle these anymore), current batch size: {batchSize}...
     |]
 
-    let vinsA
-           =  catMaybes
-           $  contractVin . entityVal
-          <$> contractsToUnmarkAsHandled
+  let alreadyHandledT =
+        mkTableAliasToken @EraGlonassSynchronizedContract @"alreadyHandled"
 
-    let vinsB
-           =  eraGlonassSynchronizedContractVin . entityVal
-          <$> ephemeralVINsToUnmarkAsHandled
+  let alreadyHandledP = tableAliasTokenAliasProxy alreadyHandledT
+  let alreadyHandledVinsOnlyP = Proxy @"alreadyHandledVinsOnly"
 
-    unless (null $ vinsA `intersect` vinsB) $
-      throwM $ AssertionFailed [qns|
-        Ephemeral VINs and outdated/deactivated VINs cannot intersect,
-        something went wrong...
-      |]
+  let egSubProgramsT = mkTableAliasToken @SubProgram @"egSubPrograms"
+  let egSubProgramsP = tableAliasTokenAliasProxy egSubProgramsT
+
+  let -- | Few shared @SELECT@s of CTE.
+      --
+      -- 1. "alreadyHandledP"
+      -- 2. "alreadyHandledVinsOnlyP"
+      -- 3. "egSubProgramsP"
+      sharedCTESelects :: [RawAliasAs' []]
+      sharedCTESelects =
+        [ -- VINs we're currently handling at the moment,
+          -- which are currently marked as handled by CaRMa.
+          -- Some of them we may have to "unmark" as handled by us,
+          -- that's what we're going to find out.
+          RawAliasAs' alreadyHandledP $
+            let
+              idField =
+                mkTableAliasFieldToken
+                  alreadyHandledT
+                  EraGlonassSynchronizedContractId
+
+              vinField =
+                mkTableAliasFieldToken
+                  alreadyHandledT
+                  EraGlonassSynchronizedContractVin
+
+              isHandledByCarmaField =
+                mkTableAliasFieldToken
+                  alreadyHandledT
+                  EraGlonassSynchronizedContractIsHandledByCarma
+            in
+              [ rawSelect
+                  [ RawTableAliasField idField
+                  , RawTableAliasField vinField
+                  ]
+              , raw FROM
+              ,   RawTableAlias alreadyHandledT
+              , raw WHERE
+              ,   rawAll
+                    [ isHandledByCarmaField `rawEqual` True
+
+                    -- -- Let's assume all VINs are correct and validated
+                    -- -- when they appear in this table.
+                    -- , rawMatchRegex
+                    --     False
+                    --     (RawTableAliasField vinField)
+                    --     egVinPosixRegex
+                    ]
+              ]
+
+        , RawAliasAs' alreadyHandledVinsOnlyP
+            [ rawSelect $ pure $
+                RawTableAliasField $
+                  mkTableAliasFieldToken
+                    alreadyHandledT
+                    EraGlonassSynchronizedContractVin
+            , raw FROM
+            ,   RawAlias alreadyHandledP
+            ]
+
+        , -- @SubProgram@s which are marked as Era Glonass integration
+          -- participants.
+          RawAliasAs' egSubProgramsP $
+            let
+              idField = mkTableAliasFieldToken egSubProgramsT SubProgramId
+
+              activeField =
+                mkTableAliasFieldToken egSubProgramsT SubProgramActive
+
+              egParticipantField =
+                mkTableAliasFieldToken
+                  egSubProgramsT
+                  SubProgramEraGlonassParticipant
+
+              parentProgramField =
+                mkTableAliasFieldToken egSubProgramsT SubProgramParent
+            in
+              [ rawSelect $ pure $
+                  RawTableAliasField idField
+              , raw FROM
+              ,   RawTableAlias egSubProgramsT
+              , raw $ JOIN INNER
+              ,   RawTable (Proxy @Program)
+              , raw ON
+              ,   rawAll
+                    [ ProgramId     `rawEqualField` parentProgramField
+                    , ProgramActive `rawEqual`      True
+                    ]
+              , raw WHERE
+              ,   rawAll
+                    [ activeField        `rawEqual` True
+                    , egParticipantField `rawEqual` True
+                    ]
+              ]
+        ]
+
+  foundVINsToUnmark <-
+    let
+      inferTypes
+        :: forall modelA modelB a b x
+         . x ~ (Single VinToUnmarkModelId, Single EGVin)
+        => (Proxy modelA, Proxy modelB)
+        -> (EntityField modelA a, EntityField modelB b)
+        -> ReaderT SqlBackend m [x]
+        -> ReaderT SqlBackend m [x]
+
+      inferTypes (Proxy, Proxy) (_, _) = id
+
+      handledContractsT = mkTableAliasToken @Contract @"handledContracts"
+      handledContractsP = tableAliasTokenAliasProxy handledContractsT
+      handledContractsVinsOnlyP = Proxy @"handledContractsVinsOnly"
+      validContractsP = Proxy @"validContracts"
+
+      contractsToUnmarkAsHandledT =
+        mkTableAliasToken @Contract @"contractsToUnmarkAsHandled"
+      contractsToUnmarkAsHandledP =
+        tableAliasTokenAliasProxy contractsToUnmarkAsHandledT
+
+      ephemeralVINsToUnmarkAsHandledT =
+        mkTableAliasToken
+          @EraGlonassSynchronizedContract
+          @"ephemeralVINsToUnmarkAsHandled"
+      ephemeralVINsToUnmarkAsHandledP =
+        tableAliasTokenAliasProxy ephemeralVINsToUnmarkAsHandledT
+    in
+      inferTypes (Proxy @Contract, Proxy @EraGlonassSynchronizedContract)
+                 (ContractId,      EraGlonassSynchronizedContractId)
+        $ uncurry rawEsqueletoSql
+        $ buildRawSql
+        $
+        [ rawWith $
+            sharedCTESelects
+            <>
+            [ -- @Contract@s which have been previously marked
+              -- as handled by CaRMa.
+              RawAliasAs' handledContractsP $
+                let
+                  vinFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractVin
+                in
+                  [ rawSelect $ pure $
+                      raw STAR
+                  , raw FROM
+                  ,   RawTableAlias handledContractsT
+                  , raw WHERE
+                  ,   rawAll
+                        [ rawIsNotNull vinFieldT
+                        , vinFieldT `rawNotEqual` Just ""
+
+                        -- -- Let's assume it's correct since it's presented
+                        -- -- in @alreadyHandledVinsOnlyP@ table.
+                        -- , rawMatchRegex
+                        --     False
+                        --     (rawFieldConstructor vinFieldT)
+                        --     egVinPosixRegex
+
+                        , -- @Contract@'s VIN is handled by CaRMa.
+                          vinFieldT `rawIn`
+                            rawSelectAlias alreadyHandledVinsOnlyP
+                        ]
+                  ]
+
+            , RawAliasAs' handledContractsVinsOnlyP $
+                [ rawSelect $ pure $
+                    RawTableAliasField $
+                      mkTableAliasFieldToken handledContractsT ContractVin
+                , raw FROM
+                ,   RawAlias handledContractsP
+                ]
+
+            , -- Few \"Contract"s may have the same VIN, so we check if a VIN is
+              -- presented in this table we must not \"unmark" it.
+              RawAliasAs' validContractsP $
+                let
+                  isActiveFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractIsActive
+
+                  vinFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractVin
+
+                  subProgramFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractSubprogram
+
+                  validSinceFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractValidSince
+
+                  validUntilFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractValidUntil
+                in
+                  [ rawSelectDistinctOn
+                      [rawFieldConstructor vinFieldT]
+                      [rawFieldConstructor vinFieldT]
+                  , raw FROM
+                  ,   RawAlias handledContractsP
+                  , raw WHERE
+                  ,   rawAll
+                        [ isActiveFieldT `rawEqual` True
+                        , subProgramFieldT `rawIn` rawSelectAlias egSubProgramsP
+
+                        , rawSome
+                            [ rawIsNull validSinceFieldT
+                            , validSinceFieldT `rawLessOrEqual` Just nowDay
+                            ]
+
+                        , rawSome
+                            [ rawIsNull validUntilFieldT
+                            , validUntilFieldT `rawGreater` Just nowDay
+                            ]
+                        ]
+                  ]
+
+            , -- @Contract@s VINs of which we have to "unmark" as handled by
+              -- CaRMa due to some of reasons you can find inside in the
+              -- comments below.
+              RawAliasAs' contractsToUnmarkAsHandledP $
+                let
+                  idFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractId
+
+                  vinFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractVin
+
+                  isActiveFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractIsActive
+
+                  subProgramFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractSubprogram
+
+                  validSinceFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractValidSince
+
+                  validUntilFieldT =
+                    mkTableAliasFieldToken handledContractsT ContractValidUntil
+                in
+                  [ rawSelect
+                      [ RawTableAliasField idFieldT
+                      , RawTableAliasField vinFieldT
+                      ]
+                  , raw FROM
+                  ,   RawAlias handledContractsP
+                  , raw WHERE
+                  ,   rawAll
+                        [ vinFieldT `rawNotIn` rawSelectAlias validContractsP
+                        , rawSome
+                            [ -- @Contract@ has been deactivated.
+                              isActiveFieldT `rawEqual` False
+
+                            , -- @SubProgram@ of a @Contract@ has been unmarked
+                              -- as EG participant.
+                              subProgramFieldT `rawNotIn`
+                                rawSelectAlias egSubProgramsP
+
+                            , -- Validity date of a @Contract@ isn't started yet.
+                              rawAll
+                                [ rawIsNotNull validSinceFieldT
+                                , validSinceFieldT `rawGreater` Just nowDay
+                                ]
+
+                            , -- Validity date of a @Contract@ has been expired.
+                              rawAll
+                                [ rawIsNotNull validUntilFieldT
+                                , validUntilFieldT `rawLessOrEqual` Just nowDay
+                                ]
+                            ]
+                        ]
+                  ]
+
+            , -- Incorrect data (\"ephemeral VINs") when some VIN is handled by
+              -- CaRMa but no longer represented in @Contract@s list (usually it
+              -- doesn't happen but if for instance you change \"vin" field
+              -- value of a @Contract@ and previous \"vin" have been marked as
+              -- handled by CaRMa for EG service we supposed to notify EG that
+              -- we don't handle these anymore)...
+              RawAliasAs' ephemeralVINsToUnmarkAsHandledP $
+                let
+                  idFieldT =
+                    mkTableAliasFieldToken
+                      alreadyHandledT
+                      EraGlonassSynchronizedContractId
+
+                  vinFieldT =
+                    mkTableAliasFieldToken
+                      alreadyHandledT
+                      EraGlonassSynchronizedContractVin
+                in
+                  [ rawSelect
+                      [ RawTableAliasField idFieldT
+                      , RawTableAliasField vinFieldT
+                      ]
+                  , raw FROM
+                  ,   RawAlias alreadyHandledP
+                  , raw WHERE
+                  ,   vinFieldT `rawNotIn`
+                        rawSelectAlias handledContractsVinsOnlyP
+                  ]
+            ]
+        , rawSelect $
+            let
+              contractIdField =
+                mkTableAliasFieldToken contractsToUnmarkAsHandledT ContractId
+
+              contractVinField =
+                mkTableAliasFieldToken contractsToUnmarkAsHandledT ContractVin
+
+              egSyncContractIdField =
+                mkTableAliasFieldToken
+                  ephemeralVINsToUnmarkAsHandledT
+                  EraGlonassSynchronizedContractId
+
+              egSyncContractVinField =
+                mkTableAliasFieldToken
+                  ephemeralVINsToUnmarkAsHandledT
+                  EraGlonassSynchronizedContractVin
+
+              fieldBranch x = (rawIsNotNull' x, RawTableAliasField x)
+
+              idFieldBranch
+                :: forall model alias c
+                 .
+                 ( KnownSymbol <=> '[ c, alias ]
+                 , RawPieceConstraint []
+                 , ConstructorName (Rep VinToUnmarkModelId) c ~ 'Just c
+                 , OneOf model '[ Contract, EraGlonassSynchronizedContract ]
+                 , PersistEntity model
+                 , Typeable model
+
+                 , If (c == "ContractIdToUnmark")
+                      (model ~ Contract)
+                      (c ~ "EraGlonassSynchronizedContractIdToUnmark")
+
+                 , If (c == "EraGlonassSynchronizedContractIdToUnmark")
+                      (model ~ EraGlonassSynchronizedContract)
+                      (c ~ "ContractIdToUnmark")
+                 )
+                => TableAliasFieldToken model alias (Key model)
+                -> Proxy c
+                -> (RawSqlPiece [], RawSqlPiece [])
+
+              idFieldBranch x p@Proxy =
+                ( rawIsNotNull' x
+                , rawConcat [ RawValue $ symbolVal p `mappend` " "
+                            , RawTableAliasField x
+                            ]
+                )
+            in
+              [ rawBranching
+                  ( idFieldBranch
+                      contractIdField
+                      (Proxy @"ContractIdToUnmark")
+                  )
+                  [ idFieldBranch
+                      egSyncContractIdField
+                      (Proxy @"EraGlonassSynchronizedContractIdToUnmark")
+                  ]
+                  Nothing
+
+              , rawBranching
+                  (fieldBranch contractVinField)
+                  [fieldBranch egSyncContractVinField]
+                  Nothing
+              ]
+        , raw FROM
+        ,   RawAlias contractsToUnmarkAsHandledP
+        , raw $ JOIN FULL
+        ,   RawAlias ephemeralVINsToUnmarkAsHandledP
+        , raw ON
+        ,   RawValue True
+        , rawLimitTo batchSize
+        ]
+
+  let vinsToUnmarkData = go where
+        go = foldl reducer defaultVINsToUnmark foundVINsToUnmark
+        reducer z@VINsToUnmark {..} = \case
+          (Single (ContractIdToUnmark x), Single y) -> z
+            { totalVINsToUnmarkCount    = succ totalVINsToUnmarkCount
+            , contractVINsToUnmarkCount = succ contractVINsToUnmarkCount
+            , contractVINsToUnmark      = (x, y) : contractVINsToUnmark
+            }
+          (Single (EraGlonassSynchronizedContractIdToUnmark x), Single y) -> z
+            { totalVINsToUnmarkCount     = succ totalVINsToUnmarkCount
+            , ephemeralVINsToUnmarkCount = succ ephemeralVINsToUnmarkCount
+            , ephemeralVINsToUnmark      = (x, y) : ephemeralVINsToUnmark
+            }
 
   let vinsToUnmark
         :: Maybe
          ( OneOrTwoNonEmptyLists
-             (Entity Contract)
-             (Entity EraGlonassSynchronizedContract)
+             (ContractId, EGVin)
+             (EraGlonassSynchronizedContractId, EGVin)
          )
 
       vinsToUnmark =
-        case (contractsToUnmarkAsHandled, ephemeralVINsToUnmarkAsHandled) of
+        case ( contractVINsToUnmark  vinsToUnmarkData
+             , ephemeralVINsToUnmark vinsToUnmarkData
+             ) of
              (x : xs, y : ys) -> Just $ BothNonEmptyLists  (x :| xs) (y :| ys)
              (x : xs, []    ) -> Just $ FirstNonEmptyList  (x :| xs)
              ([],     x : xs) -> Just $ SecondNonEmptyList (x :| xs)
@@ -393,59 +741,167 @@ synchronizeVins =
        Just vinsToUnmark' -> do
          srcLogDebug $
            let contract = typeName (Proxy :: Proxy Contract) :: Text in [qmb|
-             There's some VINs to unmark as handled by CaRMa first:
+             There are some VINs to unmark as handled by CaRMa first:
+             \  Current batch size limit: {batchSize}
+             \  Total: {totalVINsToUnmarkCount vinsToUnmarkData}
              \  Outdated/deactivated VINs count: \
-                  { case vinsToUnmark' of
-                         FirstNonEmptyList  y   -> length y
-                         SecondNonEmptyList _   -> 0
-                         BothNonEmptyLists  y _ -> length y
-                  }
+                  {contractVINsToUnmarkCount vinsToUnmarkData}
              \  Ephemeral VINs \
                 (not represented in "{contract}"s anymore) count: \
-                  { case vinsToUnmark' of
-                         FirstNonEmptyList  _   -> 0
-                         SecondNonEmptyList y   -> length y
-                         BothNonEmptyLists  _ y -> length y
-                  }
+                  {ephemeralVINsToUnmarkCount vinsToUnmarkData}
            |]
 
          unmarkAsHandled vinsToUnmark'
+           ( totalVINsToUnmarkCount     vinsToUnmarkData
+           , contractVINsToUnmarkCount  vinsToUnmarkData
+           , ephemeralVINsToUnmarkCount vinsToUnmarkData
+           )
 
-         srcLogDebug [qns|
-           Done with unmarking some VINs as handled by CaRMa, so, commiting
-           current database transaction and repeating synchronization
-           (repeating whole operation to cover rare but technically possible
-           cases when after transaction is commited some subprogram stopped
-           being an Era Glonass participant for instance)...
-         |]
+         if totalVINsToUnmarkCount vinsToUnmarkData < batchSize
+            then
+              srcLogDebug [qns|
+                Done with unmarking some VINs as handled by CaRMa, so, commiting
+                current database transaction and repeating synchronization
+                (repeating whole operation to cover rare but technically
+                possible cases when after transaction is commited some
+                subprogram stopped being an Era Glonass participant for
+                instance)...
+              |]
+            else
+              srcLogDebug [qms|
+                Total count ({totalVINsToUnmarkCount vinsToUnmarkData}) of VINs
+                to "unmark" isn't less than batch size limit ({batchSize}) it
+                means there are probably more VINs to "unmark" as handled by
+                CaRMa, so, repeating whole operation for next batch iteration...
+              |]
 
+         -- We're repeating whole operation anyway, in both cases
+         -- (see condition above).
          repeatWholeOperation
 
-       Nothing ->
-         let
-           logMsg hasEGSubProgram = msg where
-             contract   = typeName (Proxy :: Proxy Contract)   :: Text
-             subProgram = typeName (Proxy :: Proxy SubProgram) :: Text
+       Nothing -> do
+         vinsToSynchronize <-
+           let
+             inferTypes
+               :: forall modelA a x. x ~ (Single ContractId, Single EGVin)
+               => Proxy modelA
+               -> EntityField modelA a
+               -> ReaderT SqlBackend m [x]
+               -> ReaderT SqlBackend m [x]
 
-             msg = [qms|
-               There are no VINs to "unmark" as handled by CaRMa,
-               {if hasEGSubProgram then synchronizing else nothingElseToDo}
-             |] :: Text
+             inferTypes Proxy _ = id
+           in
+             inferTypes (Proxy @Contract) ContractId
+               $ uncurry rawEsqueletoSql
+               $ buildRawSql
+               $
+               let
+                 contractsT = mkTableAliasToken @Contract @"contracts"
+                 idFieldT   = mkTableAliasFieldToken contractsT ContractId
+                 vinFieldT  = mkTableAliasFieldToken contractsT ContractVin
 
-             synchronizing = [qms|
-               continuing to synchronize "{contract}"s (marking some VINs as
-               handled by us which belong to Era Glonass participant
-               "{subProgram}")...
-             |] :: Text
+                 isActiveFieldT =
+                   mkTableAliasFieldToken contractsT ContractIsActive
 
-             nothingElseToDo = [qms|
-               and also there are no active Era Glonass participant
-               "{subProgram}"s, we have nothing to synchronize,
-               so we're done for now.
-             |] :: Text
-         in
-           case egSubPrograms of
-                [] -> srcLogDebug $ logMsg False
-                x : xs -> do
-                  srcLogDebug $ logMsg True
-                  synchronizeContracts nowDay handledContracts $ x :| xs
+                 subProgramFieldT =
+                   mkTableAliasFieldToken contractsT ContractSubprogram
+
+                 validSinceFieldT =
+                   mkTableAliasFieldToken contractsT ContractValidSince
+
+                 validUntilFieldT =
+                   mkTableAliasFieldToken contractsT ContractValidUntil
+
+                 fieldsToSelect =
+                   [ rawFieldConstructor idFieldT
+                   , rawFieldConstructor vinFieldT
+                   ]
+
+                 -- | Nested inside parent DISTINCT selection.
+                 mainSelection = RawWrap
+                   [ rawSelect
+                       fieldsToSelect
+                   , raw FROM
+                   ,   RawTableAlias contractsT
+                   , raw WHERE
+                   ,   rawAll
+                         [ isActiveFieldT `rawEqual` True
+
+                         , subProgramFieldT `rawIn`
+                             rawSelectAlias egSubProgramsP
+
+                         , rawSome
+                             [ rawIsNull validSinceFieldT
+                             , validSinceFieldT `rawLessOrEqual` Just nowDay
+                             ]
+
+                         , rawSome
+                             [ rawIsNull validUntilFieldT
+                             , validUntilFieldT `rawGreater` Just nowDay
+                             ]
+
+                         , rawIsNotNull vinFieldT
+                         , vinFieldT `rawNotEqual` Just ""
+
+                         , -- Some @Contract@s may have incorrect VIN field.
+                           rawMatchRegex
+                             False
+                             (rawFieldConstructor vinFieldT)
+                             egVinPosixRegex
+
+                         , vinFieldT `rawNotIn`
+                             rawSelectAlias alreadyHandledVinsOnlyP
+                         ]
+                   , rawOrderBy [Descending validSinceFieldT]
+                   ]
+               in
+                 [ rawWith
+                     sharedCTESelects
+                 , rawSelectDistinctOn
+                     [rawFieldConstructor vinFieldT]
+                     fieldsToSelect
+                 , raw FROM
+                 ,   mainSelection
+                 ,     raw AS
+                 ,       RawAlias $ tableAliasTokenAliasProxy contractsT
+                 , rawLimitTo batchSize
+                 ]
+
+         let logMsg (foundSmth :: Bool) (count' :: Word) = msg where
+               contract   = typeName (Proxy @Contract)   :: Text
+               subProgram = typeName (Proxy @SubProgram) :: Text
+
+               msg = [qms|
+                 There are no VINs to "unmark" as handled by CaRMa,
+                 {if foundSmth then synchronizing else nothingElseToDo}
+               |] :: Text
+
+               synchronizing = [qms|
+                 continuing to synchronize found {count'} "{contract}"s (marking
+                 some VINs as handled by us which belong to Era Glonass
+                 participant "{subProgram}")...
+               |] :: Text
+
+               nothingElseToDo = [qms|
+                 and no "{contract}"s found to synchronize, we're done for now.
+               |] :: Text
+
+         case vinsToSynchronize of
+              [] -> doneLog << srcLogDebug (logMsg False minBound)
+
+              x : xs -> do
+                let vinsToSynchronizeCount =
+                      fromIntegral $ length vinsToSynchronize
+
+                srcLogDebug $ logMsg True vinsToSynchronizeCount
+                synchronizeContracts (x :| xs) vinsToSynchronizeCount
+
+                if vinsToSynchronizeCount < batchSize
+                   then doneLog
+                   else repeatWholeOperation << srcLogDebug [qms|
+                          Total count ({vinsToSynchronizeCount}) of VINs to
+                          synchronize isn't less than batch size limit
+                          ({batchSize}) it means there are probably more VINs to
+                          mark as handled by CaRMa, so, repeating whole
+                          operation for next batch iteration...
+                        |]

@@ -30,6 +30,32 @@ vin-synchronizer {
   # If synchronization iteration is failed it will retry after this interval.
   retry-interval = 60.0
 
+  # How many VINs maximum to mark/"unmark" per one request.
+  batch-size = 1000
+
   # Predefined on Era Glonass side code.
   carma-contract-id = "CaRMa RuAMC"
+}
+
+status-synchronizer {
+  # In minutes.
+  # Interval before next check whether there's something to synchronize.
+  interval = 30.0
+
+  # In seconds.
+  # Synchronization iteration timeout.
+  # One iteration includes requests to EG side and own database requests.
+  timeout = 60.0
+
+  # Predefined on Era Glonass side code.
+  # [OPTIONAL]
+  # carma-contract-id = "CaRMa RuAMC"
+}
+
+logger {
+  # Possible values: "stdout", "stderr" or "syslog"
+  sink = "stdout"
+
+  # Optional if "sink" is not "syslog".
+  syslog-ident = "carma-era-glonass-integration"
 }

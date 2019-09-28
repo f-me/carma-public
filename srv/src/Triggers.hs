@@ -7,10 +7,9 @@
 {-# LANGUAGE TypeFamilies #-}
 
 module Triggers
-  ( runCreateTriggers
-  , runUpdateTriggers
-  ) where
-
+     ( runCreateTriggers
+     , runUpdateTriggers
+     ) where
 
 import           Prelude hiding (until)
 
@@ -110,6 +109,7 @@ import qualified Triggers.Action.SMS as BOAction (sendSMS)
 import qualified Triggers.Action.MailToGenser as BOAction (sendMailToGenser)
 import qualified Triggers.Action.MailToPSA as BOAction (sendMailToPSA)
 import qualified Triggers.Action.MailToDealer as BOAction (sendMailToDealer)
+import qualified Triggers.EraGlonass as EraGlonass
 import           Triggers.DSL as Dsl
 
 import           Util (Priority(..), syslogJSON, (.=))
@@ -345,6 +345,9 @@ afterCreate = Map.unionsWith (++) $
             and a.type = $(ActionType.checkStatus)$
             and a.assignedTo is null
         |]
+
+  , trigOnModel ([]::[Service]) $
+      EraGlonass.handleEraGlonassCaseStatusByService =<< getIdent
 
   ] ++
   map entryToTrigger partnerDelayEntries
@@ -687,6 +690,13 @@ afterUpdate = Map.unionsWith (++)
                     = svc.$(F|Service.contractor_partnerId)$
               AND svc.$(F|Service.svcType)$::TEXT = s->>'type'
         |]
+
+  , trigOn Service.status $ const $
+      EraGlonass.handleEraGlonassCaseStatusByService =<< getIdent
+
+  , trigOn Action.result $ const $ do
+      getIdent >>= dbRead >>= pure . (`get'` Action.serviceId) >>=
+        maybe (pure ()) EraGlonass.handleEraGlonassCaseStatusByService
   ]
 
 

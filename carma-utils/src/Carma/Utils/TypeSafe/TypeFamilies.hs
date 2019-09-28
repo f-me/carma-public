@@ -35,6 +35,9 @@ module Carma.Utils.TypeSafe.TypeFamilies
      , type Reverse
      , type Elem
      , type OneOf
+
+     , module Data.Type.Equality
+     , module Control.Type.Operator
      ) where
 
 import           GHC.TypeLits
@@ -43,6 +46,9 @@ import           GHC.TypeLits
                    )
 
 import           Data.Kind (type Constraint)
+import           Data.Type.Equality (type (==))
+
+import           Control.Type.Operator (type (<+>), type (<=>))
 
 
 -- | Type-level \"if" condition

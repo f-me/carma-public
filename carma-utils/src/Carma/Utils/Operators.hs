@@ -1,5 +1,5 @@
 module Carma.Utils.Operators
-     ( (!), (?), (<&>), (<&!>)
+     ( (!), (?), (<&>), (<&!>), (<<)
      , module Data.Function
      , module Control.Monad
      ) where
@@ -28,3 +28,8 @@ infixr 5 <&>
 (<&!>) = flip (<$!>)
 {-# INLINE (<&!>) #-}
 infixr 5 <&!>
+
+(<<) :: Monad m => m a -> m b -> m a
+(<<) = flip (>>)
+{-# INLINE (<<) #-}
+infixr 1 <<

@@ -8,6 +8,8 @@ module Carma.EraGlonass.App
      , app
      ) where
 
+import           Prelude hiding (fail)
+
 import           Data.Function ((&))
 import           Data.Typeable
 import           Data.Time.LocalTime (getCurrentTimeZone)
@@ -16,13 +18,18 @@ import           Data.String (fromString)
 import           Text.InterpolatedString.QM
 
 import           Control.Applicative
-import           Control.Monad
-import           Control.Monad.Reader
-import           Control.Monad.Logger (runStdoutLoggingT)
+import           Control.Monad hiding (fail)
+import           Control.Monad.Reader hiding (fail)
+import           Control.Monad.Logger
+                   ( LoggingT
+                   , runStdoutLoggingT
+                   , runStderrLoggingT
+                   )
 import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Control.Monad.Random.Class (MonadRandom)
 import           Control.Monad.Catch
+import           Control.Monad.Fail (MonadFail (fail))
 import           Control.Concurrent.MVar (tryReadMVar)
 import           Control.Concurrent.STM.TQueue
 import           Control.Concurrent.STM.TMVar
@@ -34,6 +41,7 @@ import           Control.Exception
                    )
 
 import           Foreign.C.Types (CInt (..))
+
 import           System.IO (hPutStrLn, stderr)
 import           System.Exit (exitFailure)
 import           System.Posix.Signals
@@ -46,11 +54,13 @@ import           System.Posix.Signals
 import qualified Network.Wai.Handler.Warp as Warp
 import           Network.HTTP.Client (Manager, newManager)
 import           Network.HTTP.Client.TLS (tlsManagerSettings)
+
 import           Database.Persist.Postgresql (PostgresConf (PostgresConf))
 
 import           Servant.Client (ClientEnv (ClientEnv), BaseUrl, parseBaseUrl)
 
 import           Carma.Utils.Operators
+import           Carma.Utils.MonadLogger.Syslog (runSyslogLoggingT)
 import           Carma.Monad.LoggerBus.Types (LogMessage)
 import           Carma.Monad.LoggerBus.MonadLogger
 import           Carma.Monad.LoggerBus
@@ -61,10 +71,11 @@ import           Carma.Monad.Concurrently
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Server (serverApplicaton)
 import           Carma.EraGlonass.VinSynchronizer (runVinSynchronizer)
+import           Carma.EraGlonass.StatusSynchronizer (runStatusSynchronizer)
 import           Carma.EraGlonass.Types.AppContext
 import           Carma.EraGlonass.Types.EGContractId (EGContractId)
 import           Carma.EraGlonass.Types.EGIntegrationPoint
-                   ( EGIntegrationPoint (BindVehicles)
+                   ( EGIntegrationPoint (BindVehicles, ChangeProcessingStatus)
                    )
 
 foreign import ccall "exit" exit :: CInt -> IO ()
@@ -89,13 +100,15 @@ data AppConfig
 -- (they mustn't have any @IO@, @MonadIO@ or @MonadBaseControl IO@ in their
 -- dependencies).
 app
-  ::
+  :: forall m
+   .
    ( MonadIO m
    , MonadBaseControl IO m
    , MonadRandom m
    , MonadThrow m
    , MonadCatch m
    , MonadMask m
+   , MonadFail m
    )
   => AppMode
   -> ( AppConfig
@@ -134,8 +147,33 @@ app appMode' withDbConnection = do
   !(vinSynchronizerRetryInterval' :: Float) <-
     liftIO $ Conf.require cfg "vin-synchronizer.retry-interval"
 
+  !(vinSynchronizerBatchSize' :: Word) <-
+    liftIO $ Conf.require cfg "vin-synchronizer.batch-size"
+
   !(carmaVinSynchronizerContractId :: EGContractId 'BindVehicles) <-
     liftIO $ Conf.require cfg "vin-synchronizer.carma-contract-id"
+
+  -- In minutes
+  !(statusSynchronizerInterval' :: Float) <-
+    liftIO $ Conf.require cfg "status-synchronizer.interval"
+
+  -- In seconds
+  !(statusSynchronizerTimeout' :: Float) <-
+    liftIO $ Conf.require cfg "status-synchronizer.timeout"
+
+  !( carmaStatusSynchronizerContractId ::
+     Maybe (EGContractId 'ChangeProcessingStatus) ) <-
+       liftIO $ Conf.lookup cfg "status-synchronizer.carma-contract-id"
+
+  !(loggerSink :: LoggingT m () -> m ()) <- liftIO $
+    Conf.require cfg "logger.sink" >>= \case
+      "stdout" -> pure runStdoutLoggingT
+      "stderr" -> pure runStderrLoggingT
+      "syslog" -> runSyslogLoggingT <$> Conf.require cfg "logger.syslog-ident"
+
+      (x :: String) ->
+        let errMsg = [qm| Unexpected logger sink value: "{x}" |]
+         in error errMsg <$ hPutStrLn stderr errMsg `finally` exit 1
 
   loggerBus' <- atomically newTQueue
 
@@ -143,7 +181,7 @@ app appMode' withDbConnection = do
   (_, loggerThreadWaitBus) <-
     forkWithWaitBus $ do
       let logReader = writeLoggerBusEventsToMonadLogger `runReaderT` loggerBus'
-      runStdoutLoggingT logReader `catch` \(SomeException e) ->
+      loggerSink logReader `catch` \(SomeException e) ->
         liftIO $ hPutStrLn stderr [qms|
           Logger reader thread is failed with an unexpected exception:
           {displayException e}
@@ -157,8 +195,10 @@ app appMode' withDbConnection = do
 
   ( backgroundTasksCounter',
     vinSynchronizerTriggerBus',
+    statusSynchronizerTriggerBus',
     workersThreadFailureSem )
-      <- atomically $ (,,) <$> newTVar 0 <*> newEmptyTMVar <*> newTSem 0
+      <- atomically $
+           (,,,) <$> newTVar 0 <*> newEmptyTMVar <*> newEmptyTMVar <*> newTSem 0
 
   (workersThreadId, workersThreadSem) <-
     flip runReaderT loggerBus'
@@ -182,11 +222,21 @@ app appMode' withDbConnection = do
                 , egClientEnv = ClientEnv manager egBaseUrl
                 , vinSynchronizerContractId = carmaVinSynchronizerContractId
 
+                , statusSynchronizerContractId =
+                    carmaStatusSynchronizerContractId
+
                 , vinSynchronizerTimeout =
                     round $ vinSynchronizerTimeout' * (10 ** 6)
                 , vinSynchronizerRetryInterval =
                     round $ vinSynchronizerRetryInterval' * 60 * (10 ** 6)
+                , vinSynchronizerBatchSize = vinSynchronizerBatchSize'
                 , vinSynchronizerTriggerBus = vinSynchronizerTriggerBus'
+
+                , statusSynchronizerInterval =
+                    round $ statusSynchronizerInterval' * 60 * (10 ** 6)
+                , statusSynchronizerTimeout =
+                    round $ statusSynchronizerTimeout' * (10 ** 6)
+                , statusSynchronizerTriggerBus = statusSynchronizerTriggerBus'
                 }
 
           -- Semaphore for case when some worker is unexpectedly failed
@@ -209,19 +259,35 @@ app appMode' withDbConnection = do
           -- Running VIN synchronizer thread
           vinSynchronizer <-
             if appMode' == TestingAppMode
-               then do logWarn [qns| Not running VIN synchronizer because it is
-                                     testing mode. |]
+               then do logWarn [qns| Not running VIN synchronizer
+                                     because it is testing mode. |]
                        pure Nothing
 
                else fmap Just $ forkWithSem
                               $ handle (\e@(SomeException _) -> logError [qms|
-                                  VIN synchronizer worker thread is unexpectedly
-                                  failed with exception: {e}
+                                  VIN synchronizer worker thread is
+                                  unexpectedly failed with exception: {e}
                                 |] `finally` atomically (signalTSem failureSem))
                               $ do
 
-                      logInfo [qn| Running VIN synchronizer worker thread... |]
+                      logInfo "Running VIN synchronizer worker thread..."
                       runVinSynchronizer timeZone `runReaderT` appContext
+
+          statusSynchronizer <-
+            if appMode' == TestingAppMode
+               then do logWarn [qns| Not running Status Synchronizer
+                                     because it is testing mode. |]
+                       pure Nothing
+
+               else fmap Just $ forkWithSem
+                              $ handle (\e@(SomeException _) -> logError [qms|
+                                  Status Synchronizer worker thread is
+                                  unexpectedly failed with exception: {e}
+                                |] `finally` atomically (signalTSem failureSem))
+                              $ do
+
+                      logInfo "Running Status Synchronizer worker thread..."
+                      runStatusSynchronizer `runReaderT` appContext
 
           let waitForWorkers = runConcurrently x where
                 waitFor = atomically . waitTSem
@@ -234,15 +300,19 @@ app appMode' withDbConnection = do
                          Some of threads of workers is unexpectedly failed!
                        |]
 
-                workers = void $ (,)
-                 <$> Concurrently
-                     ( -- Wait for server thread
-                       waitFor serverThreadSem
-                     )
-                 <*> Concurrently
-                     ( -- Wait for VIN synchronizer thread
-                       maybe (pure ()) (snd ? waitFor) vinSynchronizer
-                     )
+                workers = void $ (,,)
+                  <$> Concurrently
+                      ( -- Wait for server thread
+                        waitFor serverThreadSem
+                      )
+                  <*> Concurrently
+                      ( -- Wait for VIN synchronizer thread
+                        maybe (pure ()) (snd ? waitFor) vinSynchronizer
+                      )
+                  <*> Concurrently
+                      ( -- Wait for Status Synchronizer thread
+                        maybe (pure ()) (snd ? waitFor) statusSynchronizer
+                      )
 
           waitForWorkers `catch` \e@KillWorkersException -> do
 
@@ -256,6 +326,12 @@ app appMode' withDbConnection = do
                  Nothing -> pure ()
                  Just (threadId, _) -> do
                    logDebug [qn| Killing VIN synchronizer thread... |]
+                   killThread threadId
+
+            case statusSynchronizer of
+                 Nothing -> pure ()
+                 Just (threadId, _) -> do
+                   logDebug [qn| Killing Status Synchronizer thread... |]
                    killThread threadId
 
   -- Trapping termination of the application
