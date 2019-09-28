@@ -6,15 +6,14 @@ module Carma.Model.EraGlonassCaseStatusUpdate where
 import           GHC.Generics (Generic)
 
 import           Data.Typeable (Typeable)
-
-import           Data.Model
-import           Data.Model.View
 import           Data.Time.Clock (UTCTime)
 import           Data.Text (Text)
 
+import           Data.Model
+import           Data.Model.View
+
 import           Carma.Model.LegacyTypes (Phone)
 import           Carma.Model.Case (Case)
-import           Carma.Model.CaseStatus (CaseStatus)
 import           Carma.Model.Types ()
 import           Carma.Model.PgTypes ()
 
@@ -28,11 +27,15 @@ data EraGlonassCaseStatusUpdate
    , ctime
        :: F UTCTime "ctime" "Дата и время обновления статуса заявки"
 
+   , mtime
+       :: F (Maybe UTCTime) "mtime"
+            "Дата и время последнего повтора обновления статуса заявки"
+
    , caseId
        :: F (IdentI Case) "caseId" "Связанный кейс"
 
    , newCaseStatus
-       :: F (IdentI CaseStatus) "newCaseStatus" "Новый статус заявки"
+       :: F Text "newCaseStatus" "Новый статус заявки"
 
    , isProcessed
        :: F Bool "isProcessed" "Запрос обработан"

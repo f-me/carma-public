@@ -14,15 +14,15 @@ import           Database.Persist.TH
 
 import           Carma.Model.LegacyTypes (type Phone)
 import           Carma.Model.Case.Persistent (type CaseId)
-import           Carma.Model.CaseStatus.Persistent (type CaseStatusId)
 
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 EraGlonassCaseStatusUpdate json sql=EraGlonassCaseStatusUpdate
 
   ctime         UTCTime       sql=ctime       default=CURRENT_TIME
+  mtime         UTCTime Maybe sql=mtime       default=CURRENT_TIME
   caseId        CaseId        sql=caseid
-  newCaseStatus CaseStatusId  sql=newcasestatus
+  newCaseStatus Text          sql=newcasestatus
   isProcessed   Bool          sql=isprocessed default=False
   processTime   UTCTime Maybe sql=processtime
 

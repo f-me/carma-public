@@ -7,10 +7,9 @@
 {-# LANGUAGE TypeFamilies #-}
 
 module Triggers
-  ( runCreateTriggers
-  , runUpdateTriggers
-  ) where
-
+     ( runCreateTriggers
+     , runUpdateTriggers
+     ) where
 
 import           Prelude hiding (until)
 
@@ -70,7 +69,6 @@ import qualified Carma.Model.Contract as Contract
 import qualified Carma.Model.ContractCheckStatus as CCS
 import           Carma.Model.Event (EventType(..))
 import qualified Carma.Model.CallType as CT
-import qualified Carma.Model.EraGlonassCaseStatusUpdate as EGCaseStatusUpdate
 
 import           Carma.Model.LegacyTypes
 
@@ -111,6 +109,7 @@ import qualified Triggers.Action.SMS as BOAction (sendSMS)
 import qualified Triggers.Action.MailToGenser as BOAction (sendMailToGenser)
 import qualified Triggers.Action.MailToPSA as BOAction (sendMailToPSA)
 import qualified Triggers.Action.MailToDealer as BOAction (sendMailToDealer)
+import qualified Triggers.EraGlonass as EraGlonass
 import           Triggers.DSL as Dsl
 
 import           Util (Priority(..), syslogJSON, (.=))
@@ -346,6 +345,9 @@ afterCreate = Map.unionsWith (++) $
             and a.type = $(ActionType.checkStatus)$
             and a.assignedTo is null
         |]
+
+  , trigOnModel ([]::[Service]) $
+      EraGlonass.handleEraGlonassCaseStatusByService =<< getIdent
 
   ] ++
   map entryToTrigger partnerDelayEntries
@@ -689,45 +691,12 @@ afterUpdate = Map.unionsWith (++)
               AND svc.$(F|Service.svcType)$::TEXT = s->>'type'
         |]
 
-  , trigOn Case.caseStatus $ \newStatus -> do
-      caseId <- getIdent
-      case'  <- dbRead caseId
+  , trigOn Service.status $ const $
+      EraGlonass.handleEraGlonassCaseStatusByService =<< getIdent
 
-      let condition =
-            case' `get'` Case.isCreatedByEraGlonass &&
-            newStatus `elem` [CS.back, CS.needInfo, CS.closed, CS.canceled]
-
-      when condition $
-        void $ doApp $
-
-          -- Work in progress, not closed yed.
-          if newStatus `elem` [CS.back, CS.needInfo]
-
-             then uncurry SPG.execute [msql|
-                    INSERT INTO $(T|EGCaseStatusUpdate)$
-                      ( $(F|EGCaseStatusUpdate.caseId)$
-                      , $(F|EGCaseStatusUpdate.newCaseStatus)$
-                      ) VALUES
-                      ( $(V|caseId)$
-                      , $(V|newStatus)$
-                      )
-                  |]
-
-             else uncurry SPG.execute [msql|
-                    INSERT INTO $(T|EGCaseStatusUpdate)$
-                      ( $(F|EGCaseStatusUpdate.caseId)$
-                      , $(F|EGCaseStatusUpdate.newCaseStatus)$
-                      , $(F|EGCaseStatusUpdate.customerName)$
-                      , $(F|EGCaseStatusUpdate.customerPhone)$
-                      , $(F|EGCaseStatusUpdate.terminalPhone)$
-                      ) VALUES
-                      ( $(V|caseId)$
-                      , $(V|newStatus)$
-                      , $(V|case' `get'` Case.contact_name)$
-                      , $(V|case' `get'` Case.contact_phone1)$
-                      , $(V|case' `get'` Case.contact_phone2)$
-                      )
-                  |]
+  , trigOn Action.result $ const $ do
+      getIdent >>= dbRead >>= pure . (`get'` Action.serviceId) >>=
+        maybe (pure ()) EraGlonass.handleEraGlonassCaseStatusByService
   ]
 
 
