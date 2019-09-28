@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass, ScopedTypeVariables #-}
 {-# LANGUAGE DataKinds, TypeOperators, TypeFamilies, InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings, OverloadedLists, LambdaCase, NamedFieldPuns #-}
-{-# LANGUAGE FlexibleContexts, NoMonomorphismRestriction #-}
+{-# LANGUAGE FlexibleContexts, NoMonomorphismRestriction, QuasiQuotes #-}
 
 -- Fixes issue when record-fields aren't exported. Probably related to:
 --   https://stackoverflow.com/questions/46357747/haddock-data-record-fields-names-not-being-generated
@@ -21,6 +21,9 @@ module Carma.EraGlonass.Types.EGRequestForServiceRequest
 import           GHC.Generics
 
 import           Data.Proxy
+import           Data.Either.Combinators (mapLeft)
+import           Data.String (IsString (fromString))
+import           Text.InterpolatedString.QM
 import           Data.Aeson
 import           Data.Aeson.Types (Parser)
 import           Data.Swagger
@@ -34,10 +37,12 @@ import           Database.PostgreSQL.Simple.ToField
                    , toJSONField
                    )
 import           Database.Persist.Postgresql.JSON ()
-import           Database.Persist.Sql (PersistFieldSql (sqlType))
+import           Database.Persist.Sql
+                   ( PersistFieldSql (sqlType)
+                   , PersistValue (PersistByteString)
+                   )
 import           Database.Persist.Class
                    ( PersistField (toPersistValue, fromPersistValue)
-                   , fromPersistValueJSON
                    )
 
 import           Data.Model (fieldName, fieldDesc)
@@ -130,7 +135,12 @@ instance FromJSON EGRequestForServiceRequest where
 
 instance PersistField EGRequestForServiceRequest where
   toPersistValue = toPersistValue . toJSON
-  fromPersistValue = fromPersistValueJSON
+
+  fromPersistValue (PersistByteString x) =
+    mapLeft fromString $ eitherDecodeStrict x
+  fromPersistValue x =
+    Left [qms| Expected either PersistByteString for
+               EGRequestForServiceRequest, received: {x} |]
 
 instance PersistFieldSql EGRequestForServiceRequest where
   sqlType Proxy = sqlType (Proxy :: Proxy Value)
