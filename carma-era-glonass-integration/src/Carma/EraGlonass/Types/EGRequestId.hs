@@ -15,6 +15,7 @@ import           Data.Proxy
 import           Numeric (showHex)
 import           Data.Char (digitToInt)
 import           Data.Monoid ((<>))
+import           Data.Either.Combinators (mapLeft)
 import           Data.ByteString.Char8 (ByteString, pack)
 import           Data.ByteString.Lazy.Char8 (pack)
 import           Data.Digest.Pure.MD5 (md5)
@@ -42,7 +43,6 @@ import           Database.Persist.Sql (PersistFieldSql (sqlType))
 import           Database.Persist.Types (SqlType (..), PersistValue (..))
 import           Database.Persist.Class
                    ( PersistField (toPersistValue, fromPersistValue)
-                   , fromPersistValueJSON
                    )
 
 import           Data.Model
@@ -128,7 +128,15 @@ instance ToSchema EGRequestId where
 
 instance PersistField EGRequestId where
   toPersistValue (EGRequestId x) = PersistText $ decodeUtf8 x
-  fromPersistValue = fromPersistValueJSON
+
+  fromPersistValue (PersistByteString x) =
+    mapLeft fromString $ parseOnly egRequestIdParser x
+  fromPersistValue (PersistText x) =
+    mapLeft fromString $ parseOnly egRequestIdParser $ encodeUtf8 x
+  fromPersistValue x =
+    Left [qms| Expected either PersistByteString or PersistText for
+               EGRequestId, received: {x} |]
+
 
 instance PersistFieldSql EGRequestId where
   sqlType Proxy = SqlString
