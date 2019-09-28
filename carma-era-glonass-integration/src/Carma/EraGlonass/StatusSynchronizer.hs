@@ -321,6 +321,8 @@ synchronizeStatuses =
          when ( let x = eraGlonassCaseStatusUpdateNewCaseStatus
                  in x == toStringy Done || x == toStringy ClientDenial ) $ do
 
+           contractId' <- lift $ asks statusSynchronizerContractId
+
            response' <-
              let
                req
@@ -341,7 +343,7 @@ synchronizeStatuses =
                  , statusCode = Closed
                  , serviceCategoryId = Nothing
                  , serviceName = Nothing
-                 , contractId = Nothing
+                 , contractId = contractId'
                  }
              in
                lift (asks egClientEnv)
