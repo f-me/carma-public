@@ -307,7 +307,7 @@ createCase reqBody@EGRequestForServiceRequest {..} time = do
       { caseEraGlonassCreateRequestCtime          = time
       , caseEraGlonassCreateRequestAssociatedCase = caseId
       , caseEraGlonassCreateRequestRequestId      = requestId
-      , caseEraGlonassCreateRequestRequestBody    = reqBody
+      , caseEraGlonassCreateRequestRequestBody    = toJSON reqBody
       }
 
   srcLogDebug [qms|
@@ -347,7 +347,7 @@ updateCase reqBody@EGRequestForServiceRequest {..} caseId time = do
       { caseEraGlonassCreateRequestCtime          = time
       , caseEraGlonassCreateRequestAssociatedCase = caseId
       , caseEraGlonassCreateRequestRequestId      = requestId
-      , caseEraGlonassCreateRequestRequestBody    = reqBody
+      , caseEraGlonassCreateRequestRequestBody    = toJSON reqBody
       }
 
   srcLogDebug [qms|

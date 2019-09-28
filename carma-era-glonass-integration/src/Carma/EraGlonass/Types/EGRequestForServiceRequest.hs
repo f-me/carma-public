@@ -21,40 +21,11 @@ module Carma.EraGlonass.Types.EGRequestForServiceRequest
 import           GHC.Generics
 
 import           Data.Proxy
-import           Data.Either.Combinators (mapLeft)
-import           Data.String (IsString (fromString))
-import           Text.InterpolatedString.QM
 import           Data.Aeson
 import           Data.Aeson.Types (Parser)
 import           Data.Swagger
 
-import           Database.PostgreSQL.Simple.FromField
-                   ( FromField (..)
-                   , fromJSONField
-                   )
-import           Database.PostgreSQL.Simple.ToField
-                   ( ToField (..)
-                   , toJSONField
-                   )
 import           Database.Persist.Postgresql.JSON ()
-import           Database.Persist.Sql
-                   ( PersistFieldSql (sqlType)
-                   , PersistValue (PersistByteString)
-                   )
-import           Database.Persist.Class
-                   ( PersistField (toPersistValue, fromPersistValue)
-                   )
-
-import           Data.Model (fieldName, fieldDesc)
-
-import           Data.Model.Types
-                   ( PgTypeable (pgTypeOf)
-                   , PgType (PgType)
-                   , DefaultFieldView (defaultFieldView)
-                   , FieldView (..)
-                   , FF
-                   , fieldKindStr
-                   )
 
 import           Carma.Utils.Operators
 import           Carma.Utils.StringyEnum
@@ -132,41 +103,6 @@ instance FromJSON EGRequestForServiceRequest where
   parseJSON =
     parseJSONWithOptionalNonEmptyTextFields'
       (Proxy :: Proxy '(t, "EGRequestForServiceRequest", 4))
-
-instance PersistField EGRequestForServiceRequest where
-  toPersistValue = toPersistValue . toJSON
-
-  fromPersistValue (PersistByteString x) =
-    mapLeft fromString $ eitherDecodeStrict x
-  fromPersistValue x =
-    Left [qms| Expected either PersistByteString for
-               EGRequestForServiceRequest, received: {x} |]
-
-instance PersistFieldSql EGRequestForServiceRequest where
-  sqlType Proxy = sqlType (Proxy :: Proxy Value)
-
-instance PgTypeable EGRequestForServiceRequest where
-  pgTypeOf _ = PgType "json" True
-
-instance DefaultFieldView EGRequestForServiceRequest where
-  defaultFieldView f = x where
-    fieldToFieldKindProxy :: (m -> FF t nm desc a) -> Proxy a
-    fieldToFieldKindProxy _ = Proxy
-    x = FieldView
-      { fv_name = fieldName f
-      , fv_type = "JSON"
-      , fv_canWrite = False
-      , fv_meta =
-          [ ("label", String $ fieldDesc f)
-          , ("app",   String $ fieldKindStr $ fieldToFieldKindProxy f)
-          ]
-      }
-
-instance FromField EGRequestForServiceRequest where
-  fromField = fromJSONField
-
-instance ToField EGRequestForServiceRequest where
-  toField = toJSONField
 
 
 data EGRequestForServiceRequestLocation

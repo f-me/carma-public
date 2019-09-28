@@ -8,13 +8,12 @@ import           GHC.Generics (Generic)
 
 import           Data.Typeable
 import           Data.Time.Clock
+import           Data.Aeson (Value)
 
 import           Database.Persist.TH
 
 import           Carma.Model.Case.Persistent (CaseId)
 import           Carma.EraGlonass.Types.EGRequestId (EGRequestId)
-import           Carma.EraGlonass.Types.EGRequestForServiceRequest
-                   (EGRequestForServiceRequest)
 
 
 -- | @CaseEraGlonassCreateRequest@ persistent model.
@@ -23,7 +22,7 @@ CaseEraGlonassCreateRequest sql=CaseEraGlonassCreateRequest
   ctime UTCTime sql=ctime default=CURRENT_TIME
   associatedCase CaseId sql=caseid
   requestId EGRequestId sql=requestid
-  requestBody EGRequestForServiceRequest sql=requestbody
+  requestBody Value sql=requestbody
 
   deriving Typeable Generic Show
 |]
