@@ -346,9 +346,16 @@ afterCreate = Map.unionsWith (++) $
             and a.assignedTo is null
         |]
 
-  , trigOnModel ([]::[Service]) $
+  , trigOnModel ([]::[Service]) $ do
+      serviceId <- getIdent
+      void $ doApp $ liftPG' $ \pg -> uncurry (PG.execute pg)
+        [sql| update servicetbl
+          set times_expectedServiceEnd = times_expectedServiceStart + '2h',
+              times_factServiceEnd     = times_expectedServiceStart + '2h'
+          where id = $(serviceId)$
+            and type = $(ST.towage)$
+        |]
       EraGlonass.handleEraGlonassCaseStatusByService =<< getIdent
-
   ] ++
   map entryToTrigger partnerDelayEntries
 
@@ -566,13 +573,20 @@ beforeUpdate = Map.unionsWith (++) $
 
   , trigOn Service.times_expectedServiceStart $ \case
       Nothing -> return ()
-      Just tm ->
+      Just tm -> do
+        hours <- getService >>= return .
+                \case
+                 Just service | service `get'` Service.svcType == ST.towage -> 2
+                 _ -> 1
+
+        let accordTime = Just $ addUTCTime (hours * BO.hours) tm
         modifyPatch $
-        Patch.put Service.times_expectedServiceEnd
-        (Just $ addUTCTime (1 * BO.hours) tm) .
-        Patch.put Service.times_expectedServiceClosure
-        (Just $ addUTCTime (11 * BO.hours) tm) .
-        Patch.put Service.times_factServiceStart Nothing
+                Patch.put Service.times_expectedServiceEnd accordTime .
+                Patch.put Service.times_factServiceEnd accordTime .
+                Patch.put Service.times_expectedServiceClosure
+                         (Just $ addUTCTime (11 * BO.hours) tm) .
+                Patch.put Service.times_factServiceStart Nothing
+
   , trigOn Service.times_expectedServiceEnd $ const $
       modifyPatch (Patch.put Service.times_factServiceEnd Nothing)
   , trigOn Service.times_expectedServiceClosure $ const $
