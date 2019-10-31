@@ -21,6 +21,9 @@ db {
 }
 
 vin-synchronizer {
+  # "on"/"off"
+  is-enabled = on
+
   # In seconds.
   # Synchronization iteration timeout.
   # One iteration includes requests to EG side and own database requests.
@@ -38,6 +41,9 @@ vin-synchronizer {
 }
 
 status-synchronizer {
+  # "on"/"off"
+  is-enabled = on
+
   # In minutes.
   # Interval before next check whether there's something to synchronize.
   interval = 30.0
