@@ -56,6 +56,9 @@ data AppContext
    , egClientEnv :: ClientEnv
        -- ^ @ClientEnv@ with bound base URL for CaRMa -> Era Glonass requests.
 
+   , vinSynchronizerIsEnabled :: Bool
+       -- ^ Indicates whether VIN synchronizer is turned on.
+
    , vinSynchronizerTimeout :: Int
        -- ^ VIN synchronization iteration timeout in microseconds.
        --
@@ -71,7 +74,7 @@ data AppContext
    , vinSynchronizerContractId :: EGContractId 'BindVehicles
        -- ^ Predefined on Era Glonass side code.
 
-   , vinSynchronizerTriggerBus :: TMVar UTCTime
+   , vinSynchronizerTriggerBus :: Maybe (TMVar UTCTime)
        -- ^ Useful to manually trigger VIN synchronization.
        --
        -- When it's empty it means VIN synchronizer is waiting for next
@@ -87,6 +90,11 @@ data AppContext
        -- In case VIN synchronization is triggered by schedule, it will itself
        -- fill this bus with time of start of that synchronization (to notify
        -- others it's busy).
+       --
+       -- @Nothing@ when VIN synchronizer is not enabled.
+
+   , statusSynchronizerIsEnabled :: Bool
+       -- ^ Indicates whether status synchronizer is turned on.
 
    , statusSynchronizerInterval :: Int
        -- ^ An interval (in microseconds) between next statuses synchronization.
@@ -100,7 +108,7 @@ data AppContext
        :: Maybe (EGContractId 'ChangeProcessingStatus)
        -- ^ Predefined on Era Glonass side code.
 
-   , statusSynchronizerTriggerBus :: TMVar UTCTime
+   , statusSynchronizerTriggerBus :: Maybe (TMVar UTCTime)
        -- ^ Useful to manually trigger statuses synchronization.
        --
        -- When it's empty it means Status Synchronizer is waiting for next
@@ -117,6 +125,8 @@ data AppContext
        -- In case statuses synchronization is triggered after regular interval,
        -- it will itself fill this bus with time of start of that
        -- synchronization (to notify others it's busy).
+       --
+       -- @Nothing@ when Status Synchronizer is not enabled.
    }
 
 

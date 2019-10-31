@@ -56,6 +56,7 @@ import           Carma.EraGlonass.Types.EGBindVehiclesRequest
 import           Carma.EraGlonass.Types.EGMayFailToParse
 import           Carma.EraGlonass.Types.RouteActionResponse
 import           Carma.EraGlonass.Types.Helpers.DateTime (showRFC3339DateTime)
+import           Carma.EraGlonass.Types.TurnedOffResponse
 import           Carma.EraGlonass.Model.Types (biggestPgArrayItem)
 
 
@@ -272,38 +273,63 @@ getBackgroundTasksCount = do
 
 
 vinSynchronizerTrigger
-  :: forall m t
+  :: forall m
    .
    ( MonadReader AppContext m
    , MonadLoggerBus m
    , MonadClock m
    , MonadSTM m
    , MonadError ServantErr m
-   , t ~ RouteActionResponse
    )
-  => m t
+  => m RouteActionResponse
 
-vinSynchronizerTrigger =
-  manuallyTrigger (False, "VIN synchronization")
-    =<< asks vinSynchronizerTriggerBus
+vinSynchronizerTrigger = go where
+  go =
+    asks vinSynchronizerTriggerBus >>=
+      maybe err (manuallyTrigger (False, "VIN synchronization"))
+
+  errMsg = [qms|
+    Cannot trigger {VinSynchronizer}
+    because it is turned off by the config
+  |]
+
+  err =
+    throwError err503
+      { errHeaders = pure $
+          (hContentType, renderHeader $ contentType (Proxy :: Proxy JSON))
+
+      , errBody = encode $ TurnedOffResponse errMsg VinSynchronizer
+      }
 
 
 statusSynchronizerTrigger
-  :: forall m t
+  :: forall m
    .
    ( MonadReader AppContext m
    , MonadLoggerBus m
    , MonadClock m
    , MonadSTM m
    , MonadError ServantErr m
-   , t ~ RouteActionResponse
    )
-  => m t
+  => m RouteActionResponse
 
-statusSynchronizerTrigger =
-  manuallyTrigger (True, "statuses synchronization")
-    =<< asks statusSynchronizerTriggerBus
+statusSynchronizerTrigger = go where
+  go =
+    asks statusSynchronizerTriggerBus >>=
+      maybe err (manuallyTrigger (True, "statuses synchronization"))
 
+  errMsg = [qms|
+    Cannot trigger {StatusSynchronizer}
+    because it is turned off by the config
+  |]
+
+  err =
+    throwError err503
+      { errHeaders = pure $
+          (hContentType, renderHeader $ contentType (Proxy :: Proxy JSON))
+
+      , errBody = encode $ TurnedOffResponse errMsg StatusSynchronizer
+      }
 
 manuallyTrigger
   :: forall m t

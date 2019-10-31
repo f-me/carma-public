@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, QuasiQuotes, DuplicateRecordFields #-}
 {-# LANGUAGE ScopedTypeVariables, FlexibleContexts, DataKinds #-}
-{-# LANGUAGE BangPatterns, LambdaCase, DeriveAnyClass #-}
+{-# LANGUAGE BangPatterns, LambdaCase, MultiWayIf, DeriveAnyClass #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
 module Carma.EraGlonass.App
@@ -139,6 +139,9 @@ app appMode' withDbConnection = do
   !(dbRequestTimeout' :: Float) <-
     liftIO $ Conf.require cfg "db.postgresql.request-timeout"
 
+  !(isVinSynchronizerEnabled :: Bool) <-
+    liftIO $ Conf.require cfg "vin-synchronizer.is-enabled"
+
   -- In seconds
   !(vinSynchronizerTimeout' :: Float) <-
     liftIO $ Conf.require cfg "vin-synchronizer.timeout"
@@ -152,6 +155,9 @@ app appMode' withDbConnection = do
 
   !(carmaVinSynchronizerContractId :: EGContractId 'BindVehicles) <-
     liftIO $ Conf.require cfg "vin-synchronizer.carma-contract-id"
+
+  !(isStatusSynchronizerEnabled :: Bool) <-
+    liftIO $ Conf.require cfg "status-synchronizer.is-enabled"
 
   -- In minutes
   !(statusSynchronizerInterval' :: Float) <-
@@ -198,7 +204,19 @@ app appMode' withDbConnection = do
     statusSynchronizerTriggerBus',
     workersThreadFailureSem )
       <- atomically $
-           (,,,) <$> newTVar 0 <*> newEmptyTMVar <*> newEmptyTMVar <*> newTSem 0
+           (,,,) <$> newTVar 0
+
+                 <*> ( if isVinSynchronizerEnabled
+                          then Just <$> newEmptyTMVar
+                          else pure Nothing
+                     )
+
+                 <*> ( if isStatusSynchronizerEnabled
+                          then Just <$> newEmptyTMVar
+                          else pure Nothing
+                     )
+
+                 <*> newTSem 0
 
   (workersThreadId, workersThreadSem) <-
     flip runReaderT loggerBus'
@@ -225,6 +243,7 @@ app appMode' withDbConnection = do
                 , statusSynchronizerContractId =
                     carmaStatusSynchronizerContractId
 
+                , vinSynchronizerIsEnabled = isVinSynchronizerEnabled
                 , vinSynchronizerTimeout =
                     round $ vinSynchronizerTimeout' * (10 ** 6)
                 , vinSynchronizerRetryInterval =
@@ -232,6 +251,7 @@ app appMode' withDbConnection = do
                 , vinSynchronizerBatchSize = vinSynchronizerBatchSize'
                 , vinSynchronizerTriggerBus = vinSynchronizerTriggerBus'
 
+                , statusSynchronizerIsEnabled = isStatusSynchronizerEnabled
                 , statusSynchronizerInterval =
                     round $ statusSynchronizerInterval' * 60 * (10 ** 6)
                 , statusSynchronizerTimeout =
@@ -258,36 +278,48 @@ app appMode' withDbConnection = do
 
           -- Running VIN synchronizer thread
           vinSynchronizer <-
-            if appMode' == TestingAppMode
-               then do logWarn [qns| Not running VIN synchronizer
-                                     because it is testing mode. |]
-                       pure Nothing
+            if | appMode' == TestingAppMode -> do
+                   logWarn [qns| Not running VIN synchronizer
+                                 because it is testing mode. |]
+                   pure Nothing
 
-               else fmap Just $ forkWithSem
-                              $ handle (\e@(SomeException _) -> logError [qms|
-                                  VIN synchronizer worker thread is
-                                  unexpectedly failed with exception: {e}
-                                |] `finally` atomically (signalTSem failureSem))
-                              $ do
+               | not isVinSynchronizerEnabled -> do
+                   logWarn [qns| Not running VIN synchronizer
+                                 because it is turned off by the config. |]
+                   pure Nothing
 
-                      logInfo "Running VIN synchronizer worker thread..."
-                      runVinSynchronizer timeZone `runReaderT` appContext
+               | otherwise ->
+                   fmap Just $ forkWithSem
+                             $ handle (\e@(SomeException _) -> logError [qms|
+                                 VIN synchronizer worker thread is
+                                 unexpectedly failed with exception: {e}
+                               |] `finally` atomically (signalTSem failureSem))
+                             $ do
+
+                     logInfo "Running VIN synchronizer worker thread..."
+                     runVinSynchronizer timeZone `runReaderT` appContext
 
           statusSynchronizer <-
-            if appMode' == TestingAppMode
-               then do logWarn [qns| Not running Status Synchronizer
-                                     because it is testing mode. |]
-                       pure Nothing
+            if | appMode' == TestingAppMode -> do
+                   logWarn [qns| Not running Status Synchronizer
+                                 because it is testing mode. |]
+                   pure Nothing
 
-               else fmap Just $ forkWithSem
-                              $ handle (\e@(SomeException _) -> logError [qms|
-                                  Status Synchronizer worker thread is
-                                  unexpectedly failed with exception: {e}
-                                |] `finally` atomically (signalTSem failureSem))
-                              $ do
+               | not isStatusSynchronizerEnabled -> do
+                   logWarn [qns| Not running Status Synchronizer
+                                 because it is turned off by the config. |]
+                   pure Nothing
 
-                      logInfo "Running Status Synchronizer worker thread..."
-                      runStatusSynchronizer `runReaderT` appContext
+               | otherwise ->
+                   fmap Just $ forkWithSem
+                             $ handle (\e@(SomeException _) -> logError [qms|
+                                 Status Synchronizer worker thread is
+                                 unexpectedly failed with exception: {e}
+                               |] `finally` atomically (signalTSem failureSem))
+                             $ do
+
+                     logInfo "Running Status Synchronizer worker thread..."
+                     runStatusSynchronizer `runReaderT` appContext
 
           let waitForWorkers = runConcurrently x where
                 waitFor = atomically . waitTSem

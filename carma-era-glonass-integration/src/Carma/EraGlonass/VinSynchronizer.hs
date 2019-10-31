@@ -44,7 +44,7 @@ import           Carma.Monad
 import           Carma.Model.Contract.Persistent
 import           Carma.Model.Program.Persistent
 import           Carma.Model.SubProgram.Persistent
-import           Carma.Utils.Operators
+import           Carma.Utils
 import           Carma.Utils.TypeSafe.Generic.DataType
 import           Carma.Utils.TypeSafe.TypeFamilies
 import           Carma.Utils.Persistent.RawSqlQueryConstructor
@@ -115,7 +115,9 @@ runVinSynchronizer tz = go where
       bgThreadsCounter <- asks backgroundTasksCounter
 
       (wait, done) <- atomically $ do
-        _ <- tryTakeTMVar manualTriggerBus -- Flusing previous state
+        -- Flusing previous state
+        possibly manualTriggerBus $ fmap (const ()) . tryTakeTMVar
+
         modifyTVar' bgThreadsCounter (+2) -- Two threads in background
 
         (newEmptyTMVar <&>) $
@@ -136,14 +138,15 @@ runVinSynchronizer tz = go where
           done
 
       manualTriggerThread <-
-        flip forkFinally (const onForkDeath) $ do
-          time <- atomically $ readTMVar manualTriggerBus
-          srcLogDebug [qms|
-            Received signal from manual VIN synchronization trigger bus,
-            it's triggered at {showRFC3339DateTime time :: Text},
-            running VIN synchronization process manually...
-          |]
-          done
+        flip forkFinally (const onForkDeath) $
+          possibly manualTriggerBus $ \bus -> do
+            time <- atomically $ readTMVar bus
+            srcLogDebug [qms|
+              Received signal from manual VIN synchronization trigger bus,
+              it's triggered at {showRFC3339DateTime time :: Text},
+              running VIN synchronization process manually...
+            |]
+            done
 
       wait
       srcLogInfo "Killing waiting threads before running VIN synchronization..."
@@ -225,7 +228,9 @@ runVinSynchronizer tz = go where
     bgThreadsCounter <- asks backgroundTasksCounter
 
     (wait, done) <- atomically $ do
-      _ <- tryTakeTMVar manualTriggerBus -- Flusing previous state
+      -- Flusing previous state
+      possibly manualTriggerBus $ fmap (const ()) . tryTakeTMVar
+
       modifyTVar' bgThreadsCounter (+2) -- Two threads in background
 
       (newEmptyTMVar <&>) $
@@ -242,14 +247,15 @@ runVinSynchronizer tz = go where
         done
 
     manualTriggerThread <-
-      flip forkFinally (const onForkDeath) $ do
-        time <- atomically $ readTMVar manualTriggerBus
-        srcLogDebug [qms|
-          Received signal from manual VIN synchronization trigger bus,
-          it's triggered at {showRFC3339DateTime time :: Text},
-          retrying VIN synchronization manually...
-        |]
-        done
+      flip forkFinally (const onForkDeath) $
+        possibly manualTriggerBus $ \bus -> do
+          time <- atomically $ readTMVar bus
+          srcLogDebug [qms|
+            Received signal from manual VIN synchronization trigger bus,
+            it's triggered at {showRFC3339DateTime time :: Text},
+            retrying VIN synchronization manually...
+          |]
+          done
 
     wait
     srcLogDebug "Killing waiting threads before retrying VIN synchronization..."

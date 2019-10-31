@@ -126,7 +126,9 @@ runStatusSynchronizer = do
     interval         <- asks statusSynchronizerInterval
 
     (wait, done) <- atomically $ do
-      _ <- tryTakeTMVar manualTriggerBus -- Flusing previous state
+      -- Flusing previous state
+      possibly manualTriggerBus $ fmap (const ()) . tryTakeTMVar
+
       modifyTVar' bgThreadsCounter (+2) -- Two threads in background
 
       (newEmptyTMVar <&>) $
@@ -153,14 +155,15 @@ runStatusSynchronizer = do
         done
 
     manualTriggerThread <-
-      flip forkFinally (const onForkDeath) $ do
-        time <- atomically $ readTMVar manualTriggerBus
-        srcLogDebug [qms|
-          Received signal from manual statuses synchronization trigger bus,
-          it's triggered at {showRFC3339DateTime time :: Text},
-          running statuses synchronization process manually...
-        |]
-        done
+      flip forkFinally (const onForkDeath) $
+        possibly manualTriggerBus $ \bus -> do
+          time <- atomically $ readTMVar bus
+          srcLogDebug [qms|
+            Received signal from manual statuses synchronization trigger bus,
+            it's triggered at {showRFC3339DateTime time :: Text},
+            running statuses synchronization process manually...
+          |]
+          done
 
     wait
 
