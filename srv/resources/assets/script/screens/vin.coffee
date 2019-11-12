@@ -149,6 +149,7 @@ setupVinForm = (viewName, args) ->
   extendKVM =
     vinIsProcessing: ko.observable no
     vinFilesToUpload: ko.observableArray []
+    isVinAdmin: _.contains(window.global.user.roles, window.global.idents("Role").vinAdmin)
 
     vinSendHandler: ->
       vinFile = @vinFilesToUpload()[0]
