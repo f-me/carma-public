@@ -149,6 +149,7 @@ setupVinForm = (viewName, args) ->
   extendKVM =
     vinIsProcessing: ko.observable no
     vinFilesToUpload: ko.observableArray []
+    vinIsAdmin: ko.observable (window.global.idents("Role").vinAdmin in window.global.user.roles)
 
     vinSendHandler: ->
       vinFile = @vinFilesToUpload()[0]
@@ -169,6 +170,7 @@ setupVinForm = (viewName, args) ->
     slotsee     : ["vin-upload-form"
                    "vin-send"
                    "vin-import-dir"
+                   "vin-is-admin"
                   ]
   }
 
