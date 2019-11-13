@@ -147,6 +147,19 @@ contractExtension = ".csv"
 inDirectory = "IN"
 errorDirectory = "ERR"
 
+
+checkVinAdminPermissions :: Handler App App Int
+checkVinAdminPermissions = do
+  Just user <- currentUserMeta
+  let Just (Ident uid)  = Patch.get user Usermeta.ident
+  let Just isUserActive = Patch.get user Usermeta.isActive
+  let Just roles        = Patch.get user Usermeta.roles
+
+  let isAccessGranted = Role.vinAdmin `V.elem` roles
+
+  uid <$ unless (isUserActive && isAccessGranted) (handleError 403)
+
+
 -- | Import VIN files from shared directory.
 -- | Format of directory name is "program - subprogram/format".
 -- | Directory hierarhy will be created after first call and
@@ -201,7 +214,7 @@ vinImportDirectory = do
 
     pure (programs, subPrograms, vinFormats)
 
-  uid <- checkUserPermissions Nothing
+  uid <- checkVinAdminPermissions
 
   with taskMgr $ TM.create $ do
     let paths = concat $
