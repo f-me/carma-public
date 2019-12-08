@@ -171,7 +171,6 @@ setupVinForm = (viewName, args) ->
     slotsee     : ["vin-upload-form"
                    "vin-send"
                    "vin-is-admin"
-#                   "vin-import-dir"
                   ]
   }
 
