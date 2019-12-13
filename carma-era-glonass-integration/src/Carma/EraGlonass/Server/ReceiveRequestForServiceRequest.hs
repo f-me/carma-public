@@ -37,6 +37,9 @@ import           Carma.Model.CaseStatus.Persistent
 import           Carma.Model.Usermeta.Persistent
 import           Carma.Model.Program.Persistent
 import           Carma.Model.SubProgram.Persistent
+import           Carma.Model.Action.Persistent
+import           Carma.Model.ActionType.Persistent
+import           Carma.Model.Role.Persistent
 import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.Generic.DataType
 import           Carma.EraGlonass.Instances ()
@@ -293,8 +296,31 @@ createCase reqBody@EGRequestForServiceRequest {..} time = do
       , caseIsCreatedByEraGlonass = True
       }
 
+  actionId <-
+    insert Action
+      { actionCallId      = Nothing
+      , actionCaseId      = Just caseId
+      , actionServiceId   = Nothing
+      , actionAType       = tellMeMore
+      , actionDuetime     = time
+      , actionComment     = Nothing
+      , actionRedirectTo  = Nothing
+      -- , actionDeferBy     = Nothing
+      , actionResult      = Nothing
+      , actionCtime       = time
+      , actionAssignTime  = Nothing
+      , actionOpenTime    = Nothing
+      , actionCloseTime   = Nothing
+      , actionAssignedTo  = Nothing
+      , actionTargetGroup = bo_info
+      , actionParent      = Nothing
+      }
+
+  let actionModel = typeName (Proxy :: Proxy Action) :: Text
+
   srcLogDebug [qms|
     "{caseModel}" id#{fromSqlKey caseId} is successfully created.
+    Also "{actionModel}" id#{fromSqlKey actionId} had been created.
   |]
 
   let requestModel =

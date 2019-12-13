@@ -130,8 +130,11 @@ instance ToField   (Interval Day) where
 -- | Time difference with minute precision.
 --
 -- To/FromJSON instances use @"HH:MM"@ string format.
-newtype HMDiffTime = HMDiffTime DiffTime deriving (FromField, ToField,
-                                                   Typeable)
+--
+-- TODO Implement @PersistFieldSql DiffTime@ instance and just derive it here.
+newtype HMDiffTime
+      = HMDiffTime DiffTime
+        deriving (FromField, ToField, Typeable)
 
 instance FromJSON HMDiffTime where
   parseJSON (Aeson.String hm) =
