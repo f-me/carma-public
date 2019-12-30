@@ -296,26 +296,7 @@ createCase reqBody@EGRequestForServiceRequest {..} time = do
       , caseIsCreatedByEraGlonass = True
       }
 
-  actionId <-
-    insert Action
-      { actionCallId      = Nothing
-      , actionCaseId      = Just caseId
-      , actionServiceId   = Nothing
-      , actionAType       = tellMeMore
-      , actionDuetime     = time
-      , actionComment     = Nothing
-      , actionRedirectTo  = Nothing
-      -- , actionDeferBy     = Nothing
-      , actionResult      = Nothing
-      , actionCtime       = time
-      , actionAssignTime  = Nothing
-      , actionOpenTime    = Nothing
-      , actionCloseTime   = Nothing
-      , actionAssignedTo  = Nothing
-      , actionTargetGroup = bo_info
-      , actionParent      = Nothing
-      }
-
+  actionId <- createNewAction caseId time
   let actionModel = typeName (Proxy :: Proxy Action) :: Text
 
   srcLogDebug [qms|
@@ -376,11 +357,42 @@ updateCase reqBody@EGRequestForServiceRequest {..} caseId time = do
       , caseEraGlonassCreateRequestRequestBody    = toJSON reqBody
       }
 
+  actionId <- createNewAction caseId time
+  let actionModel = typeName (Proxy :: Proxy Action) :: Text
+
   srcLogDebug [qms|
     Successfully updated existing "{caseModel}" id#{fromSqlKey caseId} for
     {requestId}. "{requestModel}" id#{fromSqlKey caseEGCreateRequestId} is
     successfully created.
+    Also "{actionModel}" id#{fromSqlKey actionId} had been created.
   |]
+
+
+createNewAction
+  :: MonadPersistentSql m
+  => CaseId
+  -> UTCTime
+  -> ReaderT SqlBackend m ActionId
+
+createNewAction caseId time
+  = insert Action
+  { actionCallId      = Nothing
+  , actionCaseId      = Just caseId
+  , actionServiceId   = Nothing
+  , actionAType       = tellMeMore
+  , actionDuetime     = time
+  , actionComment     = Nothing
+  , actionRedirectTo  = Nothing
+  -- , actionDeferBy     = Nothing
+  , actionResult      = Nothing
+  , actionCtime       = time
+  , actionAssignTime  = Nothing
+  , actionOpenTime    = Nothing
+  , actionCloseTime   = Nothing
+  , actionAssignedTo  = Nothing
+  , actionTargetGroup = bo_info
+  , actionParent      = Nothing
+  }
 
 
 -- | Takes @UTCTime@ and returns @UTCTime@ 24 hours ago from that moment.
