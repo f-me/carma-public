@@ -212,7 +212,7 @@ readManyHandler = do
   --            interactive completion search
   --            (loading huge data structures to user's RAM isn't cool)
   let defaultLimit =
-          if | model == modelName (modelInfo :: ModelInfo Partner) -> 6000
+          if | model == modelName (modelInfo :: ModelInfo Partner) -> 7000
                 -- Now we have more than 4000 partners,
                 -- and some elements not found in dictionary on frontend.
              | model == modelName (modelInfo :: ModelInfo DiagSlide) -> 5000
