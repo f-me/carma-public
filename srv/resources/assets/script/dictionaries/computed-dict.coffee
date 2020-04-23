@@ -106,7 +106,7 @@ class ComputedDict extends ld.dict
 
   # FIXME: maybe we can drop this and use `ModelDict:Partner` instead
   allPartners: =>
-    @bgetJSON "/_/Partner?limit=5000", (objs) =>
+    @bgetJSON "/_/Partner?limit=7000", (objs) =>
       @source = for o in objs when o.name
         { value: o.id, label: o.name }
 
