@@ -11,6 +11,7 @@ import           Text.InterpolatedString.QM (qm)
 
 import           Logger (startLogThread, logMsg, Priority(..))
 import           Types (AppContext(..))
+import           NotificationLoop (processLocationRequests)
 import           HttpServer (runServer)
 
 
@@ -39,4 +40,7 @@ realMain configPath = do
     <*> (Config.require conf "html.index" >>= T.readFile)
 
   startLogThread
+  -- Compose and send messages for location requests.
+  processLocationRequests cxt
+  -- Serve web app and handle client's responses
   runServer cxt

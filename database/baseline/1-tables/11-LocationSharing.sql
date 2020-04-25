@@ -4,7 +4,8 @@ create table "LocationSharingRequest"
   ( id         serial primary key
   , ctime      timestamptz not null default now()
   , mtime      timestamptz not null default now()
-  , caseId     integer references "casetbl" not null
+  , caseId     integer references casetbl not null
+  , creatorId  integer references usermetatbl not null
   , urlKey     text unique not null
   , validUntil timestamptz
   , smsId      integer references "Sms"
@@ -19,12 +20,14 @@ comment on column "LocationSharingRequest".mtime is
 comment on column "LocationSharingRequest".caseId is
   'Request is created only during case processing, hence caseId is mandatory.'
   ' It is ok to have multiple requests per case.';
+comment on column "LocationSharingRequest".creatorId is
+  'User who initiated location request creation.';
 comment on column "LocationSharingRequest".urlKey is
-  'Unique random string that identifies request.'
+  'Unique random string that identifies the request.'
   ' It is sent to the client as a part of URL in SMS.';
 comment on column "LocationSharingRequest".validUntil is
   'We are waiting for client''s responses for limited time.'
-  ' It is set to 24 hours in ''create_location_sharing_request'' function.';
+  ' It is set to 15 minutes in ''create_location_sharing_request'' function.';
 comment on column "LocationSharingRequest".smsId is
   'This is null when request is just created. The location-sharing-svc service'
   ' processes such requests, creates SMS and updates this column.';
@@ -58,22 +61,23 @@ comment on column "LocationSharingResponse".caseId is
 
 
 create or replace function
-  create_location_sharing_request(caseId integer) returns record
+  create_location_sharing_request(_caseId integer, _userId integer)
+  returns record
 as $$
 declare
-  urlKey text;
+  _urlKey text;
   len integer;
   res record;
 begin
   len := 2;
   loop
     begin
-      urlKey := random_text(len);
-      insert into "LocationSharingRequest" as x
-        (caseId, urlKey, validUntil) values
+      _urlKey := random_text(len);
+      insert into "LocationSharingRequest"
+        (caseId, creatorId, urlKey, validUntil) values
         -- NB: validity interval set here
-        (caseId, urlKey, now() + interval '24 hours')
-        returning x.id, x.caseId as "caseId", x.urlKey as "urlKey"
+        (_caseId, _userId, _urlKey, now() + interval '15 minutes')
+        returning id, caseId as "caseId", urlKey as "urlKey"
         into res;
       notify create_location_sharing_request;
       return res;
@@ -84,7 +88,7 @@ begin
 end;
 $$ language plpgsql volatile;
 
-comment on function create_location_sharing_request(integer) is
+comment on function create_location_sharing_request(integer, integer) is
   ' - creates unique random URL suffix for the request.'
   ' - inserts new request into "LocationSharingRequest" table.'
   ' - sends notification in the hope that it will be handled by'
@@ -99,8 +103,8 @@ declare
   newSmsId integer;
   upd integer;
 begin
-  insert into "Sms"(caseRef, msgtext, phone)
-    select caseId, message, c.contact_phone1
+  insert into "Sms"(caseRef, msgtext, phone, status)
+    select caseId, message, c.contact_phone1, 'please-send'
       from "LocationSharingRequest" r, casetbl c
       where r.id = requestId
         and c.id = r.caseId
@@ -143,7 +147,7 @@ declare
   inserted integer;
   reqId integer;
 begin
-  insert into "LocationSharingResponse" as x
+  insert into "LocationSharingResponse"
     (requestId, caseId, lon, lat, accuracy)
     select r.id, r.caseId, lon, lat, accuracy
       from "LocationSharingRequest" r

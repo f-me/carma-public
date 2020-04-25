@@ -45,7 +45,6 @@ ghc-options:
   - -Wall
   - -Werror
   - -O2
-  - -threaded
 
 library:
   source-dirs: src
@@ -54,3 +53,15 @@ executables:
   location-sharing-svc:
     source-dirs: src
     main: Main.hs
+    ghc-options:
+      - -threaded
+
+tests:
+  location-sharing-integration-test:
+    source-dirs: tests/integration
+    main: Main.hs
+    ghc-options:
+      - -threaded
+    dependencies:
+      - hspec
+      - location-sharing-svc
