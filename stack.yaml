@@ -13,6 +13,7 @@ packages:
 - carma-mobile-server
 - carma-nominatim-mediator
 - carma-era-glonass-integration
+- location-sharing-svc
 extra-deps:
 - attoparsec-conduit-1.1.0
 - blaze-html-0.8.1.3

@@ -1,0 +1,56 @@
+name:        location-sharing-svc
+version:     1.0.0.0
+license:     BSD3
+author:      Max Taldykin
+maintainer:  jorpic@gmail.com
+synopsis:    Provides Web UI where users can share their current location.
+
+description:
+  header
+  .
+  other
+
+dependencies:
+  - aeson
+  - base
+  - bytestring
+  - configurator
+  - containers
+  - text
+  - time
+  - postgresql-simple
+  - qm-interpolated-string
+  - resource-pool
+  - scientific
+  - servant-server
+  - http-media
+  - http-types
+  - wai
+  - warp
+
+
+default-extensions:
+  - OverloadedStrings
+  - LambdaCase
+  - NamedFieldPuns
+  - RecordWildCards
+  - QuasiQuotes
+  - DataKinds
+  - TypeOperators
+  - MultiParamTypeClasses
+  - DeriveGeneric
+  - DeriveAnyClass
+
+ghc-options:
+  - -Wall
+  - -Werror
+  - -O2
+  - -threaded
+
+library:
+  source-dirs: src
+
+executables:
+  location-sharing-svc:
+    source-dirs: src
+    main: Main.hs
