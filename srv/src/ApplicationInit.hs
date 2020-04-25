@@ -47,6 +47,7 @@ import           AppHandlers.ContractGenerator
 import           AppHandlers.CustomSearches
 import           AppHandlers.DiagTree
 import           AppHandlers.KPI
+import           AppHandlers.LocationSharing (requestLocation)
 import           AppHandlers.PSA
 import           AppHandlers.RKC
 import           AppHandlers.Screens
@@ -155,6 +156,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/diag/slide/copy/",        chkAuth . method POST $
                                           moveOrCopyDiagSlide CopyDiagSlide)
          , ("/meta",                    method GET serveMeta)
+         , ("/requestLocation/:caseId",
+                              chkAuth . method POST $ requestLocation)
          ]
 
 dconf :: DirectoryConfig (Handler App App)

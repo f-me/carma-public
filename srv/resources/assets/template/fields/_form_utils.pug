@@ -45,6 +45,14 @@ mixin defaultInput(nameMod, dataBinds, change, attrs)
     `)&attributes(attributes)
   +savingSpinner
 
+mixin pickerInput()
+  .input-group.input-group-sm
+    +defaultInput("", "", "afterkeydown")(
+      onkeydown="edoPick('{{ meta.picker }}', '{{ name }}', 13, event);")
+    span.input-group-addon
+      span.glyphicon.glyphicon-search(onclick="doPick('{{ meta.picker }}',\
+                                             '{{ name }}', event.target);")
+
 mixin localDateTimeInput(nameMod, dataBinds, change)
   +defaultInput(nameMod, dataBinds, change)
   .local-datetime-button(data-bind=`

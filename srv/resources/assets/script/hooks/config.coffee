@@ -60,6 +60,7 @@ module.exports =
                , k.vip
                , k.contract
                , k.serviceButtons
+               , k.locationSharingBtn
                ]
 
       "Consultation" : [ s.serviceColor

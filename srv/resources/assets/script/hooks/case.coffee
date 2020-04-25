@@ -352,3 +352,21 @@ module.exports =
           kvm.subprogram(c.subprogram)
           $.getJSON "/_/SubProgram/#{c.subprogram}", (s) ->
             kvm.program(s.parent)
+
+  locationSharingBtn: (model, kvm) ->
+    # run this hook on case screen only
+    if /^case/.test(Finch.navigate())
+      kvm.locationSharingBtn =
+        tooltip:
+          'Отправляет СМС со ссылкой, с помощью которой клиент ' +
+          'может передать своё местоположение.'
+        click: ->
+          if confirm "Отправить СМС со ссылкой клиенту?"
+            opts =
+              type: "POST"
+              url: "/requestLocation/#{parseInt kvm.id()}"
+              data: ""
+            $.ajax(opts).done(->
+              kvm.locationSharingBtn.disabled(true) &&
+                kvm['refreshHistory']?())
+        disabled: ko.observable(false)

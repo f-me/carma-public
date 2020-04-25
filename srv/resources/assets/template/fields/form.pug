@@ -138,12 +138,18 @@ include _form_utils.pug
 //- Picker which fills fields with stored data
 .field-template#picker-field-template
   +fieldControlGroup
-    .input-group.input-group-sm
-      +defaultInput("", "", "afterkeydown")(
-        onkeydown="edoPick('{{ meta.picker }}', '{{ name }}', 13, event);")
-      span.input-group-addon
-        span.glyphicon.glyphicon-search(onclick="doPick('{{ meta.picker }}',\
-                                               '{{ name }}', event.target);")
+    +pickerInput
+
+.field-template#coords-with-button
+  +fieldControlGroup
+    button.btn.btn-small.btn-success(
+      style="position:absolute; right:0; bottom:40px;"
+      data-bind="\
+        click: locationSharingBtn.click,\
+        attr: { title: locationSharingBtn.tooltip },\
+        disabled: locationSharingBtn.disabled")
+      | Определить местоположение
+    +pickerInput
 
 //- radio widget for flat dictionary fields -->
 .field-template#radio-field-template

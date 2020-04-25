@@ -85,6 +85,7 @@ instance Model Case where
           , widget "datetime-local" callDate
           , widget "city-dict-with-rush-badge" city
           , widget "city-dict-with-rush-badge" caseAddress_city
+          , widget "coords-with-button" caseAddress_coords
           ]
       _ -> Nothing
 
