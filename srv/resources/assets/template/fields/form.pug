@@ -803,6 +803,13 @@ mixin caseFilesList
               `)
                 i.glyphicon.glyphicon-globe
             // /ko
+            .btn.btn-default(
+              title="Показать запросы на определение координат",
+              data-bind=`
+                css   : {active: histShowLocationSharing},
+                click : histToggleLocationSharing,
+              `)
+                i.glyphicon.glyphicon-map-marker
           |
           |
           input.form-control(
@@ -820,8 +827,10 @@ mixin caseFilesList
               span(data-bind=`text: datetime`)
             // For that type "who" doesn't mean anything.
             // ko if: json.type !== 'eraGlonassIncomingCallCard'
+            // ko if: json.type !== 'locationSharingResponse'
             .history-who
               span(data-bind=`text: who`)
+            // /ko
             // /ko
             .history-body(data-bind=`with: json`)
               // ko if: $data.actiontype
@@ -1032,6 +1041,20 @@ mixin caseFilesList
                 b
                   | Идентификатор звонка:&nbsp;
                 span(data-bind=`text: aecall`)
+              // /ko
+              // ko if: $data.type === 'locationSharingRequest'
+              div
+                i.glyphicon.glyphicon-map-marker
+                | &nbsp;
+                b
+                  | Клиенту отправлено SMS с запросом местоположения
+              // /ko
+              // ko if: $data.type === 'locationSharingResponse'
+              div
+                i.glyphicon.glyphicon-map-marker
+                | &nbsp;
+                b
+                  | От клиента пришёл ответ с координатами.
               // /ko
         // /ko
         // ko if: !endOfHistory()

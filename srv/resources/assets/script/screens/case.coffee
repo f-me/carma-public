@@ -227,6 +227,9 @@ setupHistory = (kvm) ->
         when (i.json.type is 'call' or i.json.type is 'avayaEvent') \
              and not kvm.histShowCall()
           return false
+        when i.json.type.startsWith('locationSharing') \
+             and not kvm.histShowLocationSharing()
+          return false
 
       filterVal = kvm['historyFilter']()
       matchesFilter = (s) ->
