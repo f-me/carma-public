@@ -43,6 +43,7 @@ logMsg p msg = liftIO $ do
 -- | Fork a thread to write log messages to stderr.
 -- All messages are serialized through a channel, this prevents interwining
 -- messages from different threads.
+-- FIXME: Should we install signal handler to flush queue before we die?
 startLogThread :: IO ()
 startLogThread = forkIO logLoop >>= void . tryPutMVar logThread
 
