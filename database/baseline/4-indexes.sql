@@ -12,3 +12,9 @@ create index on casetbl using gist(lower(contact_ownerPhone3) gist_trgm_ops) whe
 
 -- VIN search
 create index on contracttbl using gist(lower(carVin) gist_trgm_ops);
+
+-- CaseHistory
+create index on "Sms"(caseRef);
+create index on "Event"(modelId);
+create index on "PartnerCancel"(caseId);
+create index on "AvayaEvent"(currentAction);
