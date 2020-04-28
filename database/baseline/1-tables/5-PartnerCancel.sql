@@ -11,5 +11,7 @@ create table "PartnerCancel"
   , comment text not null default ''
   );
 
+CREATE INDEX ON "PartnerCancel"(caseId);
+
 GRANT ALL ON "PartnerCancel" TO carma_db_sync;
 GRANT ALL ON "PartnerCancel_id_seq" TO carma_db_sync;

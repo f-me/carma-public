@@ -11,6 +11,8 @@ CREATE TABLE "Sms"
   ,foreignId text
   );
 
+CREATE INDEX ON "Sms"(caseRef);
+
 GRANT ALL ON "Sms" TO carma_db_sync;
 GRANT ALL ON "Sms" TO carma_sms;
 GRANT ALL ON "Sms_id_seq" TO carma_db_sync;

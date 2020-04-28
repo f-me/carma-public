@@ -11,5 +11,7 @@ CREATE TABLE "Event"
   , patch     json
   );
 
+CREATE INDEX ON "Event"(modelId);
+
 GRANT ALL ON "Event" TO carma_db_sync;
 GRANT ALL ON "Event_id_seq" TO carma_db_sync;
