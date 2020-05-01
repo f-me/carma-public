@@ -75,6 +75,7 @@ processPendingRequest c urlPrefix PendingRequest{..} = do
         \ Заявка {caseId}. Перейдите по ссылке, чтобы отправить
         \ свои координаты: {urlPrefix}/{urlKey}\
         |]
-  void $ PG.execute c
-    "call send_sms_for_location_sharing_request(requestId := ?, message := ?)"
+  void (PG.query c
+    "select send_sms_for_location_sharing_request(requestId := ?, message := ?)"
     (requestId, messageText :: Text)
+    :: IO [[Bool]])

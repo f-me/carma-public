@@ -96,40 +96,40 @@ comment on function create_location_sharing_request(integer, integer) is
   ' - returns ''requestId'', ''caseId'' and ''urlKey''.';
 
 
-create or replace procedure
+-- FIXME: this should be replaced with atomic procedure when we update to PG12
+create or replace function
   send_sms_for_location_sharing_request(requestId integer, message text)
+  returns bool
 as $$
 declare
   newSmsId integer;
-  upd integer;
+  req_valid boolean;
 begin
-  insert into "Sms"(caseRef, msgtext, phone, status)
-    select caseId, message, c.contact_phone1, 'please-send'
-      from "LocationSharingRequest" r, casetbl c
-      where r.id = requestId
-        and c.id = r.caseId
-        -- FIXME: check if phone is valid
-    returning "Sms".id into newSmsId;
-
-  update "LocationSharingRequest"
-    set smsId = newSmsId
+  select true into req_valid
+    from "LocationSharingRequest"
     where smsId is null
       and id = requestId
       and validUntil > now();
-  get diagnostics upd = row_count; -- How many rows has been updated.
 
-  if upd = 0 then
-    -- Someone already has created an Sms for our request (race condition).
-    -- Another option is that request has just expired.
-    rollback;
-  else
+  if req_valid then
+    insert into "Sms"(caseRef, msgtext, phone, status)
+      select caseId, message, c.contact_phone1, 'please-send'
+        from "LocationSharingRequest" r, casetbl c
+        where r.id = requestId
+          and c.id = r.caseId
+        returning "Sms".id into newSmsId;
+
+    update "LocationSharingRequest"
+      set smsId = newSmsId
+      where id = requestId;
     perform pg_notify('send_sms_for_location_sharing_request', requestId::text);
-    commit;
+    return true;
   end if;
+  return false;
 end;
 $$ language plpgsql;
 
-comment on procedure send_sms_for_location_sharing_request(integer, text) is
+comment on function send_sms_for_location_sharing_request(integer, text) is
   'Inserts SMS into "Sms" table and updates "LocationSharingRequest".smsId.'
   ' This finalizes "processing" of the request.'
   ' N.B. It is essential to have valid contact_phone in case as we don''t'
