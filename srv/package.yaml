@@ -49,6 +49,7 @@ dependencies:
   - qm-interpolated-string
   - random
   - resource-pool
+  - scientific
   - SHA
   - singletons
   - snap

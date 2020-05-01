@@ -4,8 +4,10 @@ utils    = require "carma/utils"
 hotkeys  = require "carma/hotkeys"
 {WS}     = require "carma/lib/ws"
 idents   = require "carma/lib/idents"
+Messenger= require "carma/lib/messenger"
 mu       = require "carma/model/utils"
 main     = require "carma/model/main"
+OSM      = require "carma/map"
 Contract = require "carma/components/contract"
 
 template = require "carma-tpl/screens/case.pug"
@@ -43,6 +45,7 @@ setupCaseModel = (viewName, args) ->
 
   ctx = fields: (f for f in kvm._meta.model.fields when f.meta?.required)
   setupCommentsHandler kvm
+  setupLocationSharing kvm
 
   Contract.setup "contract", kvm
 
@@ -300,6 +303,30 @@ setupCommentsHandler = (kvm) ->
     $.ajax(opts).done( -> kvm['refreshHistory']?() && chatWs.send comment)
     i.val("")
 
+setupLocationSharing = (kvm) ->
+  topic = "LocationSharing:#{kvm.id()}"
+  kvm['LocationSharingWS'] = Messenger.subscribe topic, (res) ->
+    do kvm.refreshHistory
+    if res.location
+      lonLat = "#{res.location.lon},#{res.location.lat}"
+      kvm.caseAddress_coords?(lonLat)
+      osmap = $("#case-form-caseAddress_map").data("osmap")
+      if osmap
+        coords = OSM.lonlatFromShortString lonLat
+        OSM.setPlace osmap, {coords}
+        OSM.spliceCoords coords, kvm,
+          osmap: osmap
+          addr_field: "caseAddress_address"
+          city_field: "caseAddress_city"
+          current_blip_type: "default"
+
+      msg = "Клиент поделился своим местоположением."
+      $.notify(msg, {className: 'success', autoHide: false})
+    else
+      msg = "Клиенту оправлено сообщение со ссылкой."
+      $.notify(msg, {className: 'success', autoHide: false})
+
+
 # Manually re-render a list of case actions
 #
 # TODO Implement this as a read trigger for Case.actions EF with
@@ -388,7 +415,9 @@ addService = (name) ->
 
 
 removeCaseMain = ->
-  window.global.viewsWare["case-form"].knockVM['chatWs']?.close()
+  kvm = window.global.viewsWare["case-form"].knockVM
+  kvm['chatWs']?.close()
+  kvm['LocationSharingWS']?.close()
   $("body").off "change.input"
   $('.navbar').css "-webkit-transform", ""
 

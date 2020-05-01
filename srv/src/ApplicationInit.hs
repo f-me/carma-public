@@ -25,6 +25,7 @@ import           Snap.Util.FileServe ( DirectoryConfig (..)
                                      , simpleDirectoryConfig
                                      )
 
+import qualified PgNotify
 import           WeatherApi.OpenWeatherMap (initApi)
 
 ------------------------------------------------------------------------------
@@ -222,7 +223,11 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   g <- nestSnaplet "geo" geo $ geoInit db
   search' <- nestSnaplet "search" search $ searchInit auth db
   tm <- nestSnaplet "tasks" taskMgr taskManagerInit
-  msgr <- nestSnaplet "wsmessenger" messenger messengerInit
+
+  msgChan <- liftIO newMessenger
+  msgr <- nestSnaplet "wsmessenger" messenger (messengerInit msgChan)
+  pgStr <- liftIO $ Cfg.require cfg "pg-conn-string"
+  liftIO $ PgNotify.startLoop msgChan pgStr
 
   addRoutes [(n, timeIt f) | (n, f) <- routes]
 
