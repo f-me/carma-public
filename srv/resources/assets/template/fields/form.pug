@@ -1054,7 +1054,17 @@ mixin caseFilesList
                 i.glyphicon.glyphicon-map-marker
                 | &nbsp;
                 b
-                  | От клиента пришёл ответ с координатами.
+                  | От клиента пришёл ответ с координатами:
+                  | &nbsp;
+                  a(data-bind=`
+                    text: $data.lonlat,
+                    attr: { target: '_blank', href: $data.mapUrl }`)
+                div(style='float: right')
+                  | &nbsp; (
+                  a(href="#" data-bind=`click: $data.copyToClipboard`)
+                    | Скопировать в буфер обмена
+                  | )
+                div(style="clear:both")
               // /ko
         // /ko
         // ko if: !endOfHistory()

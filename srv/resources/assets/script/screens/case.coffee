@@ -200,6 +200,21 @@ setupHistory = (kvm) ->
           json.mtime =
             moment.utc(json.mtime).local().format "DD.MM.YYYY HH:mm:ss"
 
+        if json.type is "locationSharingResponse"
+          json.lonlat = json.lon.toPrecision(7) + ',' + json.lat.toPrecision(7)
+          json.mapUrl = 'https://maps.yandex.ru/?z=18&l=map&pt=' + json.lonlat
+          json.copyToClipboard = do (json) ->
+            ->
+              # see https://stackoverflow.com/questions/400212
+              textArea = document.createElement 'textarea'
+              textArea.style = 'position: fixed; top: 0; left: 0'
+              textArea.value = json.mapUrl
+              document.body.appendChild textArea
+              do textArea.focus
+              do textArea.select
+              document.execCommand 'copy'
+              document.body.removeChild textArea
+
         item = {
           datetime: new Date(i[0]).toString historyDatetimeFormat
           who: i[1]
