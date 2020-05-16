@@ -250,6 +250,27 @@ include _form_utils.pug
           | &nbsp;
           a.file-name(data-bind=`attr: {href: filenameUrl}, text: filename`)
 
+#image-uploader-field-template.field-template
+  +fieldControlGroup
+    input.form-control(type="text"
+      placeholder="Ctrl-V чтобы вставить картинку из буфера"
+      data-bind=`
+        value: {{name}}FakeText,
+        event: { focus: {{name}}OnFocus, blur: {{name}}OnBlur }
+      `)
+    .input-group-btn
+      span.btn.btn-default.btn-file
+        span.glyphicon.glyphicon-folder-open
+        input(type="file" accept="image/*" data-bind=`
+          event: {change: function() { {{name}}UploadHandler($element)} }`)
+  .row
+    .col-sm-4
+    .col-sm-4(style="margin-bottom: 10px")
+      img(src="https://picsum.photos/200" style="max-height:128px"
+        data-bind=`attr: { src: {{name}} }`)
+    .col-sm-4
+      b(data-bind=`text: {{name}}Warning`)
+
 //- Special template used to render first field of group in parent view.
 #group-field-template.field-template(type='text/template')
   .form-group.has-feedback

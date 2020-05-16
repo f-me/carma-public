@@ -43,7 +43,7 @@ serveThePage :: AppContext -> Text -> Handler L.Text
 serveThePage AppContext{pgPool, indexTpl} urlKey
   = liftIO $ withResource pgPool $ \c -> do
     res <- PG.query c [qn|
-      select p.label
+      select coalesce(p.shortlabel, p.label), coalesce(p.logo, '')
       \ from "LocationSharingRequest" r, casetbl c, "Program" p
       \ where r.caseId = c.id
       \   and p.id = c.program
@@ -52,8 +52,9 @@ serveThePage AppContext{pgPool, indexTpl} urlKey
       \ limit 1
       |] [urlKey]
     case res of
-      [programName]:_ -> return
+      [programName, programLogo]:_ -> return
         $ L.replace "#(programName)" programName
+        $ L.replace "#(programLogo)" programLogo
         $ L.replace "#(urlKey)" (L.fromStrict urlKey)
         $ L.fromStrict indexTpl
       _ -> throwIO $ err404 { errBody = "Not found!" }
