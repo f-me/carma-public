@@ -2,13 +2,15 @@ This service allows unfortunate car owners (Clients) to share their location
 using Web app.
 
 ## How to build
-  - FIXME
-  - parcel
-  - relies on database bits from 11-LocationSharing.sql
 
-## How to test
-  - FIXME
+It is recommended to use `parcel` to minify index.html and convert code to es5.
 
+```
+$ npm run build
+```
+
+
+## Design decisions
 
 We use stored procedures as a concise API to DB tables. This allows more
 granular control on permissions.

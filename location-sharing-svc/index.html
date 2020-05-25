@@ -20,13 +20,15 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background-color: grey;
-        color: white;
         padding: 0.5em;
       }
       .info {
         display: none; /* this will be set to 'block' in JS */
         padding: 0.5em;
+        border-top: 1px dotted black;
+        border-bottom: 1px dotted black;
+      }
+      .welcome {
         background-color: ivory;
       }
       .err {
@@ -54,6 +56,7 @@
       #content {
         display: flex;
         flex: 1;
+        background-color: lightgrey;
       }
     </style>
   </head>
@@ -105,8 +108,8 @@
       const tileSize = 255;
       const pi = Math.PI;
 
-      // Determine which tile contains location.
-      // Integral part of function result specifies the tile.
+      // Determine which tile contains specified location.
+      // Integral part of the function result specifies the tile.
       // Fractional part specifies the shift from the left upper coner of the
       // tile.
       // See https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
@@ -126,28 +129,27 @@
 
       const map = {
         tiles: $("tiles"),
-        loadedTiles: {},
         pin: $("pin"),
-        dx: 0,
-        dy: 0,
-        originX: 0,
-        originY: 0,
+        loadedTiles: {},
       };
-      let myLocation = null;
 
       function initMap(pos) {
-        map.lon = pos.lon;
-        map.lat = pos.lat;
         const {x, y} = deg2tile(pos);
+        // Shift (in relative units) from the tile's left upper corner.
         const tx = Math.floor(x);
         const ty = Math.floor(y);
-        map.originX = tx;
-        map.originY = ty;
+
+        Object.assign(map, {
+          pos,
+          dx: 0,
+          dy: 0,
+          originX: tx,
+          originY: ty,
+        });
 
         moveMap(tileSize * (x - tx), tileSize * (y - ty));
         listen(window, "orientationchange resize", () => moveMap(0, 0));
       }
-
 
       // We use this not only to move map but also to adjust it on resize or
       // orientation change.
@@ -156,8 +158,8 @@
         map.dy += dy;
 
         const c = $("content");
-        const cx = Math.floor((c.clientWidth) / 2);
-        const cy = Math.floor((c.clientHeight) / 2);
+        const cx = Math.floor(c.clientWidth / 2);
+        const cy = Math.floor(c.clientHeight / 2);
 
         // Sadly we can not rely on `flex: 1` to stretch our map, as Safari
         // requires SVG elements to have explicit `width` and `height`
@@ -172,8 +174,8 @@
         // as a fractional part).
         const x = map.originX + map.dx / tileSize;
         const y = map.originY + map.dy / tileSize;
-        let {lon, lat} = tile2deg({x, y});
-        myLocation = {lon, lat, accuracy: 0};
+        map.pos = tile2deg({x, y});
+        map.pos.accuracy = 0;
 
         // Add tiles around current location.
         for(let k = 0; k < 9; ++k) {
@@ -185,7 +187,6 @@
             const srv = "abc"[Math.floor(Math.random()*12)%3];
             // NB. `xlink:href` is deprecated but we use it anyway as SVG2-style
             // `href` is not supported by iOS 11 and Safari 11.
-
             img.setAttributeNS(
               "http://www.w3.org/1999/xlink",
               "xlink:href",
@@ -209,7 +210,7 @@
         let sx, sy;
 
         function start(e) {
-          e.preventDefault();
+          e.preventDefault(); // to prevent accidental text selection
           isMoving = true;
           const p = pos(e);
           sx = p.pageX;
@@ -236,14 +237,12 @@
 
 
       function success(pos) {
-        myLocation = {
+        showInfo("ok");
+        initMap({
           lat: pos.coords.latitude,
           lon: pos.coords.longitude,
           accuracy: pos.coords.accuracy
-        };
-
-        showInfo("ok");
-        initMap(myLocation);
+        });
         initTouch();
       }
 
@@ -251,15 +250,16 @@
         showInfo("err");
       }
 
+      // Show the specified info block and hide all others.
       function showInfo(cls) {
         const info = document.getElementsByClassName("info");
         for(let i = 0; i < info.length; ++i) {
           info[i].style.display = info[i].classList.contains(cls)
             ? "block" : "none";
         }
-        // The size of the map can change as we are udpating our layout,
+        // The size of the map can change as we are updating our layout,
         // so we need to schedule `moveMap` to fix the pin position.
-        myLocation && setTimeout(() => moveMap(0,0), 20);
+        map.pos && setTimeout(() => moveMap(0,0), 20);
       }
 
       window.getCoords = function() {
@@ -280,10 +280,18 @@
           }
           return showInfo("err");
         };
-        xhr.send(JSON.stringify(myLocation));
+        xhr.send(JSON.stringify(map.pos));
       }
 
-      showInfo("welcome");
+      if (process.env.NODE_ENV === "development") {
+        if (location.hash === "#ok" || location.hash === "#done") {
+          initMap({ lat: 51, lon: 30, accuracy: 65 });
+          initTouch();
+        }
+        showInfo(location.hash.replace("#", "") || "welcome");
+      } else {
+        showInfo("welcome");
+      }
     </script>
   </body>
 </html>
