@@ -106,6 +106,8 @@ main = do
           testingProgramId <-
             insert Program { programActive        = True
                            , programLabel         = "Testing Program plug"
+                           , programShortLabel    = Nothing
+                           , programLogo          = Nothing
                            , programClient        = Nothing
                            , programClientAddress = Nothing
                            , programClientCode    = Nothing

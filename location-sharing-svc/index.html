@@ -1,0 +1,297 @@
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<html>
+  <head>
+    <title>Определение местоположения</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        max-width: 50rem;
+        margin: auto;
+        font-family: sans-serif;
+      }
+      .bar img {
+        max-height: 48px;
+      }
+      .bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5em;
+      }
+      .info {
+        display: none; /* this will be set to 'block' in JS */
+        padding: 0.5em;
+        border-top: 1px dotted black;
+        border-bottom: 1px dotted black;
+      }
+      .welcome {
+        background-color: ivory;
+      }
+      .err {
+        background-color: mistyrose;
+      }
+      .done {
+        background-color: mintcream;
+      }
+      .info p {
+        display: inline;
+      }
+      button {
+        float: right;
+        outline: none;
+        background: none;
+        border: 3px solid black;
+        border-radius: 0.7em;
+        padding: 0.5em;
+        margin: 0.75em;
+        min-width: 12em;
+      }
+      button:active {
+        transform: scale(0.95);
+      }
+      #content {
+        display: flex;
+        flex: 1;
+        background-color: lightgrey;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bar">
+      <img src="#(programLogo)"/>
+      #(programName)
+    </div>
+    <div class="info welcome">
+      <p>
+        Нажмите кнопку, чтобы определить Ваше местоположение.
+        Для этого потребуется разрешить доступ к геопозиции.
+      </p>
+      <button onclick="getCoords()">Начать</button>
+    </div>
+    <div class="info err">
+      <p>Что-то пошло не так.</p>
+      <button onclick="getCoords()">Попробовать ещё</button>
+    </div>
+    <div class="info ok">
+      <p>Можно уточнить Ваше местоположение сдвинув карту пальцем.</p>
+      <button onclick="sendCoords()">Готово</button>
+    </div>
+    <div class="info done">
+      <p>Данные о местоположении успешно отправлены.</p>
+    </div>
+    <div id="content">
+      <svg id="svg" xmlns="http://www.w3.org/2000/svg" version="1.1" width="10" height="10">
+        <g id="tiles"></g>
+        <g id="pin">
+          <g transform="translate(-12 -36) scale(0.5)" fill="#880096">
+            <path d="M24,0 C11,0 0,10 0,22 C0,35 10,50 24,72 C37,50 48,35 48,22 C48,10 36,0 24,0 L24,0 Z M24,33 C19,33 15,28 15,24 C15,19 19,15 24,15 C28,15 33,19 33,24 C33,28 28,33 24,33 L24,33 Z"></path>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <script>
+      // helpers
+      const listen = (el, ev, fn) =>
+        ev.split(" ").map(e => el.addEventListener(e, fn, false));
+      const $ = id => document.getElementById(id);
+
+      // elements
+      const info = $("info");
+      const svg = $("svg");
+
+      const zoom = 16;
+      const zPow = Math.pow(2, zoom-1);
+      const tileSize = 255;
+      const pi = Math.PI;
+
+      // Determine which tile contains specified location.
+      // Integral part of the function result specifies the tile.
+      // Fractional part specifies the shift from the left upper coner of the
+      // tile.
+      // See https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
+      function deg2tile({lon, lat}) {
+        const lrad = lat * pi / 180;
+        let x = (lon + 180) / 180 * zPow;
+        let y = (1 - Math.log(Math.tan(lrad) + 1/Math.cos(lrad))/pi) * zPow;
+        return {x, y};
+      }
+
+      // Reverse conversion: from the tile coordinates to (lon, lat).
+      function tile2deg({x, y}) {
+        const lon = 180 * (x / zPow - 1);
+        const lat = Math.atan(Math.sinh(pi*(1 - y/zPow))) * 180 / pi;
+        return {lon, lat};
+      }
+
+      const map = {
+        tiles: $("tiles"),
+        pin: $("pin"),
+        loadedTiles: {},
+      };
+
+      function initMap(pos) {
+        const {x, y} = deg2tile(pos);
+        // Shift (in relative units) from the tile's left upper corner.
+        const tx = Math.floor(x);
+        const ty = Math.floor(y);
+
+        Object.assign(map, {
+          pos,
+          dx: 0,
+          dy: 0,
+          originX: tx,
+          originY: ty,
+        });
+
+        moveMap(tileSize * (x - tx), tileSize * (y - ty));
+        listen(window, "orientationchange resize", () => moveMap(0, 0));
+      }
+
+      // We use this not only to move map but also to adjust it on resize or
+      // orientation change.
+      function moveMap(dx, dy) { // in pixels
+        map.dx += dx;
+        map.dy += dy;
+
+        const c = $("content");
+        const cx = Math.floor(c.clientWidth / 2);
+        const cy = Math.floor(c.clientHeight / 2);
+
+        // Sadly we can not rely on `flex: 1` to stretch our map, as Safari
+        // requires SVG elements to have explicit `width` and `height`
+        // attributes.
+        svg.setAttribute("width", c.clientWidth);
+        svg.setAttribute("height", c.clientHeight);
+
+        map.pin.setAttribute("transform", `translate(${cx} ${cy})`);
+        map.tiles.setAttribute("transform", `translate(${cx - map.dx} ${cy - map.dy})`);
+
+        // Tile that is currently under the pin (with a shift within the tile
+        // as a fractional part).
+        const x = map.originX + map.dx / tileSize;
+        const y = map.originY + map.dy / tileSize;
+        map.pos = tile2deg({x, y});
+        map.pos.accuracy = 0;
+
+        // Add tiles around current location.
+        for(let k = 0; k < 9; ++k) {
+          const i = k%3 - 1;
+          const j = Math.floor(k/3) - 1;
+          const key = [zoom, Math.floor(x)+i, Math.floor(y)+j].join("/");
+          if(!map.loadedTiles[key]) {
+            const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
+            const srv = "abc"[Math.floor(Math.random()*12)%3];
+            // NB. `xlink:href` is deprecated but we use it anyway as SVG2-style
+            // `href` is not supported by iOS 11 and Safari 11.
+            img.setAttributeNS(
+              "http://www.w3.org/1999/xlink",
+              "xlink:href",
+              `https://${srv}.tile.openstreetmap.org/${key}.png`);
+
+            img.setAttribute("width", tileSize);
+            img.setAttribute("height", tileSize);
+            img.setAttribute("x", tileSize*(Math.floor(x) - map.originX + i));
+            img.setAttribute("y", tileSize*(Math.floor(y) - map.originY + j));
+            map.tiles.appendChild(img);
+            map.loadedTiles[key] = img;
+          }
+        }
+      }
+
+
+      let movingEnabled = true;
+      function initTouch() {
+        const pos = e => e.touches ? e.touches[0] : e;
+        let isMoving = false;
+        let sx, sy;
+
+        function start(e) {
+          e.preventDefault(); // to prevent accidental text selection
+          isMoving = true;
+          const p = pos(e);
+          sx = p.pageX;
+          sy = p.pageY;
+        }
+
+        function move(e) {
+          if(movingEnabled && isMoving) {
+            const p = pos(e);
+            moveMap(sx - p.pageX, sy - p.pageY);
+            sx = p.pageX;
+            sy = p.pageY;
+          }
+        }
+
+        function end(e) {
+          isMoving = false;
+        }
+
+        listen(svg, "mousedown touchstart", start);
+        listen(svg, "mousemove touchmove", move);
+        listen(document.body, "mouseup", end); // touchend is not required
+      }
+
+
+      function success(pos) {
+        showInfo("ok");
+        initMap({
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+          accuracy: pos.coords.accuracy
+        });
+        initTouch();
+      }
+
+      function error(err) {
+        showInfo("err");
+      }
+
+      // Show the specified info block and hide all others.
+      function showInfo(cls) {
+        const info = document.getElementsByClassName("info");
+        for(let i = 0; i < info.length; ++i) {
+          info[i].style.display = info[i].classList.contains(cls)
+            ? "block" : "none";
+        }
+        // The size of the map can change as we are updating our layout,
+        // so we need to schedule `moveMap` to fix the pin position.
+        map.pos && setTimeout(() => moveMap(0,0), 20);
+      }
+
+      window.getCoords = function() {
+        navigator.geolocation.getCurrentPosition(success, error);
+      }
+
+      window.sendCoords = function() {
+        movingEnabled = false;
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", location.origin + "/#(urlKey)", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+            const res = JSON.parse(xhr.responseText);
+            if (res.success) return showInfo("done");
+            // else request not found or outdated
+            // FIXME: do we need explicitly inform the user about this?
+          }
+          return showInfo("err");
+        };
+        xhr.send(JSON.stringify(map.pos));
+      }
+
+      if (process.env.NODE_ENV === "development") {
+        if (location.hash === "#ok" || location.hash === "#done") {
+          initMap({ lat: 51, lon: 30, accuracy: 65 });
+          initTouch();
+        }
+        showInfo(location.hash.replace("#", "") || "welcome");
+      } else {
+        showInfo("welcome");
+      }
+    </script>
+  </body>
+</html>

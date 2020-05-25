@@ -4,8 +4,10 @@ utils    = require "carma/utils"
 hotkeys  = require "carma/hotkeys"
 {WS}     = require "carma/lib/ws"
 idents   = require "carma/lib/idents"
+Messenger= require "carma/lib/messenger"
 mu       = require "carma/model/utils"
 main     = require "carma/model/main"
+OSM      = require "carma/map"
 Contract = require "carma/components/contract"
 
 template = require "carma-tpl/screens/case.pug"
@@ -43,6 +45,7 @@ setupCaseModel = (viewName, args) ->
 
   ctx = fields: (f for f in kvm._meta.model.fields when f.meta?.required)
   setupCommentsHandler kvm
+  setupLocationSharing kvm
 
   Contract.setup "contract", kvm
 
@@ -197,6 +200,21 @@ setupHistory = (kvm) ->
           json.mtime =
             moment.utc(json.mtime).local().format "DD.MM.YYYY HH:mm:ss"
 
+        if json.type is "locationSharingResponse"
+          json.lonlat = json.lon.toPrecision(7) + ',' + json.lat.toPrecision(7)
+          json.mapUrl = 'https://maps.yandex.ru/?z=18&l=map&pt=' + json.lonlat
+          json.copyToClipboard = do (json) ->
+            ->
+              # see https://stackoverflow.com/questions/400212
+              textArea = document.createElement 'textarea'
+              textArea.style = 'position: fixed; top: 0; left: 0'
+              textArea.value = json.mapUrl
+              document.body.appendChild textArea
+              do textArea.focus
+              do textArea.select
+              document.execCommand 'copy'
+              document.body.removeChild textArea
+
         item = {
           datetime: new Date(i[0]).toString historyDatetimeFormat
           who: i[1]
@@ -226,6 +244,9 @@ setupHistory = (kvm) ->
           return false
         when (i.json.type is 'call' or i.json.type is 'avayaEvent') \
              and not kvm.histShowCall()
+          return false
+        when i.json.type.startsWith('locationSharing') \
+             and not kvm.histShowLocationSharing()
           return false
 
       filterVal = kvm['historyFilter']()
@@ -296,6 +317,30 @@ setupCommentsHandler = (kvm) ->
       data: JSON.stringify {caseId: parseInt(kvm.id()), comment: comment}
     $.ajax(opts).done( -> kvm['refreshHistory']?() && chatWs.send comment)
     i.val("")
+
+setupLocationSharing = (kvm) ->
+  topic = "LocationSharing:#{kvm.id()}"
+  kvm['LocationSharingWS'] = Messenger.subscribe topic, (res) ->
+    do kvm.refreshHistory
+    if res.location
+      lonLat = "#{res.location.lon},#{res.location.lat}"
+      kvm.caseAddress_coords?(lonLat)
+      osmap = $("#case-form-caseAddress_map").data("osmap")
+      if osmap
+        coords = OSM.lonlatFromShortString lonLat
+        OSM.setPlace osmap, {coords}
+        OSM.spliceCoords coords, kvm,
+          osmap: osmap
+          addr_field: "caseAddress_address"
+          city_field: "caseAddress_city"
+          current_blip_type: "default"
+
+      msg = "Клиент поделился своим местоположением."
+      $.notify(msg, {className: 'success', autoHide: false})
+    else
+      msg = "Клиенту оправлено сообщение со ссылкой."
+      $.notify(msg, {className: 'success', autoHide: false})
+
 
 # Manually re-render a list of case actions
 #
@@ -385,7 +430,9 @@ addService = (name) ->
 
 
 removeCaseMain = ->
-  window.global.viewsWare["case-form"].knockVM['chatWs']?.close()
+  kvm = window.global.viewsWare["case-form"].knockVM
+  kvm['chatWs']?.close()
+  kvm['LocationSharingWS']?.close()
   $("body").off "change.input"
   $('.navbar').css "-webkit-transform", ""
 
