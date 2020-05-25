@@ -234,6 +234,7 @@ module.exports =
     kvm['histShowCall'] = ko.observable true
     kvm['histShowPartnerSms'] = ko.observable true
     kvm['histShowEGCallCard'] = ko.observable true
+    kvm['histShowLocationSharing'] = ko.observable true
     kvm['histToggleActi'] = -> kvm['histShowActi'] not kvm['histShowActi']()
     kvm['histToggleComm'] = -> kvm['histShowComm'] not kvm['histShowComm']()
     kvm['histToggleCanc'] = -> kvm['histShowCanc'] not kvm['histShowCanc']()
@@ -243,6 +244,8 @@ module.exports =
       -> kvm['histShowPartnerSms'] not kvm['histShowPartnerSms']()
     kvm['histToggleEGCallCard'] =
       -> kvm['histShowEGCallCard'] not kvm['histShowEGCallCard']()
+    kvm['histToggleLocationSharing'] =
+      -> kvm['histShowLocationSharing'] not kvm['histShowLocationSharing']()
     kvm['historyItems'] = ko.observableArray()
     kvm['endOfHistory'] = ko.observable true
     kvm['lookBackInHistory'] = ->
@@ -352,3 +355,21 @@ module.exports =
           kvm.subprogram(c.subprogram)
           $.getJSON "/_/SubProgram/#{c.subprogram}", (s) ->
             kvm.program(s.parent)
+
+  locationSharingBtn: (model, kvm) ->
+    # run this hook on case screen only
+    if /^case/.test(Finch.navigate())
+      kvm.locationSharingBtn =
+        tooltip:
+          'Отправляет СМС со ссылкой, с помощью которой клиент ' +
+          'может передать своё местоположение.'
+        click: ->
+          if confirm "Отправить СМС со ссылкой клиенту?"
+            opts =
+              type: "POST"
+              url: "/requestLocation/#{parseInt kvm.id()}"
+              data: ""
+            $.ajax(opts).done(->
+              kvm.locationSharingBtn.disabled(true) &&
+                kvm['refreshHistory']?())
+        disabled: ko.observable(false)

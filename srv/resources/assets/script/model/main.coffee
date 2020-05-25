@@ -192,6 +192,40 @@ buildKVM = (model, options = {}) ->
       kvm["#{n}Sync"] = ko.observable false
       kvm["#{n}InvalidDate"] = ko.observable false
 
+      # Read image from file or clipboard as base64 and store it to kvm[n]
+      if f.meta?.widget is "image-uploader"
+        # This field is displayed to the user instead of the real one.
+        kvm["#{n}FakeText"] = ko.observable ""
+
+        # Read image as data URL (base64) and store to the real field.
+        readImage = (data) ->
+          reader = new FileReader()
+          reader.onload = (ev) -> kvm[n] ev.target.result
+          reader.readAsDataURL data
+
+        # Handle file load via <input type=file>.
+        kvm["#{n}UploadHandler"] = (el) ->
+          kvm["#{n}FakeText"] el.files[0].name
+          readImage el.files[0]
+
+        # Handle file pasting from clipboard.
+        pasteHandler = (ev) ->
+          data = ev.clipboardData  || ev.originalEvent.clipboardData
+          for i in [0..data.items.length] # NB. can't use iterator here
+            it = data.items[i]
+            if it and it.kind == "file" and it.type.startsWith("image/")
+              readImage it.getAsFile()
+              break
+
+        kvm["#{n}OnFocus"] = ->
+          window.addEventListener "paste", pasteHandler, false
+        kvm["#{n}OnBlur"] = ->
+          window.removeEventListener "paste", pasteHandler, false
+
+        kvm["#{n}Warning"] = ko.computed ->
+          if kvm[n]()?.length > 20*1024
+            return "Размер изображения превышает 20 Кб, это очень плохо."
+
       # Handler for clicking on "upload" button
       if f.meta?.widget is "inline-uploader"
 

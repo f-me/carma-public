@@ -20,6 +20,8 @@ share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Program sql=Program
   active Bool sql=active
   label Text sql=label
+  shortLabel Text Maybe sql=shortlabel
+  logo Text Maybe sql=logo
   client Text Maybe sql=client
   clientAddress Text Maybe sql=clientaddress
   clientCode Text Maybe sql=clientcode

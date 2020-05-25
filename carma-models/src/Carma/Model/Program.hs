@@ -22,6 +22,8 @@ data Program = Program
   { ident                 :: PK Int Program             "Программа"
   , active                :: F Bool            "active" "Активна"
   , label                 :: F Text            "label"  "Название"
+  , shortLabel            :: F (Maybe Text)    "shortLabel" "Короткое название"
+  , logo                  :: F (Maybe Text)    "logo" "Логотип"
   , client                :: F (Maybe Text)    "client" "Заказчик"
   , clientAddress         :: F (Maybe Text)    "clientAddress" "Адрес заказчика"
   , clientCode            :: F (Maybe Text)    "clientCode" "Код заказчика"
@@ -67,6 +69,7 @@ instance Model Program where
                 [ setMeta "dictionaryType" "ComputedDict" managers
                 , setMeta "dictionaryName" "programManagers" managers
                 , setMeta "bounded" (A.Bool True) managers
+                , widget "image-uploader" logo
                 , textarea help
                 , infoText "programHelp" help
                 , required Carma.Model.Program.label

@@ -4,8 +4,10 @@
 {-# LANGUAGE Rank2Types #-}
 
 module Snaplet.Messenger ( Messenger
+                         , newMessenger
                          , messengerInit
                          , sendMessage
+                         , sendMessageIO
                          , Topic) where
 
 import           BasicPrelude
@@ -108,15 +110,17 @@ handler queue pending = do
     disconnect c t = killThread t >> sendClose c ("bye" :: Text)
 
 
-messengerInit :: SnapletInit b Messenger
-messengerInit =
+newMessenger :: IO Messenger
+newMessenger = Messenger <$> newBroadcastTChanIO
+
+messengerInit :: Messenger -> SnapletInit b Messenger
+messengerInit msg@(Messenger q) =
   makeSnaplet "messages" "Simple WebSocket messaging service" Nothing $ do
-    q <- liftIO newBroadcastTChanIO
     addRoutes [("/", runWebSocketsSnap (handler q))]
     -- FIXME: Restore this when will be found way to use logger inside IO
     -- timer with subscriptions logger
     -- void $ liftIO $ forkIO $ void $ repeatedTimer (showSubs m) (sDelay 1)
-    return $ Messenger q
+    return msg
   -- where
   --   showSubs m = do
   --     s <- readIORef m
@@ -136,3 +140,8 @@ sendMessage :: (FromJSON a, ToJSON a) =>
 sendMessage topic msg = do
   q <- gets queue
   liftIO $ atomically $ writeTChan q (Msg $ Payload topic msg)
+
+sendMessageIO :: (FromJSON a, ToJSON a) =>
+               Messenger -> Topic -> a -> IO ()
+sendMessageIO (Messenger q) topic msg =
+  atomically $ writeTChan q (Msg $ Payload topic msg)

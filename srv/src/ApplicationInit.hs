@@ -25,6 +25,7 @@ import           Snap.Util.FileServe ( DirectoryConfig (..)
                                      , simpleDirectoryConfig
                                      )
 
+import qualified PgNotify
 import           WeatherApi.OpenWeatherMap (initApi)
 
 ------------------------------------------------------------------------------
@@ -47,6 +48,7 @@ import           AppHandlers.ContractGenerator
 import           AppHandlers.CustomSearches
 import           AppHandlers.DiagTree
 import           AppHandlers.KPI
+import           AppHandlers.LocationSharing (requestLocation)
 import           AppHandlers.PSA
 import           AppHandlers.RKC
 import           AppHandlers.Screens
@@ -155,6 +157,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/diag/slide/copy/",        chkAuth . method POST $
                                           moveOrCopyDiagSlide CopyDiagSlide)
          , ("/meta",                    method GET serveMeta)
+         , ("/requestLocation/:caseId",
+                              chkAuth . method POST $ requestLocation)
          ]
 
 dconf :: DirectoryConfig (Handler App App)
@@ -219,7 +223,11 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   g <- nestSnaplet "geo" geo $ geoInit db
   search' <- nestSnaplet "search" search $ searchInit auth db
   tm <- nestSnaplet "tasks" taskMgr taskManagerInit
-  msgr <- nestSnaplet "wsmessenger" messenger messengerInit
+
+  msgChan <- liftIO newMessenger
+  msgr <- nestSnaplet "wsmessenger" messenger (messengerInit msgChan)
+  pgStr <- liftIO $ Cfg.require cfg "pg-conn-string"
+  liftIO $ PgNotify.startLoop msgChan pgStr
 
   addRoutes [(n, timeIt f) | (n, f) <- routes]
 
