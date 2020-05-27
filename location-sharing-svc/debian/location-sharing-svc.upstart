@@ -4,9 +4,11 @@ start on (local-filesystems and runlevel [2345])
 stop on runlevel [016]
 respawn
 
+
 script
- echo $$ > /var/run/location-sharing-svc.pid
- exec /sbin/start-stop-daemon --start --chuid carma:carma --exec /home/carma/.local/bin/location-sharing-svc -- /home/carma/carma/location-sharing-svc/example.conf
+  echo $$ > /var/run/location-sharing-svc.pid
+  chdir /home/carma/carma/location-sharing-svc
+  exec /sbin/start-stop-daemon --start --chuid carma:carma --exec /home/carma/.local/bin/location-sharing-svc -- example.conf
 end script
 
 post-stop script
