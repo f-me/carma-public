@@ -8,6 +8,7 @@ import qualified Data.Text.IO as T
 import qualified Database.PostgreSQL.Simple as PG
 import qualified System.Environment as Env
 import           Text.InterpolatedString.QM (qm)
+import           GHC.IO.Encoding (setLocaleEncoding, utf8)
 
 import           Logger (startLogThread, logMsg, Priority(..))
 import           Types (AppContext(..))
@@ -27,6 +28,7 @@ main
 
 realMain :: FilePath -> IO ()
 realMain configPath = do
+  setLocaleEncoding utf8
   conf  <- Config.load [Config.Required configPath]
   pgUri <- Config.require conf "pg.uri"
   cxt <- AppContext
