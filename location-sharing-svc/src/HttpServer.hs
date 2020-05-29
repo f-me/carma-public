@@ -40,7 +40,7 @@ instance MimeRender HTML L.Text where
 
 
 serveThePage :: AppContext -> Text -> Handler L.Text
-serveThePage AppContext{pgPool, indexTpl} urlKey
+serveThePage AppContext{pgPool, indexTpl, err404Tpl} urlKey
   = liftIO $ withResource pgPool $ \c -> do
     res <- PG.query c [qn|
       select coalesce(p.shortlabel, p.label), coalesce(p.logo, '')
@@ -57,7 +57,7 @@ serveThePage AppContext{pgPool, indexTpl} urlKey
         $ L.replace "#(programLogo)" programLogo
         $ L.replace "#(urlKey)" (L.fromStrict urlKey)
         $ L.fromStrict indexTpl
-      _ -> throwIO $ err404 { errBody = "Not found!" }
+      _ -> return $ L.fromStrict err404Tpl
 
 
 updateLocation :: AppContext -> Text -> Location -> Handler Aeson.Value

@@ -11,4 +11,5 @@ data AppContext = AppContext
   , httpPort  :: Int
   , urlPrefix :: Text
   , indexTpl  :: Text
+  , err404Tpl :: Text
   }

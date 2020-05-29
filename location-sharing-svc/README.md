@@ -9,6 +9,9 @@ It is recommended to use `parcel` to minify index.html and convert code to es5.
 $ npm run build
 ```
 
+It is important to serve this web app over HTTPS as geolocation WEB API does not
+work over unsecured connections.
+
 
 ## Design decisions
 

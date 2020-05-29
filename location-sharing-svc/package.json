@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Find yourself",
   "scripts": {
-    "build": "parcel build index.html"
+    "build": "parcel build index.html 404.html"
   },
   "author": "Max Taldykin",
   "license": "MIT",
