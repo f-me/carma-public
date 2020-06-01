@@ -3,14 +3,12 @@ m = require "carma/dictionaries/meta-dict"
 
 debounce = (wait, fn) -> _.debounce fn, wait
 
-class ContractsDict extends m.dict
+class AddressesDict extends m.dict
   constructor: (@opts)->
     @kvm = @opts.kvm
     @Dict = require "carma/dictionaries"
-    @carMakeDict = new @Dict.dicts.ModelDict
-      dict: 'CarMake'
-    @carModelDict = new @Dict.dicts.ModelDict
-      dict: 'CarModel'
+    @addressesDict = new @Dict.dicts.ModelDict
+      dict: 'Addresses'
 
   find: debounce 1200, (q, cb, opt) ->
     return cb({}) if q.length < 4 and not opt?.force
