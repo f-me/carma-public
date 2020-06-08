@@ -2,6 +2,7 @@
 
 dicts = _.reduce [
   require "carma/dictionaries/local-dict"
+  require "carma/dictionaries/addresses-dict"
   require "carma/dictionaries/contracts-dict"
   require "carma/dictionaries/bo-users-dict"
   require "carma/dictionaries/logged-users-dict"

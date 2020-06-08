@@ -12,37 +12,26 @@ class AddressesDict extends m.dict
 
   find: debounce 1200, (q, cb, opt) ->
     return cb({}) if q.length < 4 and not opt?.force
-    qr = q.trim().replace(/\+/g, "%2B")
-    return cb({}) if qr.match /^0*$/
-    params = "program=#{@kvm.program?()}&subprogram=#{@kvm.subprogram?()}"
-    query = "/searchContracts/?query=#{qr}&case=#{@kvm.id?()}&#{params}"
+    return cb(["aaaa", "aaaaaab"])
 
-    @needArc = false
-    @orig = null
-    @nonEmpty = false
-
-    if q.length == 17
-      arcQuery = "/arcImport/#{q}?#{params}"
-      #@needArc = true
-
-    processResponse = (r) =>
-      @found = []
-
-      if _.isEmpty r
-        ["<span><i class='icon-ban-circle icon-white'></i>&nbsp;Ничего не найдено :(</span>"]
-      else
-        for i in r
-          do (i) =>
-            # fields which matched search query
-            fields = _.filter _.keys(i), (f) ->
-              # upper-casing fixes bug when "contract identifier" is erased
-              # when you select a contract from popup list while your input
-              # contains at least one lowercase symbol.
-              i[f] && String(i[f]).toUpperCase().indexOf(q.toUpperCase()) != -1
-            @found.push
-              id: i.id
-              matched: _.pick(i, fields)
-            @contr2html i, fields, q
+#    processResponse = (r) =>
+#      @found = []
+#
+#      if _.isEmpty r
+#        ["<span><i class='icon-ban-circle icon-white'></i>&nbsp;Ничего не найдено :(</span>"]
+#      else
+#        for i in r
+#          do (i) =>
+#            # fields which matched search query
+#            fields = _.filter _.keys(i), (f) ->
+#              # upper-casing fixes bug when "contract identifier" is erased
+#              # when you select a contract from popup list while your input
+#              # contains at least one lowercase symbol.
+#              i[f] && String(i[f]).toUpperCase().indexOf(q.toUpperCase()) != -1
+#            @found.push
+#              id: i.id
+#              matched: _.pick(i, fields)
+#            @contr2html i, fields, q
 
     fetchResults = (d) ->
       if !d.nonEmpty
@@ -80,7 +69,7 @@ class AddressesDict extends m.dict
             if parentThis.orig?
               cb parentThis.orig
 
-  # returns html representation of contract
+  # returns html representation of an address
   contr2html: (c, fs = [], q = "") ->
     # make values human readable
     c.make  = @carMakeDict.getLab c.make || c.make
@@ -138,11 +127,12 @@ class AddressesDict extends m.dict
     html
 
   id2val: (i) ->
-    return unless @found[i]
+    return
+    #return unless @found[i]
     # notify @kvm what contract was changed
-    @kvm.contract(@found[i].id)
-    _.chain(@found[i].matched).values().first().value()
+    #@kvm.contract(@found[i].id)
+    #_.chain(@found[i].matched).values().first().value()
 
 module.exports =
-  dict: ContractsDict
-  name: 'ContractsDict'
+  dict: AddressesDict
+  name: 'AddressesDict'

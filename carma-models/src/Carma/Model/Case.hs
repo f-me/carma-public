@@ -110,8 +110,10 @@ caseDicts :: [(Text, FieldView -> FieldView) :@ Case]
 caseDicts = [
    setMeta "dictionaryParent"
    (Aeson.String $ Model.fieldName diagnosis1) diagnosis2
-  ,setType "dictionary" contractIdentifier
-  ,dict contractIdentifier $ (dictOpt "") {dictType = Just "ContractsDict"}
+  , setType "dictionary" contractIdentifier
+  , dict contractIdentifier $ (dictOpt "") { dictType = Just "ContractsDict" }
+  , setType "dictionary" caseAddress_address
+  , dict caseAddress_address $ (dictOpt "") { dictType = Just "AddressesDict" }
   , setMeta "dictionaryParent"
       (Aeson.String $ Model.fieldName car_make)
       car_model
