@@ -68,8 +68,8 @@ import qualified Data.Model.Patch.Sql as DB
 import Data.Model.Utils.LegacyModel
 
 import Carma.Model.Attachment as Attachment
+import Carma.Utils.Snap
 
-import AppHandlers.Util as U
 
 
 data FileUpload b = FU { cfg      :: UploadPolicy

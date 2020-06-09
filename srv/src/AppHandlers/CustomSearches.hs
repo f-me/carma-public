@@ -69,7 +69,6 @@ import qualified Carma.Model.ServiceStatus           as ServiceStatus
 
 import           AppHandlers.CustomSearches.Contract
 import           AppHandlers.Users
-import           AppHandlers.Util
 import           Application
 import           Utils.HttpErrors
 import           Util

@@ -112,9 +112,8 @@ import qualified Triggers.Action.MailToDealer as BOAction (sendMailToDealer)
 import qualified Triggers.EraGlonass as EraGlonass
 import           Triggers.DSL as Dsl
 
-import           Util (Priority(..), syslogJSON, (.=))
+import           Util (Priority(..), syslogJSON, (.=), writeJSON)
 import           Data.Model.Utils.PostgreSQL.MSqlQQ hiding (parseQuery)
-import           AppHandlers.Util (writeJSON)
 
 
 vinLength :: Int

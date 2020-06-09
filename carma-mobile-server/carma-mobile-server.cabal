@@ -44,7 +44,6 @@ Executable carma-mobile-server
     scientific,
     snap,
     snap-core,
-    snap-extras >= 0.12.2.0,
     snap-loader-static,
     snap-server,
     snaplet-postgresql-simple,

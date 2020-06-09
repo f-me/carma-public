@@ -90,8 +90,7 @@ import System.Random
 import Snap.Core
 import Snap.Snaplet
 import Snap.Util.FileServe
-
-import Snap.Extras.JSON
+import Carma.Utils.Snap (writeJSON)
 
 
 -- | An action which may either fail or produce a result.

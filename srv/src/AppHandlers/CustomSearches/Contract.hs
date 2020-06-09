@@ -42,7 +42,6 @@ import           Carma.Model.Program as P
 import           Carma.Model.SubProgram as S hiding (field)
 
 import           Application
-import           AppHandlers.Util
 import           AppHandlers.CustomSearches.Contract.Base
 import           Util
 

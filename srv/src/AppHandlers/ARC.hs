@@ -52,7 +52,6 @@ import qualified Carma.Model.VinFormat as VF
 import           Carma.VIN
 
 import           Application
-import           AppHandlers.Util
 import qualified Snaplet.DbLayer.Types as DB
 import           Util hiding (withPG)
 

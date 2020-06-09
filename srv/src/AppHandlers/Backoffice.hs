@@ -68,10 +68,10 @@ import           Carma.Backoffice.Graph
 import           Carma.Backoffice.Text
 import           Carma.Backoffice.Validation
 
-import           AppHandlers.Util
 import           Application
 import           Snaplet.Auth.PGUsers
 import           Utils.Events
+import           Util
 
 
 -- | Back office representation.

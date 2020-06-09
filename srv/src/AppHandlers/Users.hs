@@ -60,9 +60,9 @@ import Carma.Model.Usermeta  as Usermeta
 import Carma.Model.UserState as UserState
 
 import Application
-import AppHandlers.Util
 import Snaplet.Auth.PGUsers
 import Snaplet.Search.Types (mkSel)
+import Util
 
 
 ------------------------------------------------------------------------------

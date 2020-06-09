@@ -78,12 +78,12 @@ import           Application
 
 import           AppHandlers.KPI (updateOperKPI)
 import           AppHandlers.Users
-import           AppHandlers.Util
 import           Snaplet.Auth.Class
 import           Snaplet.Auth.PGUsers
 import           Snaplet.Messenger (sendMessage)
 import           Snaplet.Messenger.Class (HasMsg, withMsg)
 import           Utils.Events
+import           Util
 
 
 -- | Check if a user has access to CTI.

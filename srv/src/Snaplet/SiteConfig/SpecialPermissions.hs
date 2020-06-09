@@ -26,12 +26,10 @@ import           Carma.Model.Role as Role
 import           Snap
 import           Snap.Snaplet.PostgresqlSimple
 
-import           Snaplet.Auth.Class
 import           Snaplet.Auth.PGUsers (currentUserRoles)
 import           Snaplet.SiteConfig.Models
 import           Snaplet.SiteConfig.Config
-
-import           AppHandlers.Util
+import           Carma.Utils.Snap (withLens)
 
 q :: Query
 q = [sql|

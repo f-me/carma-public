@@ -6,12 +6,12 @@ module AppHandlers.LocationSharing
 where
 
 import           Application (AppHandler)
-import           AppHandlers.Util (getIntParam, writeJSON)
 import qualified Data.Aeson as Aeson
 import           Database.PostgreSQL.Simple.SqlQQ (sql)
 import           Snap.Snaplet.PostgresqlSimple (query)
 import           Snaplet.Auth.PGUsers (currentUserMetaId)
 import           Utils.HttpErrors (finishWithError)
+import           Util (getIntParam, writeJSON)
 
 requestLocation :: AppHandler ()
 requestLocation = do

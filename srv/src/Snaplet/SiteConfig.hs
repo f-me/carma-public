@@ -5,7 +5,7 @@ module Snaplet.SiteConfig
   , initSiteConfig
   ) where
 
-import Control.Lens hiding (view)
+import Control.Lens (Lens')
 import Control.Monad
 import Control.Monad.State
 
@@ -33,7 +33,7 @@ import Snaplet.SiteConfig.SpecialPermissions
 import Snaplet.SiteConfig.Models
 import Snaplet.SiteConfig.Dictionaries
 
-import AppHandlers.Util
+import Util
 import Utils.HttpErrors
 
 import qualified Data.Model as Model

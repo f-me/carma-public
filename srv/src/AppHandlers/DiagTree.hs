@@ -50,10 +50,10 @@ import           Snap.Snaplet.Persistent
 import           Snap.Snaplet.PostgresqlSimple
 import           Snaplet.Auth.PGUsers                (currentUserMetaId)
 
-import           AppHandlers.Util
 import           Application
 import           Carma.Model.DiagSlide.Persistent
 import           Utils.HttpErrors                    (finishWithError)
+import           Util
 
 
 -- | Check if idag is possible or has started already

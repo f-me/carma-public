@@ -67,8 +67,7 @@ import           Snap.Snaplet.PostgresqlSimple (Postgres(..))
 
 import           Snaplet.Auth.Class
 import           Snaplet.Auth.PGUsers
-
-import           AppHandlers.Util
+import           Carma.Utils.Snap (withLens)
 
 
 data ChatManager b = ChatManager

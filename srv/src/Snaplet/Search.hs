@@ -9,13 +9,13 @@ import           Snap.Snaplet
 import           Snap.Snaplet.Auth hiding (Role)
 import           Snap.Snaplet.PostgresqlSimple (Postgres(..))
 
+import           Util (writeJSON)
 import           Utils.HttpErrors
 
 import Snaplet.Search.Case
 import Snaplet.Search.Call
 import Snaplet.Search.Contract
 import Snaplet.Search.Types
-import Snaplet.Search.Utils
 
 search :: ToJSON t
        => SearchHandler b (Either String (SearchResult t)) -> SearchHandler b ()

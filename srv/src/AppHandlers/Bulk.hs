@@ -37,7 +37,6 @@ import           Database.Persist.Sql (SqlBackend, fromSqlKey)
 import           Carma.VIN
 import           Snap
 
-import           AppHandlers.Util
 import           Application
 
 import           Carma.Model.Program.Persistent

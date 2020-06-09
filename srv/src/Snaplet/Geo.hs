@@ -28,7 +28,7 @@ module Snaplet.Geo
 
 where
 
-import Control.Lens hiding ((.=))
+import Control.Lens hiding ((.=), withLens)
 import Control.Monad.State hiding (state)
 
 import Data.Aeson as A
@@ -53,11 +53,9 @@ import qualified Network.HTTP.Conduit as HttpC
 import qualified Network.HTTP.Types.URI as HttpT
 
 import Snap.Core
-import Snap.Extras
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple
 
-import AppHandlers.Util (getParamT, withLens)
 import Util
 
 

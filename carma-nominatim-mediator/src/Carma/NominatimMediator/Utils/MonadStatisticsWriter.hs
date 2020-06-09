@@ -4,8 +4,6 @@
 
 module Carma.NominatimMediator.Utils.MonadStatisticsWriter where
 
-import           Data.Time.Clock (UTCTime)
-
 import           Control.Monad
 import           Control.Monad.Reader.Class (MonadReader, asks)
 

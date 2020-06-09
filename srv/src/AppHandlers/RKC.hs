@@ -54,7 +54,6 @@ import qualified Carma.Model.Satisfaction           as Satis
 import qualified Carma.Model.ServiceStatus          as SS
 import qualified Carma.Model.ServiceType            as ST
 
-import           AppHandlers.Util
 import           Application
 import           Util
 
