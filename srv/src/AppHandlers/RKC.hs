@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE ConstraintKinds #-}
 
 {-|
 
@@ -57,6 +58,8 @@ import qualified Carma.Model.ServiceType            as ST
 
 import           Application
 import           Util
+
+type RkcM m = (PS.HasPostgres m, MonadBaseControl IO m, MonadFail m)
 
 -- rkc helpers
 getFromTo :: AppHandler (Maybe Day, Maybe Day)
@@ -135,7 +138,7 @@ trace name fn = do
   syslogJSON Info "rkc/trace" [name .= show val]
   return val
 
-query :: (PS.HasPostgres m, MonadBaseControl IO m, PS.ToRow q, PS.FromRow r) => PS.Query -> q -> m [r]
+query :: (RkcM m, PS.ToRow q, PS.FromRow r) => PS.Query -> q -> m [r]
 query s v = do
     bs <- PS.formatQuery s v
     syslogJSON Debug "RKC/query" ["query" .= T.decodeUtf8 bs]
@@ -158,7 +161,9 @@ preQuery_ fs ts cs gs os = PreQuery fs ts cs gs os []
 
 instance Monoid PreQuery where
     mempty = PreQuery [] [] [] [] [] []
-    (PreQuery lf lt lc lg lo la) `mappend` (PreQuery rf rt rc rg ro ra) = PreQuery
+
+instance Semigroup PreQuery where
+    PreQuery lf lt lc lg lo la <> PreQuery rf rt rc rg ro ra = PreQuery
         (nub $ lf ++ rf)
         (nub $ lt ++ rt)
         (nub $ lc ++ rc)
@@ -177,11 +182,11 @@ strQuery (PreQuery f t c g o a) = (str, a) where
     nonullcat [] _ = ""
     nonullcat _ s = T.concat s
 
-runQuery :: (PS.HasPostgres m, MonadBaseControl IO m, PS.FromRow r) => [PreQuery] -> m [r]
+runQuery :: (RkcM m, PS.FromRow r) => [PreQuery] -> m [r]
 runQuery qs = query (fromString compiled) a where
     (compiled, a) = strQuery (mconcat qs)
 
-runQuery_ :: (PS.HasPostgres m, MonadBaseControl IO m, PS.FromRow r) => PreQuery -> m [r]
+runQuery_ :: (RkcM m, PS.FromRow r) => PreQuery -> m [r]
 runQuery_ pq = runQuery [relations pq]
 
 -- Column of table is in list
@@ -324,7 +329,7 @@ relations q = q `mappend` mconcat (map snd $ filter (hasTables . fst) tableRelat
     (["servicetbl", "actiontbl"], actionServiceRel)]
 
 mintQuery
-  :: (ToJSON num, PS.FromField num, PS.HasPostgres m, MonadBaseControl IO m)
+  :: (ToJSON num, PS.FromField num, RkcM m)
   => PreQuery -> m (Maybe num)
 mintQuery qs = do
     rs <- runQuery [relations qs]
@@ -332,7 +337,8 @@ mintQuery qs = do
         [] -> error "Int query returns no rows"
         (PS.Only r:_) -> return r
 
-caseSummary :: (PS.HasPostgres m, MonadBaseControl IO m) => Filter -> PreQuery -> m Value
+caseSummary :: RkcM m
+            => Filter -> PreQuery -> m Value
 caseSummary (Filter fromDate toDate program city partner) constraints = logExceptions "rkc/caseSummary" $ do
   syslogTxt Info "rkc/caseSummary" "Loading summary"
   calc <- trace "calculated cost" (run calculatedCost)
@@ -392,7 +398,7 @@ caseSummary (Filter fromDate toDate program city partner) constraints = logExcep
         oneInt :: [PS.Only Integer] -> Integer
         oneInt = maybe 0 PS.fromOnly . listToMaybe
 
-caseServices :: (PS.HasPostgres m, MonadBaseControl IO m) =>
+caseServices :: RkcM m =>
                 Day
              -> Day
              -> PreQuery
@@ -416,7 +422,7 @@ caseServices fromDate toDate constraints names = logExceptions "rkc/caseServices
   where
     todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "servicetbl" "type", p, constraints, betweenTime fromDate toDate "servicetbl" "createTime", groupBy "servicetbl" "type"]
 
-rkcCase :: (PS.HasPostgres m, MonadBaseControl IO m) =>
+rkcCase :: RkcM m =>
            Filter
         -> PreQuery
         -> [IdentI ST.ServiceType]
@@ -428,7 +434,7 @@ rkcCase filt@(Filter fromDate toDate _ _ _) constraints services = logExceptions
     "summary" .= s,
     "services" .= ss]
 
-actionsSummary :: (PS.HasPostgres m, MonadBaseControl IO m) => Day -> Day -> PreQuery -> m Value
+actionsSummary :: RkcM m => Day -> Day -> PreQuery -> m Value
 actionsSummary fromDate toDate constraints = logExceptions "rkc/actionsSummary" $ do
   syslogTxt Info "rkc/actionsSummary" "Loading summary"
   t <- trace "total" (run count)
@@ -439,7 +445,8 @@ actionsSummary fromDate toDate constraints = logExceptions "rkc/actionsSummary" 
   where
     run p = liftM (fromMaybe 0) $ mintQuery $ mconcat [p, constraints, betweenTime fromDate toDate "actiontbl" "duetime"]
 
-actionsActions :: (PS.HasPostgres m, MonadBaseControl IO m) => Day -> Day -> PreQuery -> [IdentI AType.ActionType] -> m Value
+actionsActions :: RkcM m
+               => Day -> Day -> PreQuery -> [IdentI AType.ActionType] -> m Value
 actionsActions fromDate toDate constraints actions = logExceptions "rkc/actionsActions" $ do
   [totals, undones, avgs] <- mapM todayAndGroup [
     (count, "duetime"),
@@ -458,7 +465,7 @@ actionsActions fromDate toDate constraints actions = logExceptions "rkc/actionsA
   where
     todayAndGroup (p, tm) = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "type", p, constraints, betweenTime fromDate toDate "actiontbl" tm, groupBy "actiontbl" "type"]
 
-rkcActions :: (PS.HasPostgres m, MonadBaseControl IO m) =>
+rkcActions :: RkcM m =>
               Day
            -> Day
            -> PreQuery
@@ -472,7 +479,7 @@ rkcActions fromDate toDate constraints actions = logExceptions "rkc/rkcActions" 
     "actions" .= as]
 
 -- | Average time for each operator and action
-rkcEachActionOpAvg :: (PS.HasPostgres m, MonadBaseControl IO m) => Day -> Day -> PreQuery -> [IdentI AType.ActionType] -> m Value
+rkcEachActionOpAvg :: RkcM m => Day -> Day -> PreQuery -> [IdentI AType.ActionType] -> m Value
 rkcEachActionOpAvg fromDate toDate constraints acts = logExceptions "rkc/rkcEachActionOpAvg" $ do
   r <- trace "result" $ runQuery_ $ mconcat [
     constraints,
@@ -503,7 +510,7 @@ rkcEachActionOpAvg fromDate toDate constraints acts = logExceptions "rkc/rkcEach
           avgSum st' = (average *** sum) $ unzip $ map snd st'
           average l = sum l `div` fromIntegral (length l)
 
-rkcComplaints :: (PS.HasPostgres m, MonadBaseControl IO m) => Day -> Day -> PreQuery -> m Value
+rkcComplaints :: RkcM m => Day -> Day -> PreQuery -> m Value
 rkcComplaints fromDate toDate constraints = logExceptions "rkc/rkcComplaints" $ do
   compls <- trace "result" $ runQuery_ $ mconcat [
     constraints,
@@ -524,7 +531,7 @@ rkcComplaints fromDate toDate constraints = logExceptions "rkc/rkcComplaints" $ 
 
 -- | Calculate @stats@ numbers of @/rkc@ response (average processing
 -- times).
-rkcStats :: (PS.HasPostgres m, MonadBaseControl IO m) => Filter -> m Value
+rkcStats :: RkcM m => Filter -> m Value
 rkcStats (Filter from to program city partner) = logExceptions "rkc/rkcStats" $ do
   let qParams = sqlFlagPair (Ident 0) id program' PS.:.
                 sqlFlagPair (Ident 0) id city' PS.:.
@@ -593,7 +600,7 @@ traceFilter tag (Filter from to prog city partner)
     ,"partner" .= partner
     ]
 
-rkc :: (PS.HasPostgres m, MonadBaseControl IO m) => Filter -> m Value
+rkc :: RkcM m => Filter -> m Value
 rkc filt@(Filter fromDate toDate program city partner) = logExceptions "rkc/rkc" $ do
   traceFilter "rkc/rkc" filt
   serviceNames <- PS.liftPG' $ Sql.select ST.ident
@@ -618,7 +625,7 @@ rkc filt@(Filter fromDate toDate program city partner) = logExceptions "rkc/rkc"
 
 
 -- | All partners on services within time interval
-partners :: (PS.HasPostgres m, MonadBaseControl IO m) => Day -> Day -> m Value
+partners :: RkcM m => Day -> Day -> m Value
 partners fromDate toDate = logExceptions "rkc/partners" $ do
   syslogJSON Info "rkc/partners" ["from" .= show fromDate, "to" .= show toDate]
 
@@ -630,7 +637,7 @@ partners fromDate toDate = logExceptions "rkc/partners" $ do
   ps <- trace "result" $ queryFmt q [fromDate, toDate]
   return $ toJSON (mapMaybe PS.fromOnly ps :: [T.Text])
 
-queryFmt :: (PS.HasPostgres m, MonadBaseControl IO m, PS.ToRow q, PS.FromRow r)
+queryFmt :: (RkcM m, PS.ToRow q, PS.FromRow r)
          => [String] -> q -> m [r]
 queryFmt lns = query $ fromString $ concat lns
 

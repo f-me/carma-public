@@ -63,6 +63,7 @@ instance Monad m => Monad (LoggerForward m) where
       runLoggerForward (k a) mVar
   {-# INLINE (>>=) #-}
 
+instance MonadFail m => MonadFail (LoggerForward m) where
   fail = lift . fail
   {-# INLINE fail #-}
 
