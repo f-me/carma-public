@@ -46,8 +46,7 @@ instance ToField FilterType where
   toField Form = toField $ PT "showform"
   toField Table = toField $ PT "showtable"
 
-stripContract :: (HasPostgresAuth b (SiteConfig b))
-              => Model
+stripContract :: Model
               -> Text
               -- ^ SubProgram id.
               -> FilterType
