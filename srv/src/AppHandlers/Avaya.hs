@@ -39,7 +39,7 @@ import           Control.Monad.State.Class
 import           Control.Monad.IO.Class
 import           Data.Maybe
 
-import           Data.Aeson
+import           Data.Aeson as Aeson
 import           Data.ByteString as BS
 import           Data.CaseInsensitive (original)
 import qualified Data.Map as Map
@@ -50,7 +50,7 @@ import           Data.Vector (elem, fromList, singleton)
 import           Database.PostgreSQL.Simple
 import           Database.PostgreSQL.Simple.SqlQQ.Alt
 
-import           Network.WebSockets
+import           Network.WebSockets as WS
 import           Network.WebSockets.Snap
 
 import           Snap hiding (dir)
@@ -309,10 +309,10 @@ sendCommand cmd um = do
     let dmccWsHost'' = Text.unpack dmccWsHost'
         ext = fromMaybe (error "Bad meta") $
               um `Patch.get` Usermeta.workPhoneSuffix
-        miniApp conn =
-          send conn (DataMessage $ Text $ encode cmd) >>
-          sendClose conn ("carma disconnected" :: ByteString) >>
-          (void $ (receiveData conn :: IO ByteString))
+        miniApp conn = do
+          WS.sendTextData conn (Aeson.encode cmd)
+          WS.sendClose conn ("carma disconnected" :: ByteString)
+          void $ (WS.receiveData conn :: IO ByteString)
 
     liftIO $ void $ forkIO $
       runClient dmccWsHost'' dmccWsPort' ("/" ++ Text.unpack ext) miniApp
