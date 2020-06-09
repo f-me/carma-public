@@ -64,7 +64,7 @@ receiveRequestForServiceRequest
    .
    ( MonadReader AppContext m
    , MonadLoggerBus m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    , MonadCatch m
    , MonadPersistentSql m
    , MonadThread m
@@ -91,9 +91,9 @@ receiveRequestForServiceRequest
   (SuccessfullyParsed reqBody@EGRequestForServiceRequest {..}) = NonePlug <$ do
     let caseModel = typeName (Proxy :: Proxy Case) :: Text
 
-    let -- | We need to catch only @ServantErr@ because @SomeException@ is
+    let -- | We need to catch only @ServerError@ because @SomeException@ is
         --   already wrapped by @runSqlProtected@ inside.
-        errHandler :: ServantErr -> m ()
+        errHandler :: ServerError -> m ()
         errHandler e = do
           saveFailureIncidentInBackground (toJSON reqBody) [qms|
             Acceptance of request for service is failed with exception:
@@ -175,7 +175,7 @@ createCase
    ( MonadReader AppContext m
    , MonadLoggerBus m
    , MonadPersistentSql m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    , MonadCatch m
    )
   => EGRequestForServiceRequest
@@ -330,7 +330,7 @@ updateCase
    ( MonadReader AppContext m
    , MonadLoggerBus m
    , MonadPersistentSql m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    )
   => EGRequestForServiceRequest
   -> CaseId

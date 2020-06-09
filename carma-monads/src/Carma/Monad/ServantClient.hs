@@ -3,7 +3,7 @@
 
 module Carma.Monad.ServantClient
      ( MonadServantClient (..)
-     , ServantError
+     , ClientError
      , ClientEnv
      , ClientM
      ) where
@@ -11,11 +11,11 @@ module Carma.Monad.ServantClient
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 
 import qualified Servant.Client (runClientM)
-import           Servant.Client (ServantError, ClientM, ClientEnv)
+import           Servant.Client (ClientError, ClientM, ClientEnv)
 
 
 class Monad m => MonadServantClient m where
-  runClientM :: ClientM a -> ClientEnv -> m (Either ServantError a)
+  runClientM :: ClientM a -> ClientEnv -> m (Either ClientError a)
 
 
 instance (Monad m, MonadIO m) => MonadServantClient m where

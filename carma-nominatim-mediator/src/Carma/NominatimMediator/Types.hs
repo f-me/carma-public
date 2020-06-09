@@ -34,7 +34,7 @@ import           Control.Exception.Base
 import           Control.Concurrent.MVar (MVar)
 
 import           Web.HttpApiData
-import           Servant.Client
+import           Servant.Client hiding (Response)
 
 import           Carma.NominatimMediator.Utils
 import           Carma.Monad.IORefWithCounter
@@ -327,7 +327,7 @@ data AppContext
    , requestExecutorBus ::
        MVar ( RequestParams
             , ClientM Response
-            , MVar (Either ServantError (StatisticResolve, Response))
+            , MVar (Either ClientError (StatisticResolve, Response))
             )
 
      -- Collected statistics data.

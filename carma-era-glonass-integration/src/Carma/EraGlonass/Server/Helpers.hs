@@ -31,7 +31,7 @@ runSqlProtected
    ( MonadReader AppContext m
    , MonadLoggerBus m
    , MonadPersistentSql m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    )
   => LogSource
   -> Text -- ^ Fail message

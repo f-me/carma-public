@@ -38,7 +38,7 @@ import           Control.Monad.IO.Class (MonadIO)
 import           System.Directory (makeAbsolute)
 
 import           Servant
-import           Servant.Client
+import           Servant.Client hiding (Response)
 import           Servant.Swagger (toSwagger)
 import qualified Network.Wai.Handler.Warp as Warp
 import           Network.HTTP.Client (Manager, newManager)
@@ -146,7 +146,7 @@ main = do
     Conf.require cfg "nominatim.gap-between-requests"
 
   !(nominatimBaseUrl :: BaseUrl) <- parseBaseUrl nominatimUrl
-  !(manager          :: Manager) <- newManager tlsManagerSettings
+  !(mgr              :: Manager) <- newManager tlsManagerSettings
 
   resCache            <- newIORefWithCounter mempty
   loggerBus'          <- newEmptyMVar
@@ -158,7 +158,7 @@ main = do
         = AppContext
         { responsesCache              = resCache
         , clientUserAgent             = nominatimUA
-        , clientEnv                   = ClientEnv manager nominatimBaseUrl
+        , clientEnv                   = ClientEnv mgr nominatimBaseUrl Nothing
         , cacheForRevSearchIsDisabled = noCacheForRevSearch
         , loggerBus                   = loggerBus'
         , requestExecutorBus          = requestExecutorBus'
@@ -166,18 +166,12 @@ main = do
         , statisticsBus               = statisticsBus'
         }
 
-      -- WARNING! Way to transform monad here is deprecated in newer Servant
-      --          version. Read about "hoistServer" from "servant-server" when
-      --          you will be migrating from lts-9.21 to newer one.
-      app
-        = serve (Proxy :: Proxy AppRoutesWithSwagger)
-        $ enter withReader appServer
-        where
-          withReader' :: ReaderT AppContext Handler a -> Handler a
-          withReader' r = runReaderT r appCtx
+      api = Proxy :: Proxy AppRoutesWithSwagger
 
-          withReader :: ReaderT AppContext Handler :~> Handler
-          withReader = NT withReader'
+      app = serve api $ hoistServer api withReader appServer
+        where
+          withReader :: ReaderT AppContext Handler a -> Handler a
+          withReader r = runReaderT r appCtx
 
       warpSettings
         = Warp.defaultSettings

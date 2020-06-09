@@ -7,7 +7,7 @@ module Carma.NominatimMediator.Utils.MonadRequestExecution where
 import           Control.Monad.Reader.Class (MonadReader, asks)
 import           Control.Monad.Catch (MonadThrow, throwM, toException)
 
-import           Servant.Client
+import           Servant.Client hiding (Response)
 
 import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Utils

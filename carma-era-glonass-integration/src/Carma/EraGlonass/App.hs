@@ -236,7 +236,7 @@ app appMode' withDbConnection = do
 
                 , backgroundTasksCounter = backgroundTasksCounter'
 
-                , egClientEnv = ClientEnv manager egBaseUrl
+                , egClientEnv = ClientEnv manager egBaseUrl Nothing
                 , vinSynchronizerContractId = carmaVinSynchronizerContractId
 
                 , statusSynchronizerContractId =

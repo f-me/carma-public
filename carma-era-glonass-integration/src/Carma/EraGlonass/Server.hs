@@ -99,7 +99,7 @@ type ServerAPI
 type ServerMonad m =
    ( MonadReader AppContext m
    , MonadLoggerBus m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    , MonadCatch m
    , MonadPersistentSql m
    , MonadEsqueleto m
@@ -110,18 +110,13 @@ type ServerMonad m =
    )
 
 
--- WARNING! Way to transform monad here is deprecated in newer Servant version.
---          Read about "hoistServer" from "servant-server" when you will be
---          migrating from lts-9.21 to newer one.
 serverApplicaton :: AppContext -> Application
 serverApplicaton appContext =
-  serve (Proxy :: Proxy ServerAPI) $ enter withReader server
+  serve api $ hoistServer api withReader server
+  where api = Proxy :: Proxy ServerAPI
 
-  where withReader' :: ReaderT AppContext Handler a -> Handler a
-        withReader' r = runReaderT r appContext
-
-        withReader :: ReaderT AppContext Handler :~> Handler
-        withReader = NT withReader'
+        withReader :: ReaderT AppContext Handler a -> Handler a
+        withReader r = runReaderT r appContext
 
 
 server :: ServerMonad m => ServerT ServerAPI m
@@ -178,7 +173,7 @@ getFailuresCount
   ::
    ( MonadReader AppContext m
    , MonadLoggerBus m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    , MonadPersistentSql m
    )
   => m Word
@@ -200,7 +195,7 @@ getFailuresList
   ::
    ( MonadReader AppContext m
    , MonadLoggerBus m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    , MonadPersistentSql m
    , MonadEsqueleto m
    )
@@ -278,7 +273,7 @@ vinSynchronizerTrigger
    , MonadLoggerBus m
    , MonadClock m
    , MonadSTM m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    )
   => m RouteActionResponse
 
@@ -308,7 +303,7 @@ statusSynchronizerTrigger
    , MonadLoggerBus m
    , MonadClock m
    , MonadSTM m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    )
   => m RouteActionResponse
 
@@ -336,7 +331,7 @@ manuallyTrigger
    ( MonadLoggerBus m
    , MonadClock m
    , MonadSTM m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    , t ~ RouteActionResponse
    )
   => (Bool, Text) -- ^ @Bool@ menas it can be capitalized
