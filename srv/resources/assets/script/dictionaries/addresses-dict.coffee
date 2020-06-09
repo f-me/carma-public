@@ -7,12 +7,13 @@ class AddressesDict extends m.dict
   constructor: (@opts)->
     @kvm = @opts.kvm
     @Dict = require "carma/dictionaries"
-    @addressesDict = new @Dict.dicts.ModelDict
-      dict: 'Addresses'
+    @addresses = []
 
   find: debounce 1200, (q, cb, opt) ->
+    @addressesDict
     return cb({}) if q.length < 4 and not opt?.force
-    return cb(["aaaa", "aaaaaab"])
+    @addresses = ["aaa", "aaa aaa aaa"]
+    return cb(@addresses)
 
 #    processResponse = (r) =>
 #      @found = []
@@ -75,19 +76,6 @@ class AddressesDict extends m.dict
     c.make  = @carMakeDict.getLab c.make || c.make
     c.model = @carModelDict.getLab c.model || c.model
 
-    if c.subprogram
-      subprogramDict = new @Dict.dicts.ComputedDict
-        dict: "prefixedSubPrograms"
-      c.subprogram = subprogramDict.getLab c.subprogram
-
-    c._expired = do ->
-      if _.isNull c._expired
-        ""
-      if c._expired
-        "<span class='label label-danger'>Проверить участие</span>"
-      else
-        "<span class='label label-success'>Проверить условия</span>"
-
     # highlight matched search string
     if (not _.isEmpty fs) and q
       _.each fs, (f) ->
@@ -127,7 +115,7 @@ class AddressesDict extends m.dict
     html
 
   id2val: (i) ->
-    return
+    return @addresses[i]
     #return unless @found[i]
     # notify @kvm what contract was changed
     #@kvm.contract(@found[i].id)
