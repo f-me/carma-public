@@ -35,7 +35,6 @@ import qualified Data.ByteString.Lazy as BL
 import           Data.Conduit
 import           Data.Conduit.Binary hiding (mapM_)
 import qualified Data.Conduit.List as CL
-import           Data.CSV.Conduit (runResourceT)
 import qualified Data.CSV.Conduit as CSV
 
 import           Data.List
@@ -152,9 +151,10 @@ readHeaderAndEncoding fileName = do
                 _ -> do
                   conv <- liftIO $ ICU.open "CP1251" Nothing
                   return (ICU.toUnicode conv l1, "WIN1251")
-          header <- runResourceT $
-                yield (topText `snoc` '\n') $=
-                CSV.intoCSV csvSettings $$ CL.head
+          header <- liftIO $ runConduitRes
+            $  yield (topText `snoc` '\n')
+            .| CSV.intoCSV csvSettings
+            .| CL.head
           return (header, enc)
     Left e -> throwError $ NotEnoughData e
 
@@ -350,10 +350,10 @@ process psid enc mapping = do
        liftIO $ void $ do
          BS.writeFile output bom
          -- Write report header, adding errors column title if not present
-         runResourceT $ yield (delete errorsTitle columnTitles ++
-                               [errorsTitle]) $=
-                        CSV.fromCSV csvSettings $$
-                        sinkIOHandle (openFile output AppendMode)
+         runConduitRes
+           $  yield (delete errorsTitle columnTitles ++ [errorsTitle])
+           .| CSV.fromCSV csvSettings
+           .| sinkIOHandle (openFile output AppendMode)
 
          -- Write COPY FROM data to outfile
          fix $ \next ->
