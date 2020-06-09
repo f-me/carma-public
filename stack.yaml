@@ -1,4 +1,5 @@
-resolver: lts-9.21
+resolver: lts-15.15
+
 packages:
 - srv
 - tools/vinnie
@@ -14,34 +15,29 @@ packages:
 - carma-nominatim-mediator
 - carma-era-glonass-integration
 - location-sharing-svc
+
+allow-newer: true
+
 extra-deps:
 - attoparsec-conduit-1.1.0
-- blaze-html-0.8.1.3
-- blaze-markup-0.7.1.1
 - digestive-functors-0.8.2.0
 - digestive-functors-heist-0.8.7.0
 - digestive-functors-snap-0.7.0.0
-- haskell-src-meta-0.7.0.1
-- heist-1.0.1.0
-- io-streams-1.3.6.1
-- map-syntax-0.2.0.2
-- qm-interpolated-string-0.3.0.0
-- snap-1.0.0.1
+- heist-1.1.0.1
+- map-syntax-0.3
+- pwstore-fast-2.4.4
+- snap-1.1.3.0
 - snap-loader-static-1.0.0.0
-- snaplet-postgresql-simple-1.0.2.0
-- stm-lifted-0.1.1.0
-- syb-0.6
-- xmlhtml-0.2.4
+- snaplet-postgresql-simple-1.2.0.0
+- stm-lifted-2.5.0.0
+- xmlhtml-0.2.5.2
 - git: https://github.com/ruamk/dmcc.git
-  commit: 7c2e6fafb2d37c1b16a71b1fe6b3c8f97967d257
+  commit: afdc7aefdddb644cdcdcfa69262129b698493f04
 - git: https://github.com/ruamk/hs-weather-api.git
-  commit: 6256f3925bdf324b696559bb75b900c544599784
+  commit: 598e511b6aa088e6800a8c9e668d76c388d544de
 - git: https://github.com/ruamk/pg-simple-alt-qq.git
   commit: 15fd5b959f0d88a50d2c460938bdb0cd2cd7322d
 - git: https://github.com/ruamk/websockets-snap.git
   commit: 8316c620bf4ffae8e6777e0b368edd0ce32a4324
 - git: https://github.com/Soostone/snaplet-persistent.git
-  commit: 100291ada8c71d817d6758062dd98bbf2e60a040
-image:
-  containers:
-    - base: "ruamc/carma-base-runtime@sha256:5eba7df0575d339a4e22113c8b8be9b7de1c869db3b1e0f8f5bfdf0f29529c79"
+  commit: ceb82af6c4305eeca2c9e5fe06982d623021da48
