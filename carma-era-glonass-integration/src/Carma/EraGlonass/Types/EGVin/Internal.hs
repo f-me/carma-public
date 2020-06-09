@@ -75,7 +75,7 @@ instance ToSchema EGVin where
   declareNamedSchema _ = pure
     $ NamedSchema (Just $ typeName (Proxy :: Proxy t)) mempty
     { _schemaParamSchema = mempty
-        { _paramSchemaType    = SwaggerString
+        { _paramSchemaType    = Just SwaggerString
         , _paramSchemaFormat  = Just "VIN"
         , _paramSchemaPattern = Just egVinPosixRegex
         }

@@ -64,7 +64,7 @@ instance ToSchema EGLatitude where
     go
       = NamedSchema (Just typeName'') mempty
       { _schemaParamSchema = mempty
-          { _paramSchemaType    = SwaggerInteger
+          { _paramSchemaType    = Just SwaggerInteger
           , _paramSchemaMinimum = Just $ fromIntegral $ fromEGLatitude minBound
           , _paramSchemaMaximum = Just $ fromIntegral $ fromEGLatitude maxBound
           }
@@ -117,7 +117,7 @@ instance ToSchema EGLongitude where
     go
       = NamedSchema (Just typeName'') mempty
       { _schemaParamSchema = mempty
-          { _paramSchemaType    = SwaggerInteger
+          { _paramSchemaType    = Just SwaggerInteger
           , _paramSchemaMinimum = Just $ fromIntegral $ fromEGLongitude minBound
           , _paramSchemaMaximum = Just $ fromIntegral $ fromEGLongitude maxBound
           }

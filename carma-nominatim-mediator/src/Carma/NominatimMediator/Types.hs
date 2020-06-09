@@ -102,7 +102,7 @@ instance FromHttpApiData Coords where
 
 instance ToParamSchema Coords where
   toParamSchema _ = mempty
-    { _paramSchemaType    = SwaggerString
+    { _paramSchemaType    = Just SwaggerString
     , _paramSchemaFormat  = Just "coordinates"
     , _paramSchemaPattern = Just [qn| ^
                                       -?[0-9]+(\.[0-9]+)?
@@ -137,7 +137,7 @@ instance ToSchema RequestType where
   declareNamedSchema _ = pure
     $ NamedSchema (Just "RequestType") mempty
     { _schemaParamSchema = mempty
-        { _paramSchemaType = SwaggerString
+        { _paramSchemaType = Just SwaggerString
         , _paramSchemaEnum =
             Just $ String . fromString . show <$> [Search, ReverseSearch]
         }
@@ -178,7 +178,7 @@ instance ToSchema RequestParams where
 
     pure
       $ NamedSchema (Just "RequestParams") mempty
-      { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+      { _schemaParamSchema = mempty { _paramSchemaType = Just SwaggerObject }
 
       , _schemaDescription = Just
           [qns| Request params, only "type" and "lang" keys will always be
@@ -195,12 +195,12 @@ instance ToSchema RequestParams where
           [ Inline $ mempty
               { _schemaProperties = [("query", queryRef)]
               , _schemaParamSchema =
-                  mempty { _paramSchemaType = SwaggerObject }
+                  mempty { _paramSchemaType = Just SwaggerObject }
               }
           , Inline $ mempty
               { _schemaProperties = [("lon", lonRef), ("lat", latRef)]
               , _schemaParamSchema =
-                  mempty { _paramSchemaType = SwaggerObject }
+                  mempty { _paramSchemaType = Just SwaggerObject }
               }
           ]
       }
@@ -253,7 +253,7 @@ instance ToSchema DebugCachedResponse where
 
     pure
       $ NamedSchema (Just "DebugCachedResponse") mempty
-      { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+      { _schemaParamSchema = mempty { _paramSchemaType = Just SwaggerObject }
       , _schemaDiscriminator = Just "response_type"
 
       , _schemaDescription = Just
@@ -276,11 +276,13 @@ instance ToSchema DebugCachedResponse where
           = Just
           [ Inline $ mempty
               { _schemaProperties = [("response", searchByQueryResponseRef)]
-              , _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+              , _schemaParamSchema = mempty
+                   { _paramSchemaType = Just SwaggerObject }
               }
           , Inline $ mempty
               { _schemaProperties = [("response", searchByCoordsResponseRef)]
-              , _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+              , _schemaParamSchema = mempty
+                   { _paramSchemaType = Just SwaggerObject }
               }
           ]
       }
@@ -428,7 +430,7 @@ instance ToJSON JulianDay where
 instance ToSchema JulianDay where
   declareNamedSchema _ = pure
     $ NamedSchema (Just "JulianDay") mempty
-    { _schemaParamSchema = mempty { _paramSchemaType = SwaggerInteger } }
+    { _schemaParamSchema = mempty { _paramSchemaType = Just SwaggerInteger } }
 
 -- Human-readable representation of day such as "1858-11-17" (yyyy-mm-dd).
 -- ISO 8601.
@@ -440,7 +442,7 @@ instance ToJSON ISODay where
 instance ToSchema ISODay where
   declareNamedSchema _ = pure
     $ NamedSchema (Just "ISODay") mempty
-    { _schemaParamSchema = mempty { _paramSchemaType = SwaggerString } }
+    { _schemaParamSchema = mempty { _paramSchemaType = Just SwaggerString } }
 
 data RequestsStatistics
    = RequestsStatistics
