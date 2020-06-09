@@ -14,7 +14,6 @@
 
 module Main (main) where
 
-import           Data.Monoid ((<>))
 import qualified Data.Configurator as Conf
 import           Data.String (fromString)
 import qualified Data.Map as M
@@ -22,7 +21,7 @@ import qualified Data.HashMap.Strict as HM
 import           Data.Aeson (toJSON)
 import           Data.Proxy
 import           Data.List (sortBy)
-import           Data.Function ((&), on)
+import           Data.Function (on)
 import           Data.Swagger (Swagger)
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM

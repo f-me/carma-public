@@ -15,7 +15,7 @@ import           Data.Aeson
 import           Data.Time.Clock (addUTCTime)
 
 import           Control.Monad.Reader (MonadReader, ReaderT)
-import           Control.Monad.Error.Class (MonadError (throwError, catchError))
+import           Control.Monad.Error.Class (MonadError, catchError)
 import           Control.Monad.Catch (MonadCatch)
 import           Control.Exception (displayException)
 

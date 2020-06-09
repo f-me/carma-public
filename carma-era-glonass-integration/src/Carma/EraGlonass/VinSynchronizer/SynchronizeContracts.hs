@@ -10,7 +10,6 @@ module Carma.EraGlonass.VinSynchronizer.SynchronizeContracts
 
 import           Prelude hiding (id)
 
-import           Data.Semigroup (Semigroup ((<>)))
 import           Text.InterpolatedString.QM
 import           Data.List.NonEmpty (NonEmpty)
 

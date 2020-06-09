@@ -14,7 +14,6 @@ import           Text.InterpolatedString.QM
 
 import           Control.Monad
 import           Control.Monad.Logger (LogSource)
-import           Control.Concurrent.MVar (MVar)
 import           Control.Concurrent.STM.TQueue
 
 import           Carma.Monad.STM

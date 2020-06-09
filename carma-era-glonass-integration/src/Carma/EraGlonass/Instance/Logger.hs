@@ -11,8 +11,6 @@ import           Control.Monad.Reader (ReaderT, ask, asks)
 import           Control.Monad.Logger
 import           Control.Concurrent.STM.TQueue
 
-import           System.Log.FastLogger (fromLogStr)
-
 import           Database.Persist.Sql (SqlBackend)
 
 import           Carma.EraGlonass.Logger.LoggerForward

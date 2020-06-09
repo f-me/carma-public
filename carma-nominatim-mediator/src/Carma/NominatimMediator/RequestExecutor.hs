@@ -9,7 +9,6 @@ module Carma.NominatimMediator.RequestExecutor
      ( requestExecutorInit
      ) where
 
-import           Data.Monoid ((<>))
 import qualified Data.Map as M
 import qualified Data.Time.Clock as Time
 import           Text.InterpolatedString.QM

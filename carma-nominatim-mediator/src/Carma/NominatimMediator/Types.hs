@@ -23,7 +23,6 @@ import           Data.Map (Map)
 import           Data.HashMap.Strict (HashMap)
 import           Data.Hashable (Hashable)
 import           Data.Aeson
-import           Data.Aeson.Types (fieldLabelModifier)
 import           Data.Time.Clock (UTCTime)
 import           Data.Time.Calendar (Day (ModifiedJulianDay), showGregorian)
 import           Data.Swagger hiding (Response)
@@ -454,19 +453,8 @@ data RequestsStatistics
    , succeeded_real_not_added_to_cache :: Integer
    } deriving (Eq, Show, Generic, ToJSON, ToSchema)
 
-instance Monoid RequestsStatistics where
-  mempty
-    = RequestsStatistics
-    { total_requests                    = 0
-    , total_failed                      = 0
-    , total_succeeded                   = 0
-    , succeeded_taken_from_cache        = 0
-    , succeeded_real_requests           = 0
-    , succeeded_real_added_to_cache     = 0
-    , succeeded_real_not_added_to_cache = 0
-    }
-
-  mappend a b
+instance Semigroup RequestsStatistics where
+  a <> b
     = a
     { total_requests                    = f total_requests a b
     , total_failed                      = f total_failed a b
@@ -478,6 +466,18 @@ instance Monoid RequestsStatistics where
         f succeeded_real_not_added_to_cache a b
     }
     where f field = (+) `on` field
+
+instance Monoid RequestsStatistics where
+  mempty
+    = RequestsStatistics
+    { total_requests                    = 0
+    , total_failed                      = 0
+    , total_succeeded                   = 0
+    , succeeded_taken_from_cache        = 0
+    , succeeded_real_requests           = 0
+    , succeeded_real_added_to_cache     = 0
+    , succeeded_real_not_added_to_cache = 0
+    }
 
 data StatisticsByRequestType
    = StatisticsByRequestType

@@ -21,7 +21,6 @@ module Application
      , geoAppInit
      ) where
 
-import           Data.Semigroup ((<>))
 import           Data.List (find)
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as VM (unsafeNew, unsafeWrite)

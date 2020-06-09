@@ -14,7 +14,6 @@ module Carma.Monad.Concurrently
      , replicateConcurrently_
      ) where
 
-import           Data.Semigroup
 import           Data.Foldable (fold)
 
 import           Control.Monad

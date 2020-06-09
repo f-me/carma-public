@@ -1,6 +1,5 @@
 module Main where
 
-import           Control.Applicative ((<$>), (<*>), pure)
 import           Control.Exception (handle, SomeException)
 import           Data.Pool (createPool)
 import qualified Data.Configurator as Config

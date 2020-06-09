@@ -32,6 +32,7 @@ import qualified Data.ByteString.Lazy               as LB
 import qualified Data.Text                          as T
 import qualified Data.Text.Encoding                 as T
 import           Data.Time
+import           Data.Semigroup
 
 import           Database.PostgreSQL.Simple.SqlQQ
 import qualified Database.PostgreSQL.Simple.ToField   as PS

@@ -14,7 +14,6 @@ import qualified Data.ByteString.Unsafe as BSU
 import           Control.Monad.Logger
 
 import           System.Posix.Syslog
-import           System.Log.FastLogger (fromLogStr)
 
 
 runSyslogLoggingT :: String -> LoggingT m a -> m a

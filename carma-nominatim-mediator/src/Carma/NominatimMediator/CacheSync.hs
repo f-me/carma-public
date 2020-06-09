@@ -17,7 +17,6 @@ import           Prelude hiding (readFile, writeFile)
 
 import qualified Data.Map as M
 import           Data.Text (Text, toLower)
-import           Data.Monoid ((<>))
 import           Text.InterpolatedString.QM
 
 import           Control.Monad

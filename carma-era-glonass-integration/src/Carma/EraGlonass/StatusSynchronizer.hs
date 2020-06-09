@@ -11,7 +11,6 @@ module Carma.EraGlonass.StatusSynchronizer
      ) where
 
 import           Data.Proxy
-import           Data.Semigroup (Semigroup ((<>)))
 import           Data.Function (fix)
 import           Data.Maybe (fromMaybe)
 import           Data.Text (Text)
@@ -25,7 +24,7 @@ import           Control.Monad.Catch (MonadCatch, MonadThrow (throwM))
 import           Control.Arrow ((&&&), (***), (>>>))
 import           Control.Concurrent.STM.TMVar
 import           Control.Concurrent.STM.TVar
-import           Control.Exception (SomeException, fromException)
+import           Control.Exception (fromException)
 
 import           Database.Persist ((==.), (=.))
 import           Database.Persist.Sql (SqlBackend, fromSqlKey)

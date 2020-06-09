@@ -23,15 +23,12 @@ module Carma.EraGlonass.VinSynchronizer.Helpers
 
 import           Data.Proxy
 import           Data.Typeable (Typeable)
-import           Data.Monoid ((<>))
 import           Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
-import           Text.InterpolatedString.QM.ShowQ.Class (ShowQ)
 import           Data.String (IsString (fromString))
-import           Data.Time.Clock (UTCTime)
 import           Data.Time.LocalTime (TimeZone, ZonedTime, utcToZonedTime)
 import           Data.Time.Format
 

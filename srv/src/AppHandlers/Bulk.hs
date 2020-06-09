@@ -12,7 +12,7 @@ module AppHandlers.Bulk
 
 where
 
-import           BasicPrelude
+import           BasicPrelude hiding (for)
 
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Char8 as B
@@ -27,7 +27,7 @@ import qualified Data.Vector as V
 import           Control.Monad.State.Class
 
 import           System.Directory
-import           System.FilePath (pathSeparators, takeExtension, (</>))
+import           System.FilePath (pathSeparators, takeExtension)
 import           System.IO
 
 import           Database.Persist

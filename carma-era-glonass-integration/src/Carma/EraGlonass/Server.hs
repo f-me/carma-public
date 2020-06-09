@@ -10,7 +10,6 @@ module Carma.EraGlonass.Server
      ) where
 
 import           Data.Proxy
-import           Data.Semigroup ((<>))
 import           Data.Maybe (isNothing)
 import           Data.Aeson (Value (String), encode)
 import           Data.Swagger (Swagger)
@@ -21,7 +20,7 @@ import           Text.InterpolatedString.QM
 
 import           Control.Monad (when, guard)
 import           Control.Monad.Reader (MonadReader, asks, runReaderT, ReaderT)
-import           Control.Monad.Error.Class (MonadError, throwError)
+import           Control.Monad.Error.Class (MonadError)
 import           Control.Monad.Catch (MonadCatch)
 import           Control.Monad.Random.Class (MonadRandom)
 import           Control.Monad.Logger (LogSource)

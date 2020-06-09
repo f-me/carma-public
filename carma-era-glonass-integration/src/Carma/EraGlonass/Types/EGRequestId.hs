@@ -14,7 +14,6 @@ import           GHC.Generics
 import           Data.Proxy
 import           Numeric (showHex)
 import           Data.Char (digitToInt)
-import           Data.Monoid ((<>))
 import           Data.Either.Combinators (mapLeft)
 import           Data.ByteString.Char8 (ByteString, pack)
 import           Data.ByteString.Lazy.Char8 (pack)

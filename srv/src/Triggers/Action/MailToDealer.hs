@@ -5,7 +5,6 @@ import Control.Monad.IO.Class (liftIO)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.InterpolatedString.QM (qns)
-import Data.Monoid ((<>))
 import qualified Data.Aeson as Aeson
 import qualified Data.HashMap.Strict as HM
 import Data.List (foldl')

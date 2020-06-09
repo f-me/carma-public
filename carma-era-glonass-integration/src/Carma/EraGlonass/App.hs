@@ -10,7 +10,6 @@ module Carma.EraGlonass.App
 
 import           Prelude hiding (fail)
 
-import           Data.Function ((&))
 import           Data.Typeable
 import           Data.Time.LocalTime (getCurrentTimeZone)
 import qualified Data.Configurator as Conf

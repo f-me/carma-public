@@ -5,7 +5,6 @@ module Carma.Utils.TypeSafe.KindToType
      ) where
 
 import           Data.Proxy
-import           Data.Kind
 
 
 -- | Descend from kind-level to type-level.

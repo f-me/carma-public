@@ -50,6 +50,7 @@ import           BasicPrelude
 
 import           Control.Concurrent
 import           Control.Concurrent.STM
+import           Control.Exception (onException)
 import           Control.Monad.State.Class
 import           Control.Lens (Lens')
 

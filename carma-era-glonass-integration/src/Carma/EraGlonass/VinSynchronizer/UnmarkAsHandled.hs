@@ -10,7 +10,6 @@ module Carma.EraGlonass.VinSynchronizer.UnmarkAsHandled
      ) where
 
 import           Data.Proxy
-import           Data.Semigroup (Semigroup ((<>)))
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 import           Data.List.NonEmpty (NonEmpty)

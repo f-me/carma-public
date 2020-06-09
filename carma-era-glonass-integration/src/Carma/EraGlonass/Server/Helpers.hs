@@ -8,7 +8,7 @@ import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 
 import           Control.Monad ((>=>))
-import           Control.Monad.Error.Class (MonadError (throwError))
+import           Control.Monad.Error.Class
 import           Control.Monad.Reader (MonadReader, ReaderT)
 import           Control.Monad.Logger (LogSource)
 import           Control.Exception (displayException)

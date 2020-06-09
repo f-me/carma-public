@@ -41,7 +41,6 @@ import Data.List (isSuffixOf)
 import Data.Map as M
 import Data.HashMap.Strict as HM (delete)
 import Data.Maybe as Maybe
-import Data.Monoid ((<>))
 
 import Data.Configurator
 import Database.PostgreSQL.Simple.SqlQQ

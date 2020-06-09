@@ -17,7 +17,6 @@ import           GHC.Generics
 import           GHC.TypeLits
 
 import           Data.Proxy
-import           Data.Semigroup ((<>))
 import           Data.Typeable (Typeable)
 import           Data.Function (fix)
 import           Data.Time.Clock (utctDay)
@@ -662,7 +661,7 @@ synchronizeVins =
               idFieldBranch
                 :: forall model alias c
                  .
-                 ( KnownSymbol <=> '[ c, alias ]
+                 ( KnownSymbol c, KnownSymbol alias
                  , RawPieceConstraint []
                  , ConstructorName (Rep VinToUnmarkModelId) c ~ 'Just c
                  , OneOf model '[ Contract, EraGlonassSynchronizedContract ]

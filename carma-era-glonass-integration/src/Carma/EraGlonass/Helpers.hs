@@ -15,7 +15,6 @@ module Carma.EraGlonass.Helpers
 
 
 import           Data.Proxy
-import           Data.Monoid ((<>))
 import           Data.Aeson
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
