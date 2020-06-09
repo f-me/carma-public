@@ -20,6 +20,7 @@ import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Database.PostgreSQL.Simple.ToField   (ToField(..), Action)
 
 import Data.Dynamic
+import Data.Typeable (TypeRep, typeOf)
 
 import Data.Singletons
 import Data.Singletons.TypeLits

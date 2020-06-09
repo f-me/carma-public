@@ -5,10 +5,11 @@
 module Carma.Model.VinFormat
     ( VinFormat(..)
     , Carma.Model.VinFormat.idents, arc, arcFord
-    , Sing(..)
+    , Sing
     , ContractField
     , FormatFieldAccessor(..)
     , FormatFieldType(..)
+    , SFormatFieldType(..)
     , vinFormatAccessors
     , ffaTitles
     , identModelName
