@@ -149,7 +149,7 @@ class Monad m => MonadPersistentSql m where
   -- Additional for @PersistUniqueRead@ but not part of it
 
   getByValue
-    :: PersistRecordBackend record SqlBackend
+    :: (PersistRecordBackend record SqlBackend, AtLeastOneUniqueKey record)
     => record
     -> ReaderT SqlBackend m (Maybe (Entity record))
   checkUnique
@@ -170,7 +170,7 @@ class Monad m => MonadPersistentSql m where
     => record
     -> ReaderT SqlBackend m (Maybe (Key record))
   upsert
-    :: PersistRecordBackend record SqlBackend
+    :: (PersistRecordBackend record SqlBackend, OnlyOneUniqueKey record)
     => record
     -> [Update record]
     -> ReaderT SqlBackend m (Entity record)
@@ -184,7 +184,7 @@ class Monad m => MonadPersistentSql m where
   -- Additional for @PersistUniqueWrite@ but not part of it
 
   insertBy
-    :: PersistRecordBackend record SqlBackend
+    :: (PersistRecordBackend record SqlBackend, AtLeastOneUniqueKey record)
     => record
     -> ReaderT SqlBackend m (Either (Entity record) (Key record))
   insertUniqueEntity
@@ -200,7 +200,7 @@ class Monad m => MonadPersistentSql m where
     -> record
     -> ReaderT SqlBackend m (Maybe (Unique record))
   onlyUnique
-    :: PersistRecordBackend record SqlBackend
+    :: (PersistRecordBackend record SqlBackend, OnlyOneUniqueKey record)
     => record
     -> ReaderT SqlBackend m (Unique record)
 

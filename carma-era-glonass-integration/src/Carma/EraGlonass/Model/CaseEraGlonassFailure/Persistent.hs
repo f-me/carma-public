@@ -1,6 +1,9 @@
 {-# LANGUAGE DeriveGeneric, GeneralizedNewtypeDeriving, GADTs #-}
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, TypeFamilies #-}
 {-# LANGUAGE QuasiQuotes, TemplateHaskell, ExplicitNamespaces #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent where
 

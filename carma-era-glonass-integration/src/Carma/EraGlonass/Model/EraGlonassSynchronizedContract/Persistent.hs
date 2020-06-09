@@ -2,6 +2,9 @@
 {-# LANGUAGE MultiParamTypeClasses, TypeFamilies #-}
 {-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persistent where
 
