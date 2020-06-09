@@ -524,14 +524,6 @@ printDiffTime :: DiffTime -> String
 printDiffTime t = let (hrs, mis, sec) = diffTimeTohms t
                   in printf "%d:%.2d:%.2d" hrs mis sec
 
-instance ToJSON DiffTime where
-  toJSON t = toJSON (floor $ toRational t :: Integer)
-
-instance FromJSON DiffTime where
-  parseJSON (Aeson.Number s) =
-    return $ secondsToDiffTime $ floor (toRealFloat s :: Double)
-  parseJSON o = fail $ "DiffTime parser: expecting string, but got" ++ show o
-
 instance ToField DiffTime where
   toField t = Plain $ inQuotes $ Builder.fromString $ printDiffTime t
 
