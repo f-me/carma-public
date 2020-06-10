@@ -48,6 +48,9 @@ ghc-options:
   - -O2
   - -funbox-strict-fields
 
+default-extensions:
+  - MonoLocalBinds
+
 library:
   source-dirs: src
 

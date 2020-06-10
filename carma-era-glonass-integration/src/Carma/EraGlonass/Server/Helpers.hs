@@ -17,8 +17,8 @@ import           Servant
 
 import           Database.Persist.Sql (SqlBackend)
 
-import           Carma.Monad.LoggerBus
-import           Carma.Monad.PersistentSql
+import           Carma.Monad.LoggerBus.Class
+import           Carma.EraGlonass.Instance.Persistent (MonadPersistentSql)
 import           Carma.EraGlonass.Types.AppContext (AppContext (..))
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Helpers (runSqlInTime)

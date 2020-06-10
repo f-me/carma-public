@@ -24,18 +24,20 @@ import           Control.Monad.Catch (MonadCatch, MonadThrow (throwM))
 import           Control.Arrow ((&&&), (***), (>>>))
 import           Control.Concurrent.STM.TMVar
 import           Control.Concurrent.STM.TVar
+import           Control.Concurrent.Lifted
 import           Control.Exception (fromException)
 
-import           Database.Persist ((==.), (=.))
-import           Database.Persist.Sql (SqlBackend, fromSqlKey)
+import           Database.Persist ((==.), (=.), selectFirst, update)
+import           Database.Persist.Sql (SqlBackend, fromSqlKey, transactionSave)
 import           Database.Persist.Types (SelectOpt (Asc), Entity (..))
 
 import           Carma.Model.LegacyTypes (Phone (Phone))
 import           Carma.Monad
+import           Carma.Monad.LoggerBus.Class
 import           Carma.Utils
 import           Carma.Utils.StringyEnum
 import           Carma.EraGlonass.Instances ()
-import           Carma.EraGlonass.Instance.Persistent (TimeoutException (..))
+import           Carma.EraGlonass.Instance.Persistent
 import           Carma.EraGlonass.Client
 import           Carma.EraGlonass.Helpers
 import           Carma.EraGlonass.Types.AppContext (AppContext (..))

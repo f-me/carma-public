@@ -56,7 +56,6 @@ executables:
     ghc-options:
       - -threaded
 
-tests:
   location-sharing-integration-test:
     source-dirs: tests/integration
     main: Main.hs

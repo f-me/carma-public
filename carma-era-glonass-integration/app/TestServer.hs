@@ -17,6 +17,7 @@ import           Text.InterpolatedString.QM
 
 import           Control.Monad.Reader
 import           Control.Monad.Trans.Class (lift)
+import           Control.Concurrent.STM (atomically)
 import           Control.Concurrent.STM.TSem
 
 import           System.IO
@@ -24,7 +25,7 @@ import           System.IO
 import           Database.Persist.Sqlite
 
 import           Carma.Monad.LoggerBus
-import           Carma.Monad.STM
+import           Carma.Monad.LoggerBus.Class
 import           Carma.Model.Usermeta.Persistent as Usermeta
 import           Carma.Model.Program.Persistent as Program
 import           Carma.Model.SubProgram.Persistent as SubProgram

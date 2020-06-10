@@ -20,13 +20,15 @@ import           Control.Monad.Reader (MonadReader, ReaderT, asks)
 import           Control.Monad.Catch (MonadThrow (throwM))
 
 import           Database.Persist ((=.), (==.))
-import           Database.Persist.Sql (SqlBackend)
+import           Database.Persist.Sql (SqlBackend, updateWhere, update)
 
 import           Carma.Monad
+import           Carma.Monad.LoggerBus.Class
 import           Carma.Model.Contract.Persistent
 import           Carma.Utils
 import           Carma.Utils.TypeSafe.Generic.DataType
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Instance.Persistent
 import           Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persistent
 import           Carma.EraGlonass.Types.AppContext (AppContext (..))
 import           Carma.EraGlonass.Types.EGBindVehiclesRequest

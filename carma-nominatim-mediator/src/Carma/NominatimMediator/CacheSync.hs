@@ -27,7 +27,7 @@ import           Control.Monad.Trans.Control (MonadBaseControl)
 
 import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Utils
-import           Carma.NominatimMediator.Logger ()
+import           Carma.NominatimMediator.Logger
 import           Carma.Monad
 import           Carma.Utils.Operators
 

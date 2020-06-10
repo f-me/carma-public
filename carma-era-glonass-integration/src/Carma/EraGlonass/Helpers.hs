@@ -25,28 +25,28 @@ import           Control.Monad.Catch (MonadCatch (catch))
 import           Control.Monad.Trans.Class (lift)
 import           Control.Applicative ((<|>))
 import           Control.Concurrent.STM.TVar
+import           Control.Concurrent.Lifted (fork)
 
 import           Control.Exception
                    ( SomeException (SomeException)
                    , displayException
                    )
 
-import           Database.Persist ((==.), (=.))
+import           Database.Persist ((==.), (=.), selectFirst, insert, update)
 import           Database.Persist.Types (Entity (..))
 import           Database.Persist.Sql (SqlBackend, fromSqlKey)
 import           Database.Persist.Types (SelectOpt (Desc))
 
 import           Servant ((:<|>) ((:<|>)))
 
-import           Carma.Monad.STM
 import           Carma.Monad.Thread
-import           Carma.Monad.LoggerBus
-import           Carma.Monad.PersistentSql
+import           Carma.Monad.LoggerBus.Class
 import           Carma.Monad.Clock
 import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.TypeFamilies (OneOf)
 import           Carma.Utils.TypeSafe.Generic.DataType
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Instance.Persistent
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
 import           Carma.EraGlonass.Types.AppContext (AppContext (..))
 import           Carma.EraGlonass.Types.EGIntegrationPoint (EGIntegrationPoint)

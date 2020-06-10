@@ -1,8 +1,9 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 
 module Carma.Monad.ServantClient
-     ( MonadServantClient (..)
+     ( MonadServantClient
+     , runClientM
      , ClientError
      , ClientEnv
      , ClientM
@@ -14,9 +15,8 @@ import qualified Servant.Client (runClientM)
 import           Servant.Client (ClientError, ClientM, ClientEnv)
 
 
-class Monad m => MonadServantClient m where
-  runClientM :: ClientM a -> ClientEnv -> m (Either ClientError a)
+type MonadServantClient m = (Monad m, MonadIO m)
 
-
-instance (Monad m, MonadIO m) => MonadServantClient m where
-  runClientM x = liftIO . Servant.Client.runClientM x
+runClientM :: MonadServantClient m
+           => ClientM a -> ClientEnv -> m (Either ClientError a)
+runClientM x = liftIO . Servant.Client.runClientM x

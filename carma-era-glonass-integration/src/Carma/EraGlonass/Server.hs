@@ -27,7 +27,7 @@ import           Control.Monad.Logger (LogSource)
 import           Control.Concurrent.STM.TMVar
 import           Control.Concurrent.STM.TVar
 
-import           Database.Persist ((==.))
+import           Database.Persist ((==.), count, selectList)
 import           Database.Persist.Types
 import qualified Database.Esqueleto as E
 
@@ -37,14 +37,12 @@ import           Network.HTTP.Media (renderHeader)
 import           Servant
 import           Servant.Swagger (HasSwagger (toSwagger))
 
-import           Carma.Monad.STM
 import           Carma.Monad.Clock
 import           Carma.Monad.Thread
-import           Carma.Monad.LoggerBus (MonadLoggerBus)
-import qualified Carma.Monad.LoggerBus as LoggerBus
-import           Carma.Monad.PersistentSql
-import           Carma.Monad.Esqueleto
+import           Carma.Monad.LoggerBus.Class (MonadLoggerBus)
+import qualified Carma.Monad.LoggerBus.Class as LoggerBus
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Instance.Persistent
 import           Carma.EraGlonass.Helpers
 import           Carma.EraGlonass.Routes
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
@@ -102,7 +100,6 @@ type ServerMonad m =
    , MonadError ServerError m
    , MonadCatch m
    , MonadPersistentSql m
-   , MonadEsqueleto m
    , MonadClock m
    , MonadRandom m
    , MonadThread m
@@ -197,7 +194,6 @@ getFailuresList
    , MonadLoggerBus m
    , MonadError ServerError m
    , MonadPersistentSql m
-   , MonadEsqueleto m
    )
   => Maybe Word
   -> m [Entity CaseEraGlonassFailure]
@@ -218,7 +214,7 @@ getFailuresList (Just n) = do
     runSqlProtected logSrc [qn| Failed to request EG failures list! |] $ do
       -- To avoid @null@s being placed on top of the order
       withRepeats <-
-        esqueletoSelect $
+        E.select $
         E.from $ \failure -> do
 
         E.where_ ( E.not_ $ E.isNothing $

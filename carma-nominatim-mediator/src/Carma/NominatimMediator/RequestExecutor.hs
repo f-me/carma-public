@@ -13,6 +13,7 @@ import qualified Data.Map as M
 import qualified Data.Time.Clock as Time
 import           Text.InterpolatedString.QM
 
+import           Control.Concurrent.Lifted
 import           Control.Monad
 import qualified Control.Monad.State.Strict as S
 import           Control.Monad.Reader.Class (MonadReader, asks)
@@ -21,7 +22,7 @@ import           Control.Monad.IO.Class (MonadIO)
 
 import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Utils
-import           Carma.NominatimMediator.Logger ()
+import           Carma.NominatimMediator.Logger
 import           Carma.Monad
 
 

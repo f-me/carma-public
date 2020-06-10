@@ -1,9 +1,7 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 
-module Carma.Monad.File
-     ( MonadFile (..)
-     ) where
+module Carma.Monad.File where
 
 import           Prelude hiding (readFile, writeFile)
 import qualified Prelude
@@ -13,13 +11,13 @@ import           Control.Monad.IO.Class (MonadIO, liftIO)
 import qualified System.Directory (doesFileExist)
 
 
-class Monad m => MonadFile m where
-  readFile      :: FilePath -> m String
-  writeFile     :: FilePath -> String -> m ()
-  doesFileExist :: FilePath -> m Bool
+type MonadFile m = (Monad m, MonadIO m)
 
+readFile      :: MonadFile m => FilePath -> m String
+readFile      = liftIO . Prelude.readFile
 
-instance (Monad m, MonadIO m) => MonadFile m where
-  readFile      = liftIO . Prelude.readFile
-  writeFile x   = liftIO . Prelude.writeFile x
-  doesFileExist = liftIO . System.Directory.doesFileExist
+writeFile     :: MonadFile m => FilePath -> String -> m ()
+writeFile x   = liftIO . Prelude.writeFile x
+
+doesFileExist :: MonadFile m => FilePath -> m Bool
+doesFileExist = liftIO . System.Directory.doesFileExist

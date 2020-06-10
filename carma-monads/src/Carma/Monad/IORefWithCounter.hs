@@ -1,5 +1,5 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 
 module Carma.Monad.IORefWithCounter
      ( -- Constructor isn't exported.
@@ -9,7 +9,12 @@ module Carma.Monad.IORefWithCounter
        -- `MonadIORefWithCounter` and do not forget to update a counter if you
        -- modify something.
        IORefWithCounter
-     , MonadIORefWithCounter (..)
+     , MonadIORefWithCounter
+     , newIORefWithCounter
+     , readIORefWithCounter
+     , readIORefWithCounter'
+     , modifyIORefWithCounter'
+     , atomicModifyIORefWithCounter'
      ) where
 
 import           Data.IORef
@@ -21,33 +26,33 @@ import           Carma.Utils
 
 newtype IORefWithCounter a = IORefWithCounter (IORef (Integer, a))
 
-
-class Monad m => MonadIORefWithCounter m where
-  newIORefWithCounter           :: a -> m (IORefWithCounter a)
-
-  {-# INLINE readIORefWithCounter #-}
-  readIORefWithCounter          :: IORefWithCounter a -> m a
-  readIORefWithCounter x        = readIORefWithCounter' x <&!> snd
-
-  readIORefWithCounter'         :: IORefWithCounter a -> m (Integer, a)
-
-  -- `Eq` is needed to check if something changed to increment the counter
-  modifyIORefWithCounter'       :: Eq a
-                                => IORefWithCounter a -> (a -> a) -> m ()
-
-  -- `Eq` is needed to check if something changed to increment the counter
-  atomicModifyIORefWithCounter' :: Eq a
-                                => IORefWithCounter a -> (a -> (a, b)) -> m b
+type MonadIORefWithCounter m = MonadIO m
 
 
-instance (Monad m, MonadIO m) => MonadIORefWithCounter m where
-  newIORefWithCounter x = liftIO $ newIORef (0, x) <&!> IORefWithCounter
-  readIORefWithCounter' (IORefWithCounter x) = liftIO $ readIORef x
+newIORefWithCounter :: MonadIORefWithCounter m => a -> m (IORefWithCounter a)
+newIORefWithCounter x = liftIO $ newIORef (0, x) <&!> IORefWithCounter
 
-  modifyIORefWithCounter' (IORefWithCounter x) f =
-    liftIO $ x `modifyIORef'`
-      \(c, v) -> let v' = f v in (if v' /= v then succ c else c, v')
 
-  atomicModifyIORefWithCounter' (IORefWithCounter x) f =
-    liftIO $ x `atomicModifyIORef'`
-      \(c, v) -> let (v', a) = f v in ((if v' /= v then succ c else c, v'), a)
+{-# INLINE readIORefWithCounter #-}
+readIORefWithCounter :: MonadIORefWithCounter m => IORefWithCounter a -> m a
+readIORefWithCounter x = readIORefWithCounter' x <&!> snd
+
+readIORefWithCounter' :: MonadIORefWithCounter m
+                      => IORefWithCounter a -> m (Integer, a)
+readIORefWithCounter' (IORefWithCounter r) = liftIO $ readIORef r
+
+
+-- `Eq` is needed to check if something changed to increment the counter
+modifyIORefWithCounter' :: (Eq a, MonadIORefWithCounter m)
+                        => IORefWithCounter a -> (a -> a) -> m ()
+modifyIORefWithCounter' (IORefWithCounter x) f =
+  liftIO $ x `modifyIORef'`
+    \(c, v) -> let v' = f v in (if v' /= v then succ c else c, v')
+
+
+-- `Eq` is needed to check if something changed to increment the counter
+atomicModifyIORefWithCounter' :: (Eq a, MonadIORefWithCounter m)
+                              => IORefWithCounter a -> (a -> (a, b)) -> m b
+atomicModifyIORefWithCounter' (IORefWithCounter x) f =
+  liftIO $ x `atomicModifyIORef'`
+    \(c, v) -> let (v', a) = f v in ((if v' /= v then succ c else c, v'), a)

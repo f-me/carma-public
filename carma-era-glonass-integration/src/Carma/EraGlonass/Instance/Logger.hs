@@ -15,11 +15,12 @@ import           Database.Persist.Sql (SqlBackend)
 
 import           Carma.EraGlonass.Logger.LoggerForward
 import           Carma.EraGlonass.Types.AppContext (AppContext (loggerBus))
+import           Carma.Monad.LoggerBus
+import           Carma.Monad.LoggerBus.Class as LB
 import           Carma.Monad.LoggerBus.Helpers (formatTime)
 import           Carma.Monad.LoggerBus.Types
-import           Carma.Monad.LoggerBus as LB
 import           Carma.Monad.Clock
-import           Carma.Monad.STM
+import           Carma.Monad.Thread (MonadSTM, atomically)
 
 
 -- | Regular monad of this microservice.

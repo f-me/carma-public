@@ -19,17 +19,15 @@ import           Control.Monad.Error.Class (MonadError, catchError)
 import           Control.Monad.Catch (MonadCatch)
 import           Control.Exception (displayException)
 
-import           Database.Persist ((==.), (>=.))
+import           Database.Persist ((==.), (>=.), selectFirst, insert)
 import           Database.Persist.Sql (SqlBackend, fromSqlKey)
 import           Database.Persist.Types
 
 import           Servant
 
-import           Carma.Monad.STM
 import           Carma.Monad.Clock
 import           Carma.Monad.Thread
-import           Carma.Monad.LoggerBus (MonadLoggerBus)
-import           Carma.Monad.PersistentSql
+import           Carma.Monad.LoggerBus.Class (MonadLoggerBus)
 import           Carma.Model.Case.Persistent
 import           Carma.Model.LegacyTypes
 import           Carma.Model.CaseSource.Persistent
@@ -43,6 +41,7 @@ import           Carma.Model.Role.Persistent
 import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.Generic.DataType
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Instance.Persistent
 import           Carma.EraGlonass.Model.CaseEraGlonassCreateRequest.Persistent
 import           Carma.EraGlonass.Helpers
 import           Carma.EraGlonass.Server.Helpers

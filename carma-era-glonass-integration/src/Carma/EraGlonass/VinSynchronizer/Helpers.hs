@@ -52,8 +52,10 @@ import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.Generic.DataType
 import           Carma.Utils.TypeSafe.TypeFamilies (OneOf)
 import           Carma.Monad
+import           Carma.Monad.LoggerBus.Class
 import           Carma.Model.Contract.Persistent
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Instance.Persistent (MonadPersistentSql)
 import           Carma.EraGlonass.Helpers
 import           Carma.EraGlonass.Types.AppContext (AppContext)
 import           Carma.EraGlonass.Types.EGVin

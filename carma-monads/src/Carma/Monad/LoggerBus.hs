@@ -1,9 +1,9 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Carma.Monad.LoggerBus
-     ( module Carma.Monad.LoggerBus.Class
-     , genericMVarLog
+     ( genericMVarLog
      , genericMVarReadLog
      , genericTQueueLog
      , genericTQueueReadLog
@@ -14,14 +14,12 @@ import           Text.InterpolatedString.QM
 
 import           Control.Monad
 import           Control.Monad.Logger (LogSource)
+import           Control.Concurrent.Lifted
 import           Control.Concurrent.STM.TQueue
 
-import           Carma.Monad.STM
-import           Carma.Monad.MVar
 import           Carma.Monad.Clock
 import           Carma.Monad.Thread
 import           Carma.Monad.LoggerBus.Types
-import           Carma.Monad.LoggerBus.Class
 import           Carma.Monad.LoggerBus.Helpers
 
 

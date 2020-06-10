@@ -27,6 +27,7 @@ import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 import qualified Data.Time.Format as Time
 
+import           Control.Concurrent.Lifted
 import           Control.Monad
 import           Control.Monad.Logger (runStdoutLoggingT)
 import           Control.Monad.Reader (MonadReader, asks, ReaderT, runReaderT)
@@ -45,7 +46,7 @@ import           Network.HTTP.Client (Manager, newManager)
 import           Network.HTTP.Client.TLS (tlsManagerSettings)
 
 import           Carma.NominatimMediator.Types
-import           Carma.NominatimMediator.Logger ()
+import           Carma.NominatimMediator.Logger
 import           Carma.NominatimMediator.CacheGC
 import           Carma.NominatimMediator.CacheSync
 import           Carma.NominatimMediator.Utils
@@ -180,8 +181,8 @@ main = do
 
   flip runReaderT appCtx $ do
 
-    -- Running logger thread
-    _ <- fork $ runStdoutLoggingT $ writeLoggerBusEventsToMonadLogger
+    -- Run logger thread
+    _ <- fork $ runStdoutLoggingT $ writeLoggerBusEventsToMonadLogger readLog
 
     -- Trying to fill responses cache or/and statistics with initial snapshot
     case (cacheFile, statisticsFile) of

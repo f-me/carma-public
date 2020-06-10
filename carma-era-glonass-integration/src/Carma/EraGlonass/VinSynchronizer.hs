@@ -31,15 +31,17 @@ import           Control.Monad
 import           Control.Monad.Trans.Class (lift)
 import           Control.Monad.Reader (MonadReader, ReaderT, asks)
 import           Control.Monad.Catch (MonadCatch)
+import           Control.Concurrent.Lifted (killThread, forkFinally)
 import           Control.Concurrent.STM.TMVar
 import           Control.Concurrent.STM.TVar
-import           Control.Exception (SomeException, fromException)
+import           Control.Exception (fromException)
 
-import           Database.Persist.Class (PersistEntity, EntityField)
-import           Database.Persist.Sql (SqlBackend)
-import           Database.Esqueleto (Single (..))
+import           Database.Persist.Class (PersistEntity)
+import           Database.Persist.Sql (SqlBackend, transactionSave)
+import           Database.Esqueleto (Single (..), rawSql)
 
 import           Carma.Monad
+import           Carma.Monad.LoggerBus.Class
 import           Carma.Model.Contract.Persistent
 import           Carma.Model.Program.Persistent
 import           Carma.Model.SubProgram.Persistent
@@ -69,7 +71,6 @@ runVinSynchronizer
    , MonadClock m
    , MonadDelay m -- To wait before synchronizations.
    , MonadPersistentSql m
-   , MonadRawEsqueleto m
    , MonadServantClient m
    , MonadThread m
    , MonadCatch m
@@ -280,7 +281,6 @@ synchronizeVins
    ( MonadReader AppContext m
    , MonadLoggerBus m
    , MonadPersistentSql m
-   , MonadRawEsqueleto m
    , MonadServantClient m
    , MonadClock m
    , MonadCatch m
@@ -469,7 +469,7 @@ synchronizeVins =
     in
       inferTypes (Proxy @Contract, Proxy @EraGlonassSynchronizedContract)
                  (ContractId,      EraGlonassSynchronizedContractId)
-        $ uncurry rawEsqueletoSql
+        $ uncurry rawSql
         $ buildRawSql
         $
         [ rawWith $
@@ -797,7 +797,7 @@ synchronizeVins =
              inferTypes Proxy _ = id
            in
              inferTypes (Proxy @Contract) ContractId
-               $ uncurry rawEsqueletoSql
+               $ uncurry rawSql
                $ buildRawSql
                $
                let

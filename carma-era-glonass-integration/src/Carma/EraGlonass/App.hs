@@ -24,20 +24,16 @@ import           Control.Monad.Logger
                    , runStdoutLoggingT
                    , runStderrLoggingT
                    )
-import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Control.Monad.Random.Class (MonadRandom)
 import           Control.Monad.Catch
 import           Control.Monad.Fail (MonadFail (fail))
+import           Control.Concurrent.Lifted (killThread, throwTo)
 import           Control.Concurrent.MVar (tryReadMVar)
 import           Control.Concurrent.STM.TQueue
 import           Control.Concurrent.STM.TMVar
 import           Control.Concurrent.STM.TVar
 import           Control.Concurrent.STM.TSem
-import           Control.Exception
-                   ( Exception (displayException)
-                   , SomeException (..)
-                   )
 
 import           Foreign.C.Types (CInt (..))
 
@@ -62,10 +58,8 @@ import           Carma.Utils.Operators
 import           Carma.Utils.MonadLogger.Syslog (runSyslogLoggingT)
 import           Carma.Monad.LoggerBus.Types (LogMessage)
 import           Carma.Monad.LoggerBus.MonadLogger
-import           Carma.Monad.LoggerBus
+import           Carma.Monad.LoggerBus.Class
 import           Carma.Monad.Thread
-import           Carma.Monad.Delay
-import           Carma.Monad.STM
 import           Carma.Monad.Concurrently
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Server (serverApplicaton)
@@ -185,7 +179,9 @@ app appMode' withDbConnection = do
   -- Running logger thread
   (_, loggerThreadWaitBus) <-
     forkWithWaitBus $ do
-      let logReader = writeLoggerBusEventsToMonadLogger `runReaderT` loggerBus'
+      let logReader = runReaderT
+            (writeLoggerBusEventsToMonadLogger readLog)
+            loggerBus'
       loggerSink logReader `catch` \(SomeException e) ->
         liftIO $ hPutStrLn stderr [qms|
           Logger reader thread is failed with an unexpected exception:
