@@ -271,12 +271,10 @@ data Dsl m k where
   UpdateUser  :: Patch Usermeta -> k -> Dsl m k
   WsMessage   :: k -> Dsl m k
   DoApp       :: AppHandler r -> (r -> r') -> Dsl m r'
+  ConsistencyBUG :: String -> Dsl m a
+  -- ^ This should be used only in really exceptional cases as it can breake
+  -- transaction transparency.
 
-deriving instance Typeable Dsl
-
--- deriving instance Functor  (Dsl m)
--- seems we can do this automatically in GHC 7.8
--- https://ghc.haskell.org/trac/ghc/ticket/8678
 instance Functor (Dsl m) where
   fmap fn = \case
     ModState  f   k -> ModState  f   $ fn . k
@@ -289,6 +287,9 @@ instance Functor (Dsl m) where
     UpdateUser p  k -> UpdateUser p  $ fn   k
     WsMessage     k -> WsMessage     $ fn   k
     DoApp      a  k -> DoApp      a  $ fn . k
+
+instance MonadFail (Free (Dsl m)) where
+  fail = Free . ConsistencyBUG
 
 
 data DslState m = DslState
@@ -381,3 +382,5 @@ evalDsl = \case
       evalDsl k
 
     DoApp a k -> evalDsl =<< k <$> lift a
+
+    ConsistencyBUG err -> error $ "ConsistencyBUG: " ++ err
