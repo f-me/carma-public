@@ -763,7 +763,7 @@ runCreateTriggers patch =
       ("" -- pass dummy field name
       : HM.keys (untypedPatch patch) -- just to run PartnerDelay tirggers
       )
-      (emptyDslState undefined patch)
+      (DslState undefined patch)
 
 
 runUpdateTriggers
@@ -775,7 +775,7 @@ runUpdateTriggers ident patch =
     <$> runTriggers beforeUpdate afterUpdate
       (getPatch >>= dbUpdate ident >> return ())
       (HM.keys $ untypedPatch patch)
-      (emptyDslState ident patch)
+      (DslState ident patch)
 
 
 runTriggers

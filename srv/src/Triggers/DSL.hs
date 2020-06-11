@@ -1,15 +1,13 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE StandaloneDeriving, DeriveDataTypeable #-}
+{-# LANGUAGE StandaloneDeriving, DeriveFunctor #-}
 
 module Triggers.DSL
     (
       -- * DSL evaluator
-      TriggerRes
-    , Dsl
+      Dsl
     , DslState(..)
-    , emptyDslState
     , DslM, runDslM
     , evalDsl
     , inParentContext
@@ -27,9 +25,6 @@ module Triggers.DSL
     , createSnapUser
     , updateSnapUserFromUsermeta
 
-    , tError
-    , tOk
-
       -- ** Database access
     , dbCreate
     , dbRead
@@ -44,7 +39,7 @@ module Triggers.DSL
     , getNow
     , getCityWeather
 
-    , inFuture
+    -- ** Embed arbitrary AppHandler action into DSL
     , doApp
     )
 
@@ -101,8 +96,6 @@ import Carma.Model.LegacyTypes (Password(..))
 import qualified AppHandlers.Users as Users
 import qualified Utils.Events as Evt (logCRUDState)
 
-type TriggerRes m = Either (Int,String) (Patch m)
-
 
 -- DSL operations
 ----------------------------------------------------------------------
@@ -141,14 +134,6 @@ updateSnapUserFromUsermeta = do
   u <- getIdent >>= dbRead
   let u' = maybe u (\p -> Patch.put Usermeta.password p u) maybePass
   liftFree (UpdateUser u' ())
-
-
-tError :: Int -> String -> Free (Dsl m) (TriggerRes m)
-tError httpCode msg = return $ Left (httpCode, msg)
-
-tOk :: Free (Dsl m) (TriggerRes m)
-tOk = Right <$> getPatch
-
 
 dbCreate :: Model m => Patch m -> Free (Dsl n) (IdentI m)
 dbCreate p = liftFree (DbCreate p id)
@@ -241,13 +226,6 @@ getCityWeather city = liftFree (DoApp action id)
                  Right w -> Right w
                  Left e  -> Left $ show e
 
-
-inFuture :: (AppHandler (IO ())) -> Free (Dsl m) ()
-inFuture f
-  = liftFree
-  $ ModState (\st -> (st{st_futur = f : st_futur st}, ())) id
-
-
 liftFree :: Functor f => f a -> Free f a
 liftFree = Free . fmap Pure
 
@@ -275,31 +253,16 @@ data Dsl m k where
   -- ^ This should be used only in really exceptional cases as it can breake
   -- transaction transparency.
 
-instance Functor (Dsl m) where
-  fmap fn = \case
-    ModState  f   k -> ModState  f   $ fn . k
-    DbCreate  p   k -> DbCreate  p   $ fn . k
-    DbRead    i   k -> DbRead i      $ fn . k
-    DbUpdate  i p k -> DbUpdate  i p $ fn . k
-    DbIO      q   k -> DbIO q        $ fn . k
-    CurrentUser   k -> CurrentUser   $ fn . k
-    CreateUser l  k -> CreateUser l  $ fn . k
-    UpdateUser p  k -> UpdateUser p  $ fn   k
-    WsMessage     k -> WsMessage     $ fn   k
-    DoApp      a  k -> DoApp      a  $ fn . k
+deriving instance Functor (Dsl m)
 
 instance MonadFail (Free (Dsl m)) where
   fail = Free . ConsistencyBUG
 
 
 data DslState m = DslState
-  { st_futur :: [AppHandler (IO ())]
-  , st_ident :: IdentI m
+  { st_ident :: IdentI m
   , st_patch :: Patch m
   }
-
-emptyDslState :: IdentI m -> Patch m -> DslState m
-emptyDslState = DslState []
 
 type DslM m res = Free (Dsl m) res
 
@@ -323,7 +286,7 @@ runDb f k = (lift $ PS.liftPG' f) >>= \case
   Left err  -> error $ show err -- FIXME: I don't know what to do
 
 
--- Our Dsl is evaluated in @AppHandler@ context, so it have access to IO and
+-- Our Dsl is evaluated in @AppHandler@ context, so it has access to IO and
 -- Snap's state.
 evalDsl
   :: forall m res . Model m
