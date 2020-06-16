@@ -40,6 +40,7 @@ realMain configPath = do
     <*> Config.require conf "http.port"
     <*> Config.require conf "url.prefix"
     <*> (Config.require conf "html.index" >>= T.readFile)
+    <*> (Config.require conf "html.err404" >>= T.readFile)
 
   startLogThread
   -- Compose and send messages for location requests.
