@@ -11,25 +11,31 @@ class AddressesDict extends m.dict
 
   find: debounce 1200, (q, cb, opt) ->
     return cb({}) if q.length < 4 and not opt?.force
-    @addresses = ["aaa", "aaa aaa aaa"]
 #curl -X POST \
 #  -H "Content-Type: application/json" \
 #  -H "Accept: application/json" \
 #  -H "Authorization: Token ${API_KEY}" \
 #  -d '{ "query": "москва серпуховская" }' \
 #  https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address
+    dataForDD =
+           query: q
+    tempAddresses = []
     objForDD =
            url: "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address"
+           async: false
            type: "post"
-           data:
-                 query: q
+           contentType: "application/json"
+           data: JSON.stringify(dataForDD)
            headers:
                     Authorization: "Token e0fb6d9a7a7920405c3eeefde7e7d6b529b2b2b9"
            dataType: "json"
            success:  (data) ->
                                console.info(data)
+                               console.info ("suggestion: "+x.value) for x in data.suggestions
+                               tempAddresses = (x.value for x in data.suggestions)
     console.info (objForDD)
-    $.ajax
+    $.ajax (objForDD)
+    @addresses = tempAddresses
     return cb(@addresses)
 
 #    processResponse = (r) =>
