@@ -8,6 +8,7 @@ class AddressesDict extends m.dict
     @kvm = @opts.kvm
     @Dict = require "carma/dictionaries"
     @addresses = []
+    @suggestions = []
 
   find: debounce 1200, (q, cb, opt) ->
     return cb({}) if q.length < 4 and not opt?.force
@@ -19,7 +20,7 @@ class AddressesDict extends m.dict
 #  https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address
     dataForDD =
            query: q
-    tempAddresses = []
+    tempSuggestions = []
     objForDD =
            url: "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address"
            async: false
@@ -30,12 +31,10 @@ class AddressesDict extends m.dict
                     Authorization: "Token e0fb6d9a7a7920405c3eeefde7e7d6b529b2b2b9"
            dataType: "json"
            success:  (data) ->
-                               console.info(data)
-                               console.info ("suggestion: "+x.value) for x in data.suggestions
-                               tempAddresses = (x.value for x in data.suggestions)
-    console.info (objForDD)
+                               tempSuggestions = data.suggestions
     $.ajax (objForDD)
-    @addresses = tempAddresses
+    @addresses = (x.value for x in data.suggestions)
+    @suggestions = tempSuggestions
     return cb(@addresses)
 
 #    processResponse = (r) =>
