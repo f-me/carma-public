@@ -286,6 +286,7 @@ nextState lastState' delayed' evt mname patch =
 
     change ([Ready] >>> Busy) $ do
       on Update $ Fields [field Action.openTime]
+      on Create $ Fields [field Action.openTime]
 
     change ([LoggedOut] >>> Ready)     $ on Login  NoModel
     change (allStates   >>> LoggedOut) $ on Logout NoModel
