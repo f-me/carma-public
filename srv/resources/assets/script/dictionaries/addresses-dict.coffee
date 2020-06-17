@@ -18,20 +18,16 @@ class AddressesDict extends m.dict
 #  -H "Authorization: Token ${API_KEY}" \
 #  -d '{ "query": "москва серпуховская" }' \
 #  https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address
-    $.ajax({
-      url: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address',
-      type: 'post',
-      data: {
-          query: q
-      },
-      headers: {
-          Authorization: 'Token e0fb6d9a7a7920405c3eeefde7e7d6b529b2b2b9' // token for serguey zefirov
-      },
-      dataType: 'json',
-      success: function (data) {
-          console.info(data);
-      }
-    });
+    $.ajax
+           url: "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address"
+           type: "post"
+           data:
+                 query: q
+           headers:
+                    Authorization: "Token e0fb6d9a7a7920405c3eeefde7e7d6b529b2b2b9"
+           dataType: "json"
+           success:  (data) ->
+                               console.info(data);
     return cb(@addresses)
 
 #    processResponse = (r) =>
