@@ -18,7 +18,7 @@ class AddressesDict extends m.dict
 #  -H "Authorization: Token ${API_KEY}" \
 #  -d '{ "query": "москва серпуховская" }' \
 #  https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address
-    $.ajax
+    objForDD =
            url: "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address"
            type: "post"
            data:
@@ -27,7 +27,9 @@ class AddressesDict extends m.dict
                     Authorization: "Token e0fb6d9a7a7920405c3eeefde7e7d6b529b2b2b9"
            dataType: "json"
            success:  (data) ->
-                               console.info(data);
+                               console.info(data)
+    console.info (objForDD)
+    $.ajax
     return cb(@addresses)
 
 #    processResponse = (r) =>
