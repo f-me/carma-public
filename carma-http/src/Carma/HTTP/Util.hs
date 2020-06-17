@@ -1,6 +1,5 @@
 module Carma.HTTP.Util
-    (
-      mkRequestWithBody
+    ( mkRequestWithBody
     )
 
 where
@@ -17,12 +16,13 @@ mkRequestWithBody :: String
                   -> RequestMethod
                   -> Maybe (String, String)
                   -- ^ Content-type header value and request body.
+                  -> [Header]
                   -> Request_String
-mkRequestWithBody urlString method payload =
+mkRequestWithBody urlString method payload headers =
   case parseURI urlString of
     Nothing -> error ("mkRequestWithBody: Not a valid URL - " ++ urlString)
     Just u  -> case payload of
                  Just tb -> setRequestBody rq tb
                  Nothing -> rq
                  where
-                   rq = mkRequest method u
+                   rq = Request u method headers ""

@@ -57,7 +57,7 @@ import qualified Data.Text                  as T
 import qualified Data.Text.Encoding         as T
 import qualified Data.Text.Read             as T
 
-import           Network.HTTP
+import           Network.HTTP hiding (getHeaders)
 
 import           Carma.HTTP.Base
 import           Carma.HTTP.Util
@@ -82,6 +82,7 @@ instanceRequest :: String
                 -> CarmaIO (Int, Maybe InstanceData)
 instanceRequest model rid rm row = do
   cp <- getPort
+  headers <- getHeaders
   let uri =
           case rid of
             Just n  -> modelPidURI cp model n
@@ -90,9 +91,9 @@ instanceRequest model rid rm row = do
   rs <- liftIO $ sendHTTP s $
         case row of
           Just payload ->
-              mkRequestWithBody uri rm $
-              Just ("application/json", B8L.unpack $ encode payload)
-          Nothing -> mkRequestWithBody uri rm Nothing
+              mkRequestWithBody uri rm
+                (Just ("application/json", B8L.unpack $ encode payload)) headers
+          Nothing -> mkRequestWithBody uri rm Nothing headers
   inst <- liftIO $ (decode' . B8L.pack) <$> getResponseBody rs
   return $ case rid of
     -- We already know id
