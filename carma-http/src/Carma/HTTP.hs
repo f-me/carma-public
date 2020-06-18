@@ -92,7 +92,7 @@ instanceRequest model rid rm row = do
         case row of
           Just payload ->
               mkRequestWithBody uri rm
-                (Just ("application/json", B8L.unpack $ encode payload)) headers
+                (Just ("application/json; charset=utf-8", B8L.unpack $ encode payload)) headers
           Nothing -> mkRequestWithBody uri rm Nothing headers
   inst <- liftIO $ (decode' . B8L.pack) <$> getResponseBody rs
   return $ case rid of
