@@ -151,7 +151,7 @@ instanceRequest rid rm row = do
       case guard (rm /= GET) >> row of
            Just payload ->
              mkRequestWithBody uri rm 
-               (Just ("application/json", BSL.unpack $ encode payload))
+               (Just ("application/json; charset=utf-8", BSL.unpack $ encode payload))
                headers
 
            Nothing -> mkRequestWithBody uri rm Nothing headers
