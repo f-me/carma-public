@@ -82,8 +82,8 @@ executables:
     ghc-options: [-threaded]
 
   carma-era-glonass-integration-test-server:
-    source-dirs: app
-    main: TestServer.hs
+    source-dirs: test-server
+    main: Main.hs
     dependencies:
       - carma-era-glonass-integration
       - persistent-sqlite

@@ -16,7 +16,6 @@ import           Data.Typeable
 import           Text.InterpolatedString.QM
 
 import           Control.Monad.Reader
-import           Control.Monad.Trans.Class (lift)
 import           Control.Concurrent.STM (atomically)
 import           Control.Concurrent.STM.TSem
 
@@ -24,7 +23,6 @@ import           System.IO
 
 import           Database.Persist.Sqlite
 
-import           Carma.Monad.LoggerBus
 import           Carma.Monad.LoggerBus.Class
 import           Carma.Model.Usermeta.Persistent as Usermeta
 import           Carma.Model.Program.Persistent as Program
@@ -182,5 +180,5 @@ main = do
           insertKey front CaseStatus { caseStatusLabel = "front-office" }
 
 
-        dbLock <- atomically $ newTSem 1
+        dbLock <- liftIO $ atomically $ newTSem 1
         lift $ withDbConnection $ DBConnection dbLock sqliteConnection
