@@ -20,7 +20,7 @@ import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 
 import           Control.Monad (void)
-import           Control.Monad.Reader (MonadReader, ReaderT, asks)
+import           Control.Monad.Reader (MonadReader, asks)
 import           Control.Monad.Catch (MonadCatch (catch))
 import           Control.Monad.Trans.Class (lift)
 import           Control.Applicative ((<|>))
@@ -34,7 +34,7 @@ import           Control.Exception
 
 import           Database.Persist ((==.), (=.), selectFirst, insert, update)
 import           Database.Persist.Types (Entity (..))
-import           Database.Persist.Sql (SqlBackend, fromSqlKey)
+import           Database.Persist.Sql (fromSqlKey)
 import           Database.Persist.Types (SelectOpt (Desc))
 
 import           Servant ((:<|>) ((:<|>)))
@@ -85,7 +85,7 @@ inBackground m = do
 
 runSqlInTime
   :: (MonadReader AppContext m, MonadPersistentSql m)
-  => ReaderT SqlBackend m a
+  => DBAction a
   -> m (Either SomeException a)
 
 runSqlInTime m = asks dbRequestTimeout >>= flip runSqlTimeout m
@@ -142,7 +142,7 @@ reportToHouston body integrationPoint comment = go where
   go :: m ()
   go = void $ inBackground $ runSqlInTime transaction >>= resolve
 
-  transaction :: ReaderT SqlBackend m (Bool, CaseEraGlonassFailureId)
+  transaction :: DBAction (Bool, CaseEraGlonassFailureId)
   transaction = do
     ctime <- lift getCurrentTime
     let CaseEraGlonassFailure {..} = record ctime

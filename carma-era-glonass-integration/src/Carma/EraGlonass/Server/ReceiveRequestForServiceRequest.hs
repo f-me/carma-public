@@ -101,7 +101,7 @@ receiveRequestForServiceRequest
 
           throwError e -- Throw it back again.
 
-    let handleTransaction :: (UTCTime -> ReaderT SqlBackend m ()) -> m ()
+    let handleTransaction :: (UTCTime -> DBAction ()) -> m ()
         handleTransaction m = flip catchError errHandler $ do
           time <- getCurrentTime
           runSqlProtected logSrc [qm| Transaction is failed! |] $ m time

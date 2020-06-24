@@ -50,7 +50,7 @@ import           Carma.Utils.TypeSafe.Generic.DataType
 import           Carma.Utils.TypeSafe.TypeFamilies
 import           Carma.Utils.Persistent.RawSqlQueryConstructor
 import           Carma.EraGlonass.Instances ()
-import           Carma.EraGlonass.Instance.Persistent (TimeoutException (..))
+import           Carma.EraGlonass.Instance.Persistent
 import           Carma.EraGlonass.Helpers
 import           Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persistent
 import           Carma.EraGlonass.VinSynchronizer.Types

@@ -3,7 +3,7 @@
 
 module Carma.EraGlonass.Instance.Persistent
      ( MonadPersistentSql
-     , runSql
+     , DBAction
      , runSqlTimeout
      , TimeoutException (..)
      ) where
@@ -12,16 +12,16 @@ import           Data.Typeable
 import           Data.Either (isRight)
 import qualified Data.Pool as P
 
+import           Control.Monad.Except
 import           Control.Exception.Lifted
-import           Control.Monad.IO.Class (MonadIO (liftIO))
-import           Control.Monad.IO.Unlift (MonadUnliftIO)
-import           Control.Monad.Reader (ReaderT, MonadReader, asks)
+import           Control.Monad.Reader hiding (local)
 import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Control.Concurrent.Lifted
 import           Control.Concurrent.STM.TSem
 
 import           System.Timeout (timeout)
 
+import           Servant (ServerError)
 import qualified Database.Persist.Sql as DB
 
 import           Carma.Monad.Thread
@@ -30,36 +30,45 @@ import           Carma.EraGlonass.Types.AppContext
                    , DBConnection (..)
                    )
 
+
 type MonadPersistentSql m =
          ( Monad m
          , MonadIO m
-         , MonadUnliftIO m
          , MonadBaseControl IO m
          , MonadReader AppContext m
          )
 
-runSql :: MonadPersistentSql m => ReaderT DB.SqlBackend m a -> m a
-runSql m =
-  asks dbConnection >>= \case
-    DBConnectionPool x -> DB.runSqlPool m x
-    DBConnection sem x -> do
-      atomically $ waitTSem sem
-      DB.runSqlConn m x `finally` atomically (signalTSem sem)
+type DBAction a
+  = ReaderT DB.SqlBackend (ReaderT AppContext (ExceptT ServerError IO)) a
+
+-- | To prevent MonadUnliftIO constraint from bubbling up,
+-- we drop to IO and then build monad stack enough to run db actions.
+liftDBA
+  :: AppContext -> DBAction a
+  -> ReaderT DB.SqlBackend IO (Either ServerError a)
+liftDBA cxt m = do
+  bk <- ask
+  liftIO $ runExceptT $ runReaderT (runReaderT m bk) cxt
 
 runSqlTimeout
   :: MonadPersistentSql m
-  => Int -> ReaderT DB.SqlBackend m a -> m (Either SomeException a)
-runSqlTimeout n m =
-  asks dbConnection >>= \case
-    DBConnectionPool x -> fPool x
+  => Int -> DBAction a -> m (Either SomeException a)
+runSqlTimeout n m = do
+  cxt <- ask
+  let m' = liftDBA cxt m
+  res <- liftIO $ case dbConnection cxt of
+    DBConnectionPool x -> fPool m' x
     DBConnection sem x -> do
       atomically $ waitTSem sem
-      fConn x `finally` atomically (signalTSem sem)
+      fConn m' x `finally` atomically (signalTSem sem)
+  return $ res >>= \case
+    Left err -> Left $ toException err
+    Right r -> Right r
 
   where
     timeoutException = toException $ TimeoutExceeded n
 
-    fConn conn = do
+    fConn dbAct conn = do
       responseMVar <- newEmptyMVar
 
       timeoutThreadId <- fork $ do
@@ -67,7 +76,7 @@ runSqlTimeout n m =
         putMVar responseMVar $ Left timeoutException
 
       dbReqThreadId <-
-        DB.runSqlConn m conn `forkFinally` \case
+        DB.runSqlConn dbAct conn `forkFinally` \case
           Left  e -> putMVar responseMVar $ Left  e
           Right x -> putMVar responseMVar $ Right x
 
@@ -76,14 +85,14 @@ runSqlTimeout n m =
       killThread dbReqThreadId
       pure response
 
-    fPool connPool =
-      liftIO (timeout n $ P.takeResource connPool) >>= \case
+    fPool dbAct connPool =
+      (timeout n $ P.takeResource connPool) >>= \case
         Nothing -> pure $ Left timeoutException
         Just (conn, local) ->
-          fConn conn >>= \x ->
+          fConn dbAct conn >>= \x ->
             x <$ if isRight x
-                    then liftIO $ P.putResource local conn
-                    else liftIO $ P.destroyResource connPool local conn
+                    then P.putResource local conn
+                    else P.destroyResource connPool local conn
 
 
 data TimeoutException = TimeoutExceeded Int deriving (Show, Eq, Typeable)
