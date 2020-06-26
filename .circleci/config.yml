@@ -3,11 +3,11 @@ version: 2
 defaults: &defaults
   working_directory: "/carma"
   docker:
-    - image: ruamc/carma-stack-build:stack-1.6.5@sha256:f12669a586c621493be9cd08b2751a0ffa89de9a4fa9ffbdb1fd1b4f1068791a
+    - image: fpco/stack-build:lts
 
 nodejs: &nodejs
   docker:
-    - image: node:8.11.1@sha256:26e4c77f9f797c3993780943239fa79419f011dd93ae4e0097089e2145aeaa24
+    - image: circleci/node:14.4
 
 jobs:
 
