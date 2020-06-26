@@ -66,43 +66,6 @@ jobs:
             - ~/.ghc
             - ~/.stack
             - .stack-work
-      - run:
-          name: Build CaRMa backend container
-          command: |
-            stack image container
-            docker save carma > carma-image.tar
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./carma-image.tar
-
-  build_bundle:
-    <<: *defaults
-    steps:
-      - setup_remote_docker
-      - checkout
-      - attach_workspace:
-          at: .
-      - run:
-          name: Build CaRMa frontend + backend container
-          command: |
-            docker load < carma-image.tar
-            cd srv
-            docker build \
-              --build-arg VCS_REF=$CIRCLE_SHA1 \
-              --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
-              -t ruamc/carma-bundle:latest \
-              -t ruamc/carma-bundle:${CIRCLE_BRANCH/\//-} \
-              -t ruamc/carma-bundle:$CIRCLE_SHA1 \
-              .
-      - run:
-          name: Push to Docker Hub
-          command: |
-            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-            if [ $CIRCLE_BRANCH = "master" ]; then docker push ruamc/carma-bundle:latest; fi
-            docker push ruamc/carma-bundle:${CIRCLE_BRANCH/\//-}
-            docker push ruamc/carma-bundle:$CIRCLE_SHA1
-            docker logout
 
 workflows:
   version: 2
@@ -110,7 +73,3 @@ workflows:
     jobs:
       - build_client
       - build_server
-      - build_bundle:
-          requires:
-            - build_client
-            - build_server
