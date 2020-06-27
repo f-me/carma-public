@@ -11,13 +11,10 @@ class AddressesDict extends m.dict
     @suggestions = []
 
   find: debounce 1200, (q, cb, opt) ->
+    # too short a query
     return cb({}) if q.length < 4 and not opt?.force
-#curl -X POST \
-#  -H "Content-Type: application/json" \
-#  -H "Accept: application/json" \
-#  -H "Authorization: Token ${API_KEY}" \
-#  -d '{ "query": "москва серпуховская" }' \
-#  https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address
+
+    # query is not short and not in suggestions.
     dataForDD =
            query: q
     tempSuggestions = []
@@ -33,8 +30,10 @@ class AddressesDict extends m.dict
            success:  (data) ->
                                tempSuggestions = data.suggestions
     $.ajax (objForDD)
-    @addresses = (x.value for x in data.suggestions)
+    @addresses = (x.value for x in tempSuggestions)
     @suggestions = tempSuggestions
+    if @suggestions.length == 1
+      @kvm.caseAddress_coords(@suggestions[0].data.geo_lat + ", " + @suggestions[0].data.geo_lon)
     return cb(@addresses)
 
 #    processResponse = (r) =>
