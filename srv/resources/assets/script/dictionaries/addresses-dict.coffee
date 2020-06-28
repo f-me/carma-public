@@ -9,6 +9,14 @@ class AddressesDict extends m.dict
     @Dict = require "carma/dictionaries"
     @addresses = []
     @suggestions = []
+    #subscribeCallback = (newValue) -> trySetCoords(newValue)
+    @kvm.caseAddress_address.subscribe(((newValue) -> this.trySetCoords(newValue)), this)
+
+  trySetCoords: (newValue) ->
+    foundExact = (x for x in @suggestions when x.value == newValue)
+    if foundExact.length == 1
+      exactData = foundExact[0].data
+      @kvm.caseAddress_coords(exactData.geo_lat + ", " + exactData.geo_lon)
 
   find: debounce 1200, (q, cb, opt) ->
     # too short a query
@@ -32,8 +40,6 @@ class AddressesDict extends m.dict
     $.ajax (objForDD)
     @addresses = (x.value for x in tempSuggestions)
     @suggestions = tempSuggestions
-    if @suggestions.length == 1
-      @kvm.caseAddress_coords(@suggestions[0].data.geo_lat + ", " + @suggestions[0].data.geo_lon)
     return cb(@addresses)
 
 #    processResponse = (r) =>
