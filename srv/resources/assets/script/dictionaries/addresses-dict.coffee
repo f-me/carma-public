@@ -25,10 +25,9 @@ class AddressesDict extends m.dict
     # query is not short and not in suggestions.
     dataForDD =
            query: q
-    tempSuggestions = []
+    originalThis = this # this way it will be captured.
     objForDD =
            url: "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address"
-           async: false
            type: "post"
            contentType: "application/json"
            data: JSON.stringify(dataForDD)
@@ -36,10 +35,12 @@ class AddressesDict extends m.dict
                     Authorization: "Token e0fb6d9a7a7920405c3eeefde7e7d6b529b2b2b9"
            dataType: "json"
            success:  (data) ->
-                               tempSuggestions = data.suggestions
+                               originalThis.processAnswer data, cb
     $.ajax (objForDD)
-    @addresses = (x.value for x in tempSuggestions)
-    @suggestions = tempSuggestions
+
+  processAnswer: (data, cb) ->
+    @addresses = (x.value for x in data.suggestions)
+    @suggestions = data.suggestions
     return cb(@addresses)
 
 #    processResponse = (r) =>
