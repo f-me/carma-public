@@ -1,20 +1,38 @@
+mixin filterDict(name, placeholder)
+  .input-group.input-group-sm
+    input.form-control(type="text"
+       autocomplete="off"
+       placeholder=`${placeholder}`
+       data-bind=`\n\
+                  value: ${name}.local,\
+                  valueUpdate: 'change',\
+                  bindDict: '${name}'`)
+    span.input-group-addon
+      span.glyphicon.glyphicon-chevron-down
+
 .screen.container-fluid.row
   #partner-left.col.col-md-6
-    form.form-vertical
-      button.btn.btn-action(type='button'
-          onclick="location.hash='partner';location.reload(true);")
-        span.glyphicon.glyphicon-plus
-        | Добавить партнёра
-      br
-      br
-      table#partner-table.table.table-striped.table-bordered
-        thead
-          tr
-            th #
-            th Название
-            th Город
-            th Комментарии
-        tbody
+    #partner-table-filters.form-inline
+      .col-sm-4
+        +filterDict('isActive', 'Активность')
+      .col-sm-4
+        +filterDict('partnerType', 'Тип партнёра')
+      .col-sm-4
+        button.btn.btn-action(type='button'
+            onclick="location.hash='partner';location.reload(true);")
+          span.glyphicon.glyphicon-plus
+          | &nbsp; Добавить партнёра
+    br
+    table#partner-table.table.table-striped.table-bordered
+      thead
+        tr
+          th Скрытая колонка для фильтра
+          th Скрытая колонка для фильтра
+          th #
+          th Название
+          th Город
+          th Комментарии
+      tbody
 
   #partner-center.col.col-md-6
     form.form-horizontal

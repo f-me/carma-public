@@ -160,6 +160,19 @@ class ComputedDict extends ld.dict
     @colors = _.reduce vals, ((m, [_, c], k) -> m[k] = c), {}
     @source = _.map vals, ([v, c], k) -> {label: v, value: k, color: c}
 
+  PartnerIsActive: =>
+    @source = [ {label: "Все",       value: "all"}
+              , {label: "Активен",   value: "yes"}
+              , {label: "Неактивен", value: "no"}
+              ]
+
+  PartnerType: =>
+    @source = [ {label: "Все",               value: "all"}
+              , {label: "Дилер",             value: "dealer"}
+              , {label: "Партнёр",           value: "partner"}
+              , {label: "Мобильный партнёр", value: "mobile"}
+              ]
+
 module.exports =
   dict: ComputedDict
   name: 'ComputedDict'
