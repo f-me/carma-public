@@ -13,6 +13,7 @@ module Carma.HTTP.Base
     , runCarma
       -- ** Monad operations
     , getPort
+    , getHeaders
     , sendRequest
     , checkCode
       -- * URI building
@@ -27,16 +28,19 @@ import           Control.Exception
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Reader
 
-import           Network.HTTP
+import           Network.HTTP hiding (getHeaders)
 import           Network.Stream             (Result)
 
 
 -- | Options used to connect to a running CaRMa instance.
-data CarmaOptions = CarmaOptions { carmaPort :: Int }
+data CarmaOptions = CarmaOptions { carmaHost    :: String
+                                 , carmaPort    :: Int
+                                 , carmaHeaders :: [Header]
+                                 }
 
 
 defaultCarmaOptions :: CarmaOptions
-defaultCarmaOptions = CarmaOptions 8000
+defaultCarmaOptions = CarmaOptions "localhost" 8000 []
 
 
 -- | A monad which keeps a single open connection for a sequence of
@@ -51,8 +55,15 @@ runCarma opts action =
             (\s -> runReaderT action (opts, s))
 
 
+getHost :: CarmaIO String
+getHost = asks (carmaHost . fst)
+
 getPort :: CarmaIO Int
 getPort = asks (carmaPort . fst)
+
+
+getHeaders :: CarmaIO [Header]
+getHeaders = asks (carmaHeaders . fst)
 
 
 sendRequest :: Request String -> CarmaIO (Result (Response String))
@@ -93,6 +104,7 @@ methodURI :: String
           -- ^ Method name/call, like @repTowages/5003@ or @psaCases@,
           -- no trailing or leading slashes.
           -> CarmaIO String
-methodURI meth =
-    getPort >>= \cp ->
-        return $ concat ["http://", localhost, ":", show cp, "/", meth]
+methodURI meth = do
+  h <- getHost
+  p <- getPort
+  return $ concat ["http://", h, ":", show p, "/", meth]

@@ -138,12 +138,18 @@ include _form_utils.pug
 //- Picker which fills fields with stored data
 .field-template#picker-field-template
   +fieldControlGroup
-    .input-group.input-group-sm
-      +defaultInput("", "", "afterkeydown")(
-        onkeydown="edoPick('{{ meta.picker }}', '{{ name }}', 13, event);")
-      span.input-group-addon
-        span.glyphicon.glyphicon-search(onclick="doPick('{{ meta.picker }}',\
-                                               '{{ name }}', event.target);")
+    +pickerInput
+
+.field-template#coords-with-button
+  +fieldControlGroup
+    button.btn.btn-small.btn-success(
+      style="position:absolute; right:0; bottom:40px;"
+      data-bind="\
+        click: locationSharingBtn.click,\
+        attr: { title: locationSharingBtn.tooltip },\
+        disabled: locationSharingBtn.disabled")
+      | Определить местоположение
+    +pickerInput
 
 //- radio widget for flat dictionary fields -->
 .field-template#radio-field-template
@@ -243,6 +249,27 @@ include _form_utils.pug
           span.glyphicon.glyphicon-folder-open
           | &nbsp;
           a.file-name(data-bind=`attr: {href: filenameUrl}, text: filename`)
+
+#image-uploader-field-template.field-template
+  +fieldControlGroup
+    input.form-control(type="text"
+      placeholder="Ctrl-V чтобы вставить картинку из буфера"
+      data-bind=`
+        value: {{name}}FakeText,
+        event: { focus: {{name}}OnFocus, blur: {{name}}OnBlur }
+      `)
+    .input-group-btn
+      span.btn.btn-default.btn-file
+        span.glyphicon.glyphicon-folder-open
+        input(type="file" accept="image/*" data-bind=`
+          event: {change: function() { {{name}}UploadHandler($element)} }`)
+  .row
+    .col-sm-4
+    .col-sm-4(style="margin-bottom: 10px")
+      img(src="https://picsum.photos/200" style="max-height:128px"
+        data-bind=`attr: { src: {{name}} }`)
+    .col-sm-4
+      b(data-bind=`text: {{name}}Warning`)
 
 //- Special template used to render first field of group in parent view.
 #group-field-template.field-template(type='text/template')
@@ -797,6 +824,13 @@ mixin caseFilesList
               `)
                 i.glyphicon.glyphicon-globe
             // /ko
+            .btn.btn-default(
+              title="Показать запросы на определение координат",
+              data-bind=`
+                css   : {active: histShowLocationSharing},
+                click : histToggleLocationSharing,
+              `)
+                i.glyphicon.glyphicon-map-marker
           |
           |
           input.form-control(
@@ -814,8 +848,10 @@ mixin caseFilesList
               span(data-bind=`text: datetime`)
             // For that type "who" doesn't mean anything.
             // ko if: json.type !== 'eraGlonassIncomingCallCard'
+            // ko if: json.type !== 'locationSharingResponse'
             .history-who
               span(data-bind=`text: who`)
+            // /ko
             // /ko
             .history-body(data-bind=`with: json`)
               // ko if: $data.actiontype
@@ -1026,6 +1062,30 @@ mixin caseFilesList
                 b
                   | Идентификатор звонка:&nbsp;
                 span(data-bind=`text: aecall`)
+              // /ko
+              // ko if: $data.type === 'locationSharingRequest'
+              div
+                i.glyphicon.glyphicon-map-marker
+                | &nbsp;
+                b
+                  | Клиенту отправлено SMS с запросом местоположения
+              // /ko
+              // ko if: $data.type === 'locationSharingResponse'
+              div
+                i.glyphicon.glyphicon-map-marker
+                | &nbsp;
+                b
+                  | От клиента пришёл ответ с координатами:
+                  | &nbsp;
+                  a(data-bind=`
+                    text: $data.lonlat,
+                    attr: { target: '_blank', href: $data.mapUrl }`)
+                div(style='float: right')
+                  | &nbsp; (
+                  a(href="#" data-bind=`click: $data.copyToClipboard`)
+                    | Скопировать в буфер обмена
+                  | )
+                div(style="clear:both")
               // /ko
         // /ko
         // ko if: !endOfHistory()

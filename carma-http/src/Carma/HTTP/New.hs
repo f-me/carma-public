@@ -47,7 +47,7 @@ import           Control.Monad.Trans.Reader
 import           Control.Applicative ((<|>))
 import           Control.Exception
 
-import           Network.HTTP
+import           Network.HTTP hiding (getHeaders)
 import qualified Network.HTTP.Types         as H
 
 import           Data.Model
@@ -145,14 +145,16 @@ instanceRequest rid rm row = do
 
   s <- asks snd
 
+  headers <- getHeaders
   rs <-
     liftIO $ sendHTTP s $
       case guard (rm /= GET) >> row of
            Just payload ->
-             mkRequestWithBody uri rm $
-             Just ("application/json", BSL.unpack $ encode payload)
+             mkRequestWithBody uri rm 
+               (Just ("application/json; charset=utf-8", BSL.unpack $ encode payload))
+               headers
 
-           Nothing -> mkRequestWithBody uri rm Nothing
+           Nothing -> mkRequestWithBody uri rm Nothing headers
 
   inst <- liftIO $ BSL.pack <$> getResponseBody rs
   let isMultiple = rm == GET && isJust row

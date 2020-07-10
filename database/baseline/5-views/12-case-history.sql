@@ -279,6 +279,41 @@ CREATE VIEW "CaseHistory" AS
             AND actiontbl.callId = calltbl.id
         ) row
 
+    UNION ALL
+
+    SELECT row.caseId
+         , row.datetime
+         , row.userId
+         , ROW_TO_JSON(row)
+    FROM (
+        SELECT
+            'locationSharingRequest' as "type",
+            caseId,
+            creatorId as userId,
+            ctime as datetime,
+            smsId is not null as "smsSent"
+        FROM "LocationSharingRequest"
+        ) row
+
+    UNION ALL
+
+    SELECT row.caseId
+         , row.datetime
+         , row.userId
+         , ROW_TO_JSON(row)
+    FROM (
+        SELECT
+            'locationSharingResponse' as "type",
+            rs.caseId,
+            rs.ctime as datetime,
+            rq.creatorId as userId,
+            lon,
+            lat,
+            accuracy
+        FROM "LocationSharingResponse" rs, "LocationSharingRequest" rq
+          where rs.requestId = rq.id
+        ) row
+
     ) AS united,
     usermetatbl
 

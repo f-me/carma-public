@@ -553,6 +553,7 @@ module.exports = {
 
   spliceCoords
   spliceAddress
+  setPlace
 
   geoPicker
   reverseGeoPicker
