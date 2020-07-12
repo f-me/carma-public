@@ -62,6 +62,11 @@ data Partner = Partner
                 "taxScheme"
                 "Форма налогообложения"
 
+  , isKpiEnabled
+             :: F Bool
+                "isKpiEnabled"
+                "Работа по KPI"
+
   , isPayBackConfirmed
              :: F Bool
                 "isPayBackConfirmed"

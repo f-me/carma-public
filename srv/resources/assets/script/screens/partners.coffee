@@ -1,4 +1,4 @@
-{$, _} = require "carma/vendor"
+{$, ko, _} = require "carma/vendor"
 
 utils       = require "carma/utils"
 mu          = require "carma/model/utils"
@@ -16,7 +16,13 @@ modelSetup = (modelName, viewName, args) ->
 
 objsToRows = (objs) ->
   cities = utils.newModelDict "City", true
+  # First two columns are hidden and used only for filtering
   rows = for obj in objs then [
+    (if obj.isActive then "yes" else "no")
+    (if obj.isDealer
+        "dealer"
+      else if obj.isMobile then "mobile" else "partner"
+    )
     obj.id
     obj.name                or ''
     cities.getLab(obj.city) or ''
@@ -41,6 +47,16 @@ screenSetup = (viewName, args) ->
     .addScreen modelName, (->)
     .addTable tableParams
     .setObjsToRowsConverter objsToRows
+    .setDataTableOptions(
+      # We use first two columns to filter by partner's activity and type.
+      columnDefs: [
+        targets: [ 0, 1 ]
+        visible: false
+      ]
+    )
+
+  setupTableFilters "partner-table-filters", table
+
   table
     .on "click.datatable", "tr", ->
       if table.dataTable.fnGetPosition(this) isnt null
@@ -57,11 +73,36 @@ screenSetup = (viewName, args) ->
       city        : kvm.city()
       comment     : kvm.comment()
       id          : kvm.id()
+      isActive    : kvm.isActive()
       isDealer    : kvm.isDealer()
       isMobile    : kvm.isMobile()
       name        : kvm.name()
 
     table.dataTable.fnAddData objsToRows [obj]
+
+
+setupTableFilters = (elem, table) ->
+  filterModel =
+    fields: [
+        name: "isActive"
+        type: "dictionary"
+        meta:
+            dictionaryName: "PartnerIsActive"
+            dictionaryType: "ComputedDict"
+      ,
+        name: "partnerType"
+        type: "dictionary"
+        meta:
+          dictionaryName: "PartnerType"
+          dictionaryType: "ComputedDict"
+    ]
+  filterKvm = main.buildKVM(filterModel, elem)
+  filterKvm.isActive.subscribe (v) ->
+    table.dataTable.fnFilter (if v == "all" then "" else v), 0
+  filterKvm.partnerType.subscribe (v) ->
+    table.dataTable.fnFilter (if v == "all" then "" else v), 1
+
+  ko.applyBindings filterKvm, document.getElementById(elem)
 
 
 module.exports = {
