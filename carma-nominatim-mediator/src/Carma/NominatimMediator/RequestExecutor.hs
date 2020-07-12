@@ -9,23 +9,20 @@ module Carma.NominatimMediator.RequestExecutor
      ( requestExecutorInit
      ) where
 
-import           Data.Monoid ((<>))
 import qualified Data.Map as M
 import qualified Data.Time.Clock as Time
 import           Text.InterpolatedString.QM
 
+import           Control.Concurrent.Lifted
 import           Control.Monad
 import qualified Control.Monad.State.Strict as S
 import           Control.Monad.Reader.Class (MonadReader, asks)
 import           Control.Monad.Trans.Control (MonadBaseControl)
 import           Control.Monad.IO.Class (MonadIO)
-import           Control.Concurrent (MVar)
-
-import           Servant.Client (ClientM, ServantError)
 
 import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Utils
-import           Carma.NominatimMediator.Logger ()
+import           Carma.NominatimMediator.Logger
 import           Carma.Monad
 
 
@@ -33,7 +30,7 @@ type RealRequestQueue
    = MVar ( Integer -- Countered number of request (for logging)
           , RequestParams
           , ClientM Response -- Request monad to execute
-          , MVar (Either ServantError (StatisticResolve, Response))
+          , MVar (Either ClientError (StatisticResolve, Response))
             -- ^ Response bus
           )
 

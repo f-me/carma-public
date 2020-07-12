@@ -23,15 +23,12 @@ module Carma.EraGlonass.VinSynchronizer.Helpers
 
 import           Data.Proxy
 import           Data.Typeable (Typeable)
-import           Data.Monoid ((<>))
 import           Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
-import           Text.InterpolatedString.QM.ShowQ.Class (ShowQ)
 import           Data.String (IsString (fromString))
-import           Data.Time.Clock (UTCTime)
 import           Data.Time.LocalTime (TimeZone, ZonedTime, utcToZonedTime)
 import           Data.Time.Format
 
@@ -55,8 +52,10 @@ import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.Generic.DataType
 import           Carma.Utils.TypeSafe.TypeFamilies (OneOf)
 import           Carma.Monad
+import           Carma.Monad.LoggerBus.Class
 import           Carma.Model.Contract.Persistent
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Instance.Persistent (MonadPersistentSql)
 import           Carma.EraGlonass.Helpers
 import           Carma.EraGlonass.Types.AppContext (AppContext)
 import           Carma.EraGlonass.Types.EGVin

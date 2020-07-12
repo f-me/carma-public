@@ -55,7 +55,7 @@ stringyEnumMappedNamedSchema _ mapFn = do
 
   mapFn $ NamedSchema name' schema'
     { _schemaParamSchema = (_schemaParamSchema schema')
-        { _paramSchemaType = SwaggerString
+        { _paramSchemaType = Just SwaggerString
         , _paramSchemaEnum =
             Just $ String . toStringy <$> [minBound .. maxBound :: a]
         }

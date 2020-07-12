@@ -39,7 +39,7 @@ import           Carma.Model.Usermeta (Usermeta)
 import           Carma.Model.Types (UserStateVal(..))
 import qualified Carma.Model.CallType as CT
 
-import           AppHandlers.Util
+import           Util
 
 
 getStatFiles :: AppHandler ()

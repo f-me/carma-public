@@ -20,6 +20,7 @@ dependencies:
  - errors
  - parsec
  - persistent
+ - persistent-postgresql
  - persistent-template
  - postgresql-libpq
  - postgresql-simple
@@ -48,6 +49,9 @@ default-extensions:
  - NamedFieldPuns
  - RecordWildCards
  - LambdaCase
+ - DerivingStrategies
+ - StandaloneDeriving
+ - UndecidableInstances
 
 ghc-options:
   - -Wall

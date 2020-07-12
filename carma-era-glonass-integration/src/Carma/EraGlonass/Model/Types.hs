@@ -9,7 +9,6 @@ module Carma.EraGlonass.Model.Types
      ) where
 
 import           Data.Proxy
-import           Data.Semigroup ((<>))
 import           Data.Time.Clock (UTCTime)
 import           Data.Time.Format (formatTime, defaultTimeLocale)
 import           Data.String (fromString)
@@ -34,7 +33,7 @@ import           Carma.Utils.Operators
 
 newtype PgArray a
       = PgArray [a]
-        deriving (Eq, Show, Monoid, Functor, Applicative)
+        deriving (Eq, Show, Semigroup, Monoid, Functor, Applicative)
 
 instance ToJSON a => ToJSON (PgArray a) where
   toJSON (PgArray x) = toJSON x

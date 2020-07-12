@@ -10,7 +10,6 @@ module Carma.EraGlonass.Server
      ) where
 
 import           Data.Proxy
-import           Data.Semigroup ((<>))
 import           Data.Maybe (isNothing)
 import           Data.Aeson (Value (String), encode)
 import           Data.Swagger (Swagger)
@@ -21,14 +20,14 @@ import           Text.InterpolatedString.QM
 
 import           Control.Monad (when, guard)
 import           Control.Monad.Reader (MonadReader, asks, runReaderT, ReaderT)
-import           Control.Monad.Error.Class (MonadError, throwError)
+import           Control.Monad.Error.Class (MonadError)
 import           Control.Monad.Catch (MonadCatch)
 import           Control.Monad.Random.Class (MonadRandom)
 import           Control.Monad.Logger (LogSource)
 import           Control.Concurrent.STM.TMVar
 import           Control.Concurrent.STM.TVar
 
-import           Database.Persist ((==.))
+import           Database.Persist ((==.), count, selectList)
 import           Database.Persist.Types
 import qualified Database.Esqueleto as E
 
@@ -38,14 +37,12 @@ import           Network.HTTP.Media (renderHeader)
 import           Servant
 import           Servant.Swagger (HasSwagger (toSwagger))
 
-import           Carma.Monad.STM
 import           Carma.Monad.Clock
 import           Carma.Monad.Thread
-import           Carma.Monad.LoggerBus (MonadLoggerBus)
-import qualified Carma.Monad.LoggerBus as LoggerBus
-import           Carma.Monad.PersistentSql
-import           Carma.Monad.Esqueleto
+import           Carma.Monad.LoggerBus.Class (MonadLoggerBus)
+import qualified Carma.Monad.LoggerBus.Class as LoggerBus
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Instance.Persistent
 import           Carma.EraGlonass.Helpers
 import           Carma.EraGlonass.Routes
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
@@ -100,10 +97,9 @@ type ServerAPI
 type ServerMonad m =
    ( MonadReader AppContext m
    , MonadLoggerBus m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    , MonadCatch m
    , MonadPersistentSql m
-   , MonadEsqueleto m
    , MonadClock m
    , MonadRandom m
    , MonadThread m
@@ -111,18 +107,13 @@ type ServerMonad m =
    )
 
 
--- WARNING! Way to transform monad here is deprecated in newer Servant version.
---          Read about "hoistServer" from "servant-server" when you will be
---          migrating from lts-9.21 to newer one.
 serverApplicaton :: AppContext -> Application
 serverApplicaton appContext =
-  serve (Proxy :: Proxy ServerAPI) $ enter withReader server
+  serve api $ hoistServer api withReader server
+  where api = Proxy :: Proxy ServerAPI
 
-  where withReader' :: ReaderT AppContext Handler a -> Handler a
-        withReader' r = runReaderT r appContext
-
-        withReader :: ReaderT AppContext Handler :~> Handler
-        withReader = NT withReader'
+        withReader :: ReaderT AppContext Handler a -> Handler a
+        withReader r = runReaderT r appContext
 
 
 server :: ServerMonad m => ServerT ServerAPI m
@@ -179,7 +170,7 @@ getFailuresCount
   ::
    ( MonadReader AppContext m
    , MonadLoggerBus m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    , MonadPersistentSql m
    )
   => m Word
@@ -201,9 +192,8 @@ getFailuresList
   ::
    ( MonadReader AppContext m
    , MonadLoggerBus m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    , MonadPersistentSql m
-   , MonadEsqueleto m
    )
   => Maybe Word
   -> m [Entity CaseEraGlonassFailure]
@@ -224,7 +214,7 @@ getFailuresList (Just n) = do
     runSqlProtected logSrc [qn| Failed to request EG failures list! |] $ do
       -- To avoid @null@s being placed on top of the order
       withRepeats <-
-        esqueletoSelect $
+        E.select $
         E.from $ \failure -> do
 
         E.where_ ( E.not_ $ E.isNothing $
@@ -279,7 +269,7 @@ vinSynchronizerTrigger
    , MonadLoggerBus m
    , MonadClock m
    , MonadSTM m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    )
   => m RouteActionResponse
 
@@ -309,7 +299,7 @@ statusSynchronizerTrigger
    , MonadLoggerBus m
    , MonadClock m
    , MonadSTM m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    )
   => m RouteActionResponse
 
@@ -337,7 +327,7 @@ manuallyTrigger
    ( MonadLoggerBus m
    , MonadClock m
    , MonadSTM m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    , t ~ RouteActionResponse
    )
   => (Bool, Text) -- ^ @Bool@ menas it can be capitalized

@@ -6,20 +6,18 @@
 
 module Carma.NominatimMediator.CacheGC where
 
-import           Data.Monoid ((<>))
 import qualified Data.Map as M
 import qualified Data.Time.Clock as Time
 import qualified Data.Time.Calendar as Calendar
 import qualified Data.Text as T
 import           Text.InterpolatedString.QM
-import           Data.Function ((&))
 
 import           Control.Monad
 import           Control.Monad.Reader.Class (MonadReader, asks)
 
 import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Utils
-import           Carma.NominatimMediator.Logger ()
+import           Carma.NominatimMediator.Logger
 import           Carma.Monad
 import           Carma.Utils.Operators
 

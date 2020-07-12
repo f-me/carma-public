@@ -82,7 +82,6 @@ import Carma.Model.Partner (Partner)
 import Carma.Model.DiagSlide (DiagSlide)
 
 import Application
-import AppHandlers.Util
 import Util hiding (render)
 import Data.Model.Utils.LegacyModel (readIdent)
 

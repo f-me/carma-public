@@ -2,9 +2,6 @@
 {-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE QuasiQuotes         #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 
@@ -32,7 +29,7 @@ import           Control.Monad.Reader                (ReaderT)
 import           Control.Monad.Trans.Class           (lift)
 import           Data.Aeson                          as A
 import qualified Data.HashMap.Strict                 as HM
-import           Data.List                           (find, init)
+import           Data.List                           (find)
 import           Data.Maybe                          (isJust, isNothing)
 import           Data.Tree
 import           Data.Typeable                       (Typeable)
@@ -50,10 +47,10 @@ import           Snap.Snaplet.Persistent
 import           Snap.Snaplet.PostgresqlSimple
 import           Snaplet.Auth.PGUsers                (currentUserMetaId)
 
-import           AppHandlers.Util
 import           Application
 import           Carma.Model.DiagSlide.Persistent
 import           Utils.HttpErrors                    (finishWithError)
+import           Util
 
 
 -- | Check if idag is possible or has started already

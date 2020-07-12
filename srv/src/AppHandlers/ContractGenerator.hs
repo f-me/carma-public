@@ -39,8 +39,8 @@ import           Snap.Snaplet.PostgresqlSimple
 import           Database.PostgreSQL.Simple.SqlQQ
 
 import           Application
-import           AppHandlers.Util
 import           Snaplet.FileUpload
+import           Util
 
 q :: Query
 q = [sql|

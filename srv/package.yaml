@@ -17,6 +17,7 @@ dependencies:
   - bytestring
   - carma-model-utils
   - carma-models
+  - carma-utils
   - case-insensitive
   - configurator
   - containers
@@ -54,7 +55,6 @@ dependencies:
   - singletons
   - snap
   - snap-core
-  - snap-extras >= 0.12.2.0
   - snap-loader-static
   - snap-server
   - snaplet-persistent

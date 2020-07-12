@@ -39,6 +39,7 @@ main = hspec $ do
         , httpPort  = undefined
         , urlPrefix = "hello"
         , indexTpl  = undefined
+        , err404Tpl = undefined
         }
 
   let shouldBeDone = do

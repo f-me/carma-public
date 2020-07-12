@@ -8,8 +8,6 @@ import qualified Data.Text.Read as T (decimal)
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 
-import Data.Monoid ((<>))
-
 import Database.PostgreSQL.Simple.SqlQQ.Alt
 import Database.PostgreSQL.Simple as PG
 

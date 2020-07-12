@@ -33,10 +33,9 @@ import           Data.Model.Patch (Patch)
 import           Carma.Model
 import           Carma.Model.Role
 import           Carma.Model.FieldPermission
+import           Carma.Utils.Snap (withLens)
 
 import           Snaplet.Auth.Class
-
-import           AppHandlers.Util
 
 data Search b = Search
   { auth      :: SnapletLens b (AuthManager b)

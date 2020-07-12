@@ -50,6 +50,7 @@ import           BasicPrelude
 
 import           Control.Concurrent
 import           Control.Concurrent.STM
+import           Control.Exception (onException)
 import           Control.Monad.State.Class
 import           Control.Lens (Lens')
 
@@ -67,8 +68,7 @@ import           Snap.Snaplet.PostgresqlSimple (Postgres(..))
 
 import           Snaplet.Auth.Class
 import           Snaplet.Auth.PGUsers
-
-import           AppHandlers.Util
+import           Carma.Utils.Snap (withLens)
 
 
 data ChatManager b = ChatManager

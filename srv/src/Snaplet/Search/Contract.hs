@@ -42,8 +42,7 @@ import qualified Carma.Model.Usermeta as Usermeta
 import           Snaplet.Auth.PGUsers
 import           Snaplet.Search.Types
 import           Snaplet.Search.Utils
-
-import           AppHandlers.Util
+import           Carma.Utils.Snap (withLens)
 
 
 contractSearch :: SearchHandler b

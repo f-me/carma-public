@@ -17,7 +17,7 @@ import           Snap.Snaplet.Auth
 import           Snaplet.Auth.Class
 
 import           Application
-import           AppHandlers.Util (writeJSON)
+import           Util (writeJSON)
 
 type Roles = [Text]
 

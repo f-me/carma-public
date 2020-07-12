@@ -10,8 +10,6 @@ import           Text.InterpolatedString.QM
 
 import           Control.Monad.Logger
 
-import           System.Log.FastLogger (fromLogStr)
-
 
 data LogMessageType
    = LogDebug

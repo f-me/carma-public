@@ -32,6 +32,7 @@ import Database.PostgreSQL.Simple.FromRow   (RowParser,field)
 import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Database.PostgreSQL.Simple.ToField   (ToField(..))
 import Data.Dynamic
+import Data.Typeable (TypeRep, typeOf)
 
 import Data.Singletons
 import Data.Singletons.TypeLits
@@ -72,7 +73,7 @@ mkModelInfo' ctr pk sortBy = case parentInfo :: ParentInfo m of
     mInf = ModelInfo
       { modelName       = T.pack $ show $ typeOf (undefined :: m)
       , parentName      = Nothing
-      , tableName       = T.pack $ fromSing (sing :: Sing (TableName m))
+      , tableName       = fromSing (sing :: Sing (TableName m))
       , primKeyName     = fieldName pk
       , modelFields     = mFields
       , modelOnlyFields = mFields
@@ -120,12 +121,12 @@ instance Model NoParent where
 fieldName
   :: forall m t name desc app
   . SingI name => (m -> Field t (FOpt name desc app)) -> Text
-fieldName _ = T.pack $ fromSing (sing :: Sing name)
+fieldName _ = fromSing (sing :: Sing name)
 
 fieldDesc
   :: forall m t name desc app
   . SingI desc => (m -> Field t (FOpt name desc app)) -> Text
-fieldDesc _ = T.pack $ fromSing (sing :: Sing desc)
+fieldDesc _ = fromSing (sing :: Sing desc)
 
 fieldType
   :: forall m t name desc app
@@ -190,8 +191,8 @@ instance
   where
     getModelFields f = Wrap
       $ EFieldDesc
-        { fd_name   = T.pack $ fromSing (sing :: Sing nm)
-        , fd_desc   = T.pack $ fromSing (sing :: Sing desc)
+        { fd_name   = fromSing (sing :: Sing nm)
+        , fd_desc   = fromSing (sing :: Sing desc)
         , fd_type   = typeOf   (undefined :: t)
         , fd_toJSON = \d -> toJSON  (fromJust $ fromDynamic d :: t)
         , fd_parseJSON = \v -> toDyn <$> (parseJSON v :: Parser t)
@@ -207,8 +208,8 @@ buildFieldDesc :: forall m t nm desc app.
   ,FromJSON t, ToJSON t, FromField t, ToField t, Typeable t)
   => (m -> FF t nm desc app) -> FieldDesc
 buildFieldDesc _ =  FieldDesc
-  {fd_name      = T.pack $ fromSing (sing :: Sing nm)
-  ,fd_desc      = T.pack $ fromSing (sing :: Sing desc)
+  {fd_name      = fromSing (sing :: Sing nm)
+  ,fd_desc      = fromSing (sing :: Sing desc)
   ,fd_type      = typeOf   (undefined :: t)
   ,fd_parseJSON = \v -> toDyn <$> (parseJSON v :: Parser t)
   ,fd_toJSON    = \d -> toJSON  (fromJust $ fromDynamic d :: t)

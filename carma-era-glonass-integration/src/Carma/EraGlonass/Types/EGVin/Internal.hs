@@ -31,7 +31,6 @@ import           Data.Attoparsec.ByteString.Char8 hiding (Parser)
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
 import           Data.Char (toUpper)
-import           Data.Monoid ((<>))
 import           Data.Either.Combinators (mapLeft)
 
 import           Database.Persist.Class (PersistField (..))
@@ -76,7 +75,7 @@ instance ToSchema EGVin where
   declareNamedSchema _ = pure
     $ NamedSchema (Just $ typeName (Proxy :: Proxy t)) mempty
     { _schemaParamSchema = mempty
-        { _paramSchemaType    = SwaggerString
+        { _paramSchemaType    = Just SwaggerString
         , _paramSchemaFormat  = Just "VIN"
         , _paramSchemaPattern = Just egVinPosixRegex
         }

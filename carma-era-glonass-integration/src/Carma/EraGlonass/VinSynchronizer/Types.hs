@@ -26,7 +26,6 @@ import           GHC.Generics
 import           GHC.TypeLits
 
 import           Data.Proxy
-import           Data.Monoid ((<>))
 import           Data.Either.Combinators (mapLeft)
 import           Data.Text (type Text)
 import           Data.String (type IsString (fromString))

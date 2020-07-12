@@ -106,8 +106,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuthLocal . method GET $ searchContracts)
          , ("/findContractByPhone/:phone",
                               chkAuthLocal . method GET $ findContractByPhone)
---         , ("/arcImport/:vin",
---                              chkAuthLocal . method GET $ arcImport)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:mdl",        chkAuth . method GET    $ readManyHandler)
