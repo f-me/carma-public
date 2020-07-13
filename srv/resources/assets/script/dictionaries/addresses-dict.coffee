@@ -26,12 +26,12 @@ class AddressesDict extends m.dict
       lonLatObj = @mapModule.lonlatFromShortString(coordsString)
       #lonLatObj = lonLatObj.clone().transform(@mapModule.wsgProj, @mapModule.osmProj)
       @mapModule.setPlace osMap, {coords: lonLatObj}
-#      @mapModule.spliceCoords lonLatObj, @kvm,
-#          osmap: osMap
-#          addr_field: "caseAddress_address"
-#          city_field: "caseAddress_city"
-#          current_blip_type: "default"
-#      @mapModule.currentBlip(osMap, lonLatObj, @mapModule.carIcon)
+      @mapModule.spliceCoords lonLatObj, @kvm,
+          osmap: osMap
+          addr_field: "caseAddress_address"
+          city_field: "caseAddress_city"
+          current_blip_type: "default"
+#      @mapModule.currentBlip osMap, lonLatObj, "car"
 
   find: debounce 1200, (q, cb, opt) ->
     # too short a query
