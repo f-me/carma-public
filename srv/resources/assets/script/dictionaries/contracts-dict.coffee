@@ -19,13 +19,8 @@ class ContractsDict extends m.dict
     params = "program=#{@kvm.program?()}&subprogram=#{@kvm.subprogram?()}"
     query = "/searchContracts/?query=#{qr}&case=#{@kvm.id?()}&#{params}"
 
-    @needArc = false
     @orig = null
     @nonEmpty = false
-
-    if q.length == 17
-      arcQuery = "/arcImport/#{q}?#{params}"
-      #@needArc = true
 
     processResponse = (r) =>
       @found = []
@@ -54,33 +49,11 @@ class ContractsDict extends m.dict
         items = processResponse res
         d.orig = _.clone items
         cb items
-        # Show trailing spinner if ARC query is pending
-        if d.needArc
-          items.push inlineSpinner "<div class='inline-spinner'></div>"
-          cb items
 
     # We explicitly pass dictionary object so that it is accessible
     # inside fetchResults (we can store original search response
     # this way to use later after ARC loading finishes)
     firstFetch = fetchResults this
-
-    if @needArc
-      parentThis = this
-      $.getJSON arcQuery
-        .always () ->
-          parentThis.needArc = false
-        .done (ar) ->
-          # New contracts? Repeat contract search.
-          if ar[0] > 0
-            firstFetch.done () ->
-              items = parentThis.orig
-              items.push inlineSpinner "<div class='inline-spinner'></div>"
-              cb items
-              fetchResults parentThis
-          # Remove trailing spinner
-          else
-            if parentThis.orig?
-              cb parentThis.orig
 
   # returns html representation of contract
   contr2html: (c, fs = [], q = "") ->

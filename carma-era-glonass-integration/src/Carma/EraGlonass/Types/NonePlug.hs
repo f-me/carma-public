@@ -17,9 +17,11 @@ import           Servant
 -- without response body.
 data NonePlug = NonePlug deriving (Eq, Show)
 
+instance Semigroup NonePlug where
+  NonePlug <> NonePlug = NonePlug
+
 instance Monoid NonePlug where
   mempty = NonePlug
-  mappend NonePlug NonePlug = NonePlug
 
 instance MimeRender PlainText NonePlug where
   mimeRender Proxy NonePlug = mempty

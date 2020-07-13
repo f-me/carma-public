@@ -21,7 +21,8 @@ field has is mapped to a group of produced VinFormat accessors.
 
 module Carma.Model.VinFormat.Meta
      ( FormatFieldType (..)
-     , Sing (..)
+     , SFormatFieldType (..)
+     , Sing
      , ContractField
      , FF (..)
      , mkVinFormat
@@ -305,8 +306,8 @@ mkVinFormat formatFields =
 
     vfas = map fst fields
   in do
-    d  <- dataD (cxt []) typeName [] Nothing constructor $
-          mapM conT [''Typeable]
+    d  <- dataD (cxt []) typeName [] Nothing constructor
+      [derivClause Nothing [conT ''Typeable]]
     d' <- [d| vinFormatAccessors :: [FormatFieldAccessor $(conT typeName)]
               vinFormatAccessors = $(listE vfas) |]
     return $ d:d'

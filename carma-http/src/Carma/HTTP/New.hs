@@ -28,7 +28,6 @@ module Carma.HTTP.New
 
 where
 
-import           Data.Monoid
 import           Data.Aeson                 hiding (Result)
 import           Data.Maybe
 import           Data.HashMap.Strict        as M

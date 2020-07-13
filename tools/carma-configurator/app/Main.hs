@@ -7,7 +7,6 @@
 module Main (main) where
 
 import           Data.Proxy
-import           Data.Monoid ((<>))
 import qualified Data.Yaml as Yaml
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Lazy.Char8 as BS

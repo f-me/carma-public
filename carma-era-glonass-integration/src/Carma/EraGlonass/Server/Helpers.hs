@@ -8,17 +8,18 @@ import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 
 import           Control.Monad ((>=>))
-import           Control.Monad.Error.Class (MonadError (throwError))
-import           Control.Monad.Reader (MonadReader, ReaderT)
+import           Control.Monad.Error.Class
+import           Control.Monad.Reader (MonadReader)
 import           Control.Monad.Logger (LogSource)
 import           Control.Exception (displayException)
 
 import           Servant
 
-import           Database.Persist.Sql (SqlBackend)
-
-import           Carma.Monad.LoggerBus
-import           Carma.Monad.PersistentSql
+import           Carma.Monad.LoggerBus.Class
+import           Carma.EraGlonass.Instance.Persistent
+                   ( DBAction
+                   , MonadPersistentSql
+                   )
 import           Carma.EraGlonass.Types.AppContext (AppContext (..))
 import           Carma.EraGlonass.Instances ()
 import           Carma.EraGlonass.Helpers (runSqlInTime)
@@ -31,11 +32,11 @@ runSqlProtected
    ( MonadReader AppContext m
    , MonadLoggerBus m
    , MonadPersistentSql m
-   , MonadError ServantErr m
+   , MonadError ServerError m
    )
   => LogSource
   -> Text -- ^ Fail message
-  -> ReaderT SqlBackend m a
+  -> DBAction a
   -> m a
 
 runSqlProtected logSrc errMsg =

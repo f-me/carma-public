@@ -11,19 +11,26 @@ description:
 
 dependencies:
   - aeson
+  - attoparsec
   - base
   - bytestring
-  - fast-logger
+  - containers
   - hsyslog
   - lens
   - monad-logger
+  - mtl
   - persistent
   - qm-interpolated-string
   - swagger2
+  - snap
   - text
   - type-operators
   - unordered-containers
   - vector
+
+default-extensions:
+  - OverloadedStrings
+  - FlexibleContexts
 
 ghc-options:
   - -Wall

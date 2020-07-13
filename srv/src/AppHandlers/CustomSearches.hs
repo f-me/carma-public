@@ -33,7 +33,6 @@ module AppHandlers.CustomSearches
 
 where
 
-import           Data.Monoid
 import           Control.Monad
 import           Control.Monad.IO.Class
 
@@ -69,7 +68,6 @@ import qualified Carma.Model.ServiceStatus           as ServiceStatus
 
 import           AppHandlers.CustomSearches.Contract
 import           AppHandlers.Users
-import           AppHandlers.Util
 import           Application
 import           Utils.HttpErrors
 import           Util

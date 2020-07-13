@@ -14,10 +14,11 @@ import           BasicPrelude
 
 import           Control.Concurrent (forkIO, killThread)
 import           Control.Concurrent.STM
+import           Control.Exception (finally)
 import           Control.Monad.State.Class
-import           Data.Aeson
+import           Data.Aeson as Aeson
 import qualified Data.Set as Set
-import           Network.WebSockets
+import           Network.WebSockets as WS
 import           Network.WebSockets.Snap
 
 import           Snap
@@ -45,8 +46,11 @@ instance ToJSON   Subscription where
 
 
 instance WebSocketsData (Maybe Subscription) where
-  fromLazyByteString = decode
-  toLazyByteString   = encode
+  fromDataMessage = \case
+    WS.Text bs _ -> Aeson.decode bs
+    WS.Binary bs -> Aeson.decode bs
+  fromLazyByteString = Aeson.decode
+  toLazyByteString   = Aeson.encode
 
 
 -- | A message for clients
@@ -65,9 +69,14 @@ instance ToJSON a => ToJSON (Payload a) where
 
 
 instance (ToJSON a, FromJSON a) => WebSocketsData (Payload a) where
-  fromLazyByteString =
-    fromMaybe (error "fromLazyByteString: could not parse Payload") . decode
-  toLazyByteString   = encode
+  fromDataMessage
+    = fromMaybe (error "fromDataMessage: could not parse Payload")
+    . Aeson.decode
+    . (\case WS.Text bs _ -> bs ; WS.Binary bs -> bs)
+  fromLazyByteString
+    = fromMaybe (error "fromLazyByteString: could not parse Payload")
+    . Aeson.decode
+  toLazyByteString = Aeson.encode
 
 
 data Messenger = Messenger

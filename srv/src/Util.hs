@@ -4,13 +4,7 @@
 
 module Util
   (
-    -- * Request processing
-    readJSON
-  , readJSONfromLBS
-  , mbreadInt
-  , mbreadDouble
-  , readDouble
-
+  module Carma.Utils.Snap
     -- * String helpers
   , upCaseName
   , bToString
@@ -37,7 +31,6 @@ module Util
 
 import qualified Data.Map as Map
 import Data.Map (Map)
-import Data.Maybe
 import qualified Data.Vector as Vector
 
 import Control.Monad.IO.Class
@@ -45,24 +38,19 @@ import qualified Control.Exception as Ex
 import Control.Monad.Trans.Control (MonadBaseControl)
 import Control.Exception.Lifted
 import Control.Concurrent (myThreadId)
-import Data.Typeable
 import           Data.ByteString.Char8 (ByteString)
-import qualified Data.ByteString.Lazy  as L
 import qualified Data.ByteString.Lazy.Char8  as L8
 import qualified Data.ByteString.Char8 as B
 
 import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import qualified Data.Text.Read as T
 
 import Data.Time
 import Data.Time.Clock.POSIX
 
 import Data.Aeson as Aeson
 import qualified Data.Aeson.Types as Aeson
-import Data.Attoparsec.ByteString.Lazy (Result(..))
-import qualified Data.Attoparsec.ByteString.Lazy as Atto
 
 import Database.PostgreSQL.Simple.ToField
 import Database.PostgreSQL.Simple.ToRow
@@ -75,42 +63,7 @@ import qualified System.Posix.Syslog as Syslog
 import qualified System.Posix.Syslog.Functions as Syslog
 
 import           Foreign.C.Types (CInt)
-
-
-data JSONParseException
-  = AttoparsecError FilePath String
-  | FromJSONError FilePath String
-  deriving (Show, Typeable)
-
-instance Ex.Exception JSONParseException
-
-
-readJSON :: FromJSON v => FilePath -> IO v
-readJSON f = readJSONfromLBS' f `fmap` L.readFile f
-
-readJSONfromLBS :: FromJSON v => L.ByteString -> v
-readJSONfromLBS = readJSONfromLBS' "LBS"
-
-readJSONfromLBS' :: FromJSON v => String -> L.ByteString -> v
-readJSONfromLBS' src s
-  = case Atto.parse Aeson.json' s of
-    Done _ jsn -> case Aeson.fromJSON jsn of
-      Success t -> t
-      Error err -> Ex.throw $ FromJSONError src err
-    err -> Ex.throw $ AttoparsecError src (show err)
-
-mbreadInt :: Text -> Maybe Int
-mbreadInt s = case T.decimal s of
-  Right (i, "") -> Just i
-  _             -> Nothing
-
-mbreadDouble :: Text -> Maybe Double
-mbreadDouble s =  case T.double s of
-  Right (i,"") -> Just i
-  _            -> Nothing
-
-readDouble :: Text -> Double
-readDouble = fromMaybe 0 . mbreadDouble
+import           Carma.Utils.Snap
 
 
 -- | Convert UTF-8 encoded BS to Haskell string.

@@ -14,7 +14,6 @@ import           GHC.Generics
 import           Data.Proxy
 import           Numeric (showHex)
 import           Data.Char (digitToInt)
-import           Data.Monoid ((<>))
 import           Data.Either.Combinators (mapLeft)
 import           Data.ByteString.Char8 (ByteString, pack)
 import           Data.ByteString.Lazy.Char8 (pack)
@@ -115,7 +114,7 @@ instance ToSchema EGRequestId where
     = pure
     $ NamedSchema (Just $ typeName (Proxy :: Proxy t)) mempty
     { _schemaParamSchema = mempty
-        { _paramSchemaType    = SwaggerString
+        { _paramSchemaType    = Just SwaggerString
         , _paramSchemaFormat  = Just "UUID"
         , _paramSchemaPattern = Just [qm| ^[0-9A-Za-f]\{{allDashesParts !! 0}}
                                           -[0-9A-Za-f]\{{allDashesParts !! 1}}

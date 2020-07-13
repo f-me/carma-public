@@ -10,7 +10,7 @@ module Carma.EraGlonass.Logger.LoggerForward
      , askLoggerForward
      ) where
 
-import           Control.Monad.IO.Class (MonadIO (liftIO))
+import           Control.Monad.IO.Unlift
 import           Control.Monad.Trans.Class (MonadTrans (lift))
 import           Control.Monad.Base (MonadBase (liftBase), liftBaseDefault)
 
@@ -63,6 +63,7 @@ instance Monad m => Monad (LoggerForward m) where
       runLoggerForward (k a) mVar
   {-# INLINE (>>=) #-}
 
+instance MonadFail m => MonadFail (LoggerForward m) where
   fail = lift . fail
   {-# INLINE fail #-}
 
@@ -73,6 +74,13 @@ instance MonadTrans LoggerForward where
 instance MonadIO m => MonadIO (LoggerForward m) where
   liftIO = lift . liftIO
   {-# INLINE liftIO #-}
+
+instance MonadUnliftIO m => MonadUnliftIO (LoggerForward m) where
+  askUnliftIO
+    = LoggerForward $ \mVar ->
+      withUnliftIO $ \u ->
+        return (UnliftIO (unliftIO u . flip runLoggerForward mVar))
+  {-# INLINE askUnliftIO #-}
 
 instance MonadBase b m => MonadBase b (LoggerForward m) where
   liftBase = liftBaseDefault

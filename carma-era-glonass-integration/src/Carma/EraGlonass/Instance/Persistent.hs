@@ -1,177 +1,98 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, UndecidableInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleContexts, ConstraintKinds #-}
 {-# LANGUAGE LambdaCase #-}
 
 module Carma.EraGlonass.Instance.Persistent
-     ( TimeoutException (..)
+     ( MonadPersistentSql
+     , DBAction
+     , runSqlTimeout
+     , TimeoutException (..)
      ) where
 
 import           Data.Typeable
 import           Data.Either (isRight)
 import qualified Data.Pool as P
 
+import           Control.Monad.Except
 import           Control.Exception.Lifted
-import           Control.Monad.IO.Class (MonadIO (liftIO))
-import           Control.Monad.Reader (MonadReader, asks)
+import           Control.Monad.Reader hiding (local)
 import           Control.Monad.Trans.Control (MonadBaseControl)
+import           Control.Concurrent.Lifted
 import           Control.Concurrent.STM.TSem
 
 import           System.Timeout (timeout)
 
+import           Servant (ServerError)
 import qualified Database.Persist.Sql as DB
 
-import           Carma.Monad.STM
-import           Carma.Monad.MVar
-import           Carma.Monad.Delay
 import           Carma.Monad.Thread
-import           Carma.Monad.PersistentSql
 import           Carma.EraGlonass.Types.AppContext
                    ( AppContext (dbConnection)
                    , DBConnection (..)
                    )
 
 
-instance ( Monad m
+type MonadPersistentSql m =
+         ( Monad m
          , MonadIO m
          , MonadBaseControl IO m
          , MonadReader AppContext m
-         ) => MonadPersistentSql m
-         where
+         )
 
-  runSql m =
-    asks dbConnection >>= \case
-      DBConnectionPool x -> DB.runSqlPool m x
-      DBConnection sem x -> do
-        atomically $ waitTSem sem
-        DB.runSqlConn m x `finally` atomically (signalTSem sem)
+type DBAction a
+  = ReaderT DB.SqlBackend (ReaderT AppContext (ExceptT ServerError IO)) a
 
-  runSqlTimeout n m =
-    asks dbConnection >>= \case
-      DBConnectionPool x -> fPool x
-      DBConnection sem x -> do
-        atomically $ waitTSem sem
-        fConn x `finally` atomically (signalTSem sem)
+-- | To prevent MonadUnliftIO constraint from bubbling up,
+-- we drop to IO and then build monad stack enough to run db actions.
+liftDBA
+  :: AppContext -> DBAction a
+  -> ReaderT DB.SqlBackend IO (Either ServerError a)
+liftDBA cxt m = do
+  bk <- ask
+  liftIO $ runExceptT $ runReaderT (runReaderT m bk) cxt
 
-    where
-      timeoutException = toException $ TimeoutExceeded n
+runSqlTimeout
+  :: MonadPersistentSql m
+  => Int -> DBAction a -> m (Either SomeException a)
+runSqlTimeout n m = do
+  cxt <- ask
+  let m' = liftDBA cxt m
+  res <- liftIO $ case dbConnection cxt of
+    DBConnectionPool x -> fPool m' x
+    DBConnection sem x -> do
+      atomically $ waitTSem sem
+      fConn m' x `finally` atomically (signalTSem sem)
+  return $ res >>= \case
+    Left err -> Left $ toException err
+    Right r -> Right r
 
-      fConn conn = do
-        responseMVar <- newEmptyMVar
+  where
+    timeoutException = toException $ TimeoutExceeded n
 
-        timeoutThreadId <- fork $ do
-          delay n
-          putMVar responseMVar $ Left timeoutException
+    fConn dbAct conn = do
+      responseMVar <- newEmptyMVar
 
-        dbReqThreadId <-
-          DB.runSqlConn m conn `forkFinally` \case
-            Left  e -> putMVar responseMVar $ Left  e
-            Right x -> putMVar responseMVar $ Right x
+      timeoutThreadId <- fork $ do
+        delay n
+        putMVar responseMVar $ Left timeoutException
 
-        response <- takeMVar responseMVar
-        killThread timeoutThreadId
-        killThread dbReqThreadId
-        pure response
+      dbReqThreadId <-
+        DB.runSqlConn dbAct conn `forkFinally` \case
+          Left  e -> putMVar responseMVar $ Left  e
+          Right x -> putMVar responseMVar $ Right x
 
-      fPool connPool =
-        liftIO (timeout n $ P.takeResource connPool) >>= \case
-          Nothing -> pure $ Left timeoutException
-          Just (conn, local) ->
-            fConn conn >>= \x ->
-              x <$ if isRight x
-                      then liftIO $ P.putResource local conn
-                      else liftIO $ P.destroyResource connPool local conn
+      response <- takeMVar responseMVar
+      killThread timeoutThreadId
+      killThread dbReqThreadId
+      pure response
 
-  transactionSave = DB.transactionSave
-  transactionUndo = DB.transactionUndo
-
-
-
-  -- @PersistStoreRead@
-
-  get = DB.get
-
-  -- Additional for @PersistStoreRead@ but not part of it
-
-  getJust       = DB.getJust
-  getJustEntity = DB.getJustEntity
-  getEntity     = DB.getEntity
-  belongsTo     = DB.belongsTo
-  belongsToJust = DB.belongsToJust
-
-
-
-  -- @PersistStoreWrite@
-
-  insert           = DB.insert
-  insert_          = DB.insert_
-  insertMany       = DB.insertMany
-  insertMany_      = DB.insertMany_
-  insertEntityMany = DB.insertEntityMany
-  insertKey        = DB.insertKey
-
-  repsert = DB.repsert
-  replace = DB.replace
-
-  delete = DB.delete
-
-  update    = DB.update
-  updateGet = DB.updateGet
-
-  -- Additional for @PersistStoreWrite@ but not part of it
-
-  insertEntity = DB.insertEntity
-  insertRecord = DB.insertRecord
-
-
-
-  -- @PersistUniqueRead@
-
-  getBy = DB.getBy
-
-  -- Additional for @PersistUniqueRead@ but not part of it
-
-  getByValue  = DB.getByValue
-  checkUnique = DB.checkUnique
-
-
-
-  -- @PersistUniqueWrite@
-
-  deleteBy     = DB.deleteBy
-  insertUnique = DB.insertUnique
-  upsert       = DB.upsert
-  upsertBy     = DB.upsertBy
-
-  -- Additional for @PersistUniqueWrite@ but not part of it
-
-  insertBy           = DB.insertBy
-  insertUniqueEntity = DB.insertUniqueEntity
-  replaceUnique      = DB.replaceUnique
-  onlyUnique         = DB.onlyUnique
-
-
-
-  -- @PersistQueryRead@
-
-  -- selectSourceRes = DB.selectSourceRes
-  selectFirst = DB.selectFirst
-  -- selectKeysRes = DB.selectKeysRes
-  count = DB.count
-
-  -- Additional for @PersistQueryRead@ but not part of it
-
-  -- selectSource = DB.selectSource
-  -- selectKeys = DB.selectKeys
-  selectList = DB.selectList
-  selectKeysList = DB.selectKeysList
-
-
-
-  -- @PersistQueryWrite@
-
-  updateWhere = DB.updateWhere
-  deleteWhere = DB.deleteWhere
+    fPool dbAct connPool =
+      (timeout n $ P.takeResource connPool) >>= \case
+        Nothing -> pure $ Left timeoutException
+        Just (conn, local) ->
+          fConn dbAct conn >>= \x ->
+            x <$ if isRight x
+                    then P.putResource local conn
+                    else P.destroyResource connPool local conn
 
 
 data TimeoutException = TimeoutExceeded Int deriving (Show, Eq, Typeable)

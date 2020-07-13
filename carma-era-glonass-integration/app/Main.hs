@@ -7,12 +7,11 @@ module Main (main) where
 import           Data.Pool (Pool)
 import           Text.InterpolatedString.QM
 
-import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad.Reader
 
 import           Database.Persist.Postgresql
 
-import           Carma.Monad.LoggerBus
+import           Carma.Monad.LoggerBus.Class
 import           Carma.Model.Usermeta.Persistent (admin)
 import           Carma.EraGlonass.Types.AppContext
 import           Carma.EraGlonass.App

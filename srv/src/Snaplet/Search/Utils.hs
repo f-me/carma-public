@@ -19,16 +19,13 @@ import           Database.PostgreSQL.Simple as PG
 import           Snap.Snaplet.PostgresqlSimple (liftPG')
 
 import           Data.Model       as M
-
 import           Text.Printf
-
-import           AppHandlers.Util
-import           Util
 
 import           Snap
 import           Snaplet.Auth.PGUsers (currentUserRoles)
 import           Snaplet.Search.Types
 import           Carma.Model.Search
+import           Util (readJSONfromLBS, withLens)
 
 
 class ParamPred m where
@@ -90,7 +87,7 @@ renderOrder (Order fs ord) = printf "ORDER BY %s" $
       Desc -> "DESC"
 
 getJsonBody :: FromJSON v => SearchHandler b v
-getJsonBody = Util.readJSONfromLBS <$> readRequestBody 4096
+getJsonBody = readJSONfromLBS <$> readRequestBody 4096
 
 getLimit :: SearchHandler b Int
 getLimit
@@ -101,11 +98,6 @@ getOffset :: SearchHandler b Int
 getOffset
   = fromMaybe 0 . (>>= fmap fst . B.readInt)
   <$> getParam "offset"
-
-writeJSON :: ToJSON v => v -> Handler a b ()
-writeJSON v = do
-  modifyResponse $ setContentType "application/json"
-  writeLBS $ encode v
 
 stripResults :: StripRead t
              => SearchResult t -> SearchHandler b (SearchResult t)

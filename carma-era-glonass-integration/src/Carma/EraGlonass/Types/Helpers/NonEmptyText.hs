@@ -21,7 +21,6 @@ import           GHC.TypeLits (Nat, Symbol, KnownSymbol, type (<=))
 import           Generics.Deriving.Eq
 import           Generics.Deriving.Show
 
-import           Data.Semigroup (Semigroup ((<>)))
 import           Data.Proxy
 import           Data.Text (Text)
 import           Text.Printf (PrintfArg)

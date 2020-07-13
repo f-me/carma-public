@@ -21,7 +21,6 @@ module Application
      , geoAppInit
      ) where
 
-import           Data.Semigroup ((<>))
 import           Data.List (find)
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as VM (unsafeNew, unsafeWrite)
@@ -59,10 +58,10 @@ import           Database.PostgreSQL.Simple.SqlQQ
 import qualified Network.HTTP as H
 
 import           Snap.Core
-import           Snap.Extras
 import           Snap.Snaplet
 import           Snap.Snaplet.PostgresqlSimple
 
+import           Carma.Utils.Snap (parseMayParam)
 import           Carma.Utils.Operators
 import           Carma.Model.Types       (Coords (..))
 import           Carma.Model.LegacyTypes (PickerField (..), Phone (..))

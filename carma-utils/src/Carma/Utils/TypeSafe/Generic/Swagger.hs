@@ -340,7 +340,7 @@ typeSafeSchemaMapConstructorsAsProperties' Proxy schemaMapFn =
     f (constructor, (props, requiredProps)) =
       ( constructor
       , Inline $ schemaMapFn constructor $ mempty
-          { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+          { _schemaParamSchema = mempty { _paramSchemaType = Just SwaggerObject }
           , _schemaProperties  = fromList props
           , _schemaRequired    = fromList requiredProps
           }

@@ -56,9 +56,10 @@ instance Applicative ParseTimeResult where
   ParseTimeFail    e <*> _                  = ParseTimeFail e
   _                  <*> ParseTimeFail    e = ParseTimeFail e
 
-instance Monad ParseTimeResult where
+instance MonadFail ParseTimeResult where
   fail = ParseTimeFail
 
+instance Monad ParseTimeResult where
   ParseTimeSuccess x >>= f = f x
   ParseTimeFail    e >>= _ = ParseTimeFail e
 

@@ -40,6 +40,7 @@ Partner json sql=partnertbl
   emails Value sql=emails
   personInCharge Text Maybe sql=personincharge
   taxScheme TaxSchemeId Maybe sql=taxscheme
+  isKpiEnabled Bool sql=iskpienabled
   isPayBackConfirmed Bool sql=ispaybackconfirmed
   foreignIdent Text Maybe sql=foreignident
   mtime UTCTime sql=mtime

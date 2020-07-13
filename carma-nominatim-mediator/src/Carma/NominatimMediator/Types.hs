@@ -23,7 +23,6 @@ import           Data.Map (Map)
 import           Data.HashMap.Strict (HashMap)
 import           Data.Hashable (Hashable)
 import           Data.Aeson
-import           Data.Aeson.Types (fieldLabelModifier)
 import           Data.Time.Clock (UTCTime)
 import           Data.Time.Calendar (Day (ModifiedJulianDay), showGregorian)
 import           Data.Swagger hiding (Response)
@@ -35,7 +34,7 @@ import           Control.Exception.Base
 import           Control.Concurrent.MVar (MVar)
 
 import           Web.HttpApiData
-import           Servant.Client
+import           Servant.Client hiding (Response)
 
 import           Carma.NominatimMediator.Utils
 import           Carma.Monad.IORefWithCounter
@@ -103,7 +102,7 @@ instance FromHttpApiData Coords where
 
 instance ToParamSchema Coords where
   toParamSchema _ = mempty
-    { _paramSchemaType    = SwaggerString
+    { _paramSchemaType    = Just SwaggerString
     , _paramSchemaFormat  = Just "coordinates"
     , _paramSchemaPattern = Just [qn| ^
                                       -?[0-9]+(\.[0-9]+)?
@@ -138,7 +137,7 @@ instance ToSchema RequestType where
   declareNamedSchema _ = pure
     $ NamedSchema (Just "RequestType") mempty
     { _schemaParamSchema = mempty
-        { _paramSchemaType = SwaggerString
+        { _paramSchemaType = Just SwaggerString
         , _paramSchemaEnum =
             Just $ String . fromString . show <$> [Search, ReverseSearch]
         }
@@ -179,7 +178,7 @@ instance ToSchema RequestParams where
 
     pure
       $ NamedSchema (Just "RequestParams") mempty
-      { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+      { _schemaParamSchema = mempty { _paramSchemaType = Just SwaggerObject }
 
       , _schemaDescription = Just
           [qns| Request params, only "type" and "lang" keys will always be
@@ -196,12 +195,12 @@ instance ToSchema RequestParams where
           [ Inline $ mempty
               { _schemaProperties = [("query", queryRef)]
               , _schemaParamSchema =
-                  mempty { _paramSchemaType = SwaggerObject }
+                  mempty { _paramSchemaType = Just SwaggerObject }
               }
           , Inline $ mempty
               { _schemaProperties = [("lon", lonRef), ("lat", latRef)]
               , _schemaParamSchema =
-                  mempty { _paramSchemaType = SwaggerObject }
+                  mempty { _paramSchemaType = Just SwaggerObject }
               }
           ]
       }
@@ -254,7 +253,7 @@ instance ToSchema DebugCachedResponse where
 
     pure
       $ NamedSchema (Just "DebugCachedResponse") mempty
-      { _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+      { _schemaParamSchema = mempty { _paramSchemaType = Just SwaggerObject }
       , _schemaDiscriminator = Just "response_type"
 
       , _schemaDescription = Just
@@ -277,11 +276,13 @@ instance ToSchema DebugCachedResponse where
           = Just
           [ Inline $ mempty
               { _schemaProperties = [("response", searchByQueryResponseRef)]
-              , _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+              , _schemaParamSchema = mempty
+                   { _paramSchemaType = Just SwaggerObject }
               }
           , Inline $ mempty
               { _schemaProperties = [("response", searchByCoordsResponseRef)]
-              , _schemaParamSchema = mempty { _paramSchemaType = SwaggerObject }
+              , _schemaParamSchema = mempty
+                   { _paramSchemaType = Just SwaggerObject }
               }
           ]
       }
@@ -328,7 +329,7 @@ data AppContext
    , requestExecutorBus ::
        MVar ( RequestParams
             , ClientM Response
-            , MVar (Either ServantError (StatisticResolve, Response))
+            , MVar (Either ClientError (StatisticResolve, Response))
             )
 
      -- Collected statistics data.
@@ -429,7 +430,7 @@ instance ToJSON JulianDay where
 instance ToSchema JulianDay where
   declareNamedSchema _ = pure
     $ NamedSchema (Just "JulianDay") mempty
-    { _schemaParamSchema = mempty { _paramSchemaType = SwaggerInteger } }
+    { _schemaParamSchema = mempty { _paramSchemaType = Just SwaggerInteger } }
 
 -- Human-readable representation of day such as "1858-11-17" (yyyy-mm-dd).
 -- ISO 8601.
@@ -441,7 +442,7 @@ instance ToJSON ISODay where
 instance ToSchema ISODay where
   declareNamedSchema _ = pure
     $ NamedSchema (Just "ISODay") mempty
-    { _schemaParamSchema = mempty { _paramSchemaType = SwaggerString } }
+    { _schemaParamSchema = mempty { _paramSchemaType = Just SwaggerString } }
 
 data RequestsStatistics
    = RequestsStatistics
@@ -454,19 +455,8 @@ data RequestsStatistics
    , succeeded_real_not_added_to_cache :: Integer
    } deriving (Eq, Show, Generic, ToJSON, ToSchema)
 
-instance Monoid RequestsStatistics where
-  mempty
-    = RequestsStatistics
-    { total_requests                    = 0
-    , total_failed                      = 0
-    , total_succeeded                   = 0
-    , succeeded_taken_from_cache        = 0
-    , succeeded_real_requests           = 0
-    , succeeded_real_added_to_cache     = 0
-    , succeeded_real_not_added_to_cache = 0
-    }
-
-  mappend a b
+instance Semigroup RequestsStatistics where
+  a <> b
     = a
     { total_requests                    = f total_requests a b
     , total_failed                      = f total_failed a b
@@ -478,6 +468,18 @@ instance Monoid RequestsStatistics where
         f succeeded_real_not_added_to_cache a b
     }
     where f field = (+) `on` field
+
+instance Monoid RequestsStatistics where
+  mempty
+    = RequestsStatistics
+    { total_requests                    = 0
+    , total_failed                      = 0
+    , total_succeeded                   = 0
+    , succeeded_taken_from_cache        = 0
+    , succeeded_real_requests           = 0
+    , succeeded_real_added_to_cache     = 0
+    , succeeded_real_not_added_to_cache = 0
+    }
 
 data StatisticsByRequestType
    = StatisticsByRequestType

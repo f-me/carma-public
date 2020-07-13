@@ -10,7 +10,6 @@ import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Control.Concurrent (ThreadId, myThreadId, forkIO)
 import           Control.Concurrent.MVar
 import           Control.Concurrent.Chan
-import           Data.Monoid ((<>))
 import qualified Data.Text as S (Text, lines)
 import qualified Data.Text.Lazy as L (Text, intercalate)
 import qualified Data.Text.Lazy.Builder as B (toLazyText, fromText)

@@ -26,12 +26,10 @@ import           Carma.Model.Role as Role
 import           Snap
 import           Snap.Snaplet.PostgresqlSimple
 
-import           Snaplet.Auth.Class
 import           Snaplet.Auth.PGUsers (currentUserRoles)
 import           Snaplet.SiteConfig.Models
 import           Snaplet.SiteConfig.Config
-
-import           AppHandlers.Util
+import           Carma.Utils.Snap (withLens)
 
 q :: Query
 q = [sql|
@@ -48,8 +46,7 @@ instance ToField FilterType where
   toField Form = toField $ PT "showform"
   toField Table = toField $ PT "showtable"
 
-stripContract :: (HasPostgresAuth b (SiteConfig b))
-              => Model
+stripContract :: Model
               -> Text
               -- ^ SubProgram id.
               -> FilterType

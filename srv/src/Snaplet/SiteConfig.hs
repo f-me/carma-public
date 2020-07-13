@@ -5,7 +5,7 @@ module Snaplet.SiteConfig
   , initSiteConfig
   ) where
 
-import Control.Lens hiding (view)
+import Control.Lens (Lens')
 import Control.Monad
 import Control.Monad.State
 
@@ -33,7 +33,7 @@ import Snaplet.SiteConfig.SpecialPermissions
 import Snaplet.SiteConfig.Models
 import Snaplet.SiteConfig.Dictionaries
 
-import AppHandlers.Util
+import Util
 import Utils.HttpErrors
 
 import qualified Data.Model as Model
@@ -60,7 +60,7 @@ getModel name view =
            Nothing -> finishWithError 404 "Unknown model/view"
 
 
-serveModel :: HasPostgresAuth b (SiteConfig b) => Handler b (SiteConfig b) ()
+serveModel :: Handler b (SiteConfig b) ()
 serveModel = do
   Just name  <- getParamT "name"
   view  <- fromMaybe "" <$> getParamT "view"
@@ -124,8 +124,7 @@ constructModel mdlName program model = do
     }
 
 
-writeModel :: HasPostgresAuth b (SiteConfig b) =>
-              Model -> Handler b (SiteConfig b) ()
+writeModel :: Model -> Handler b (SiteConfig b) ()
 writeModel model
   = writeJSON
   =<< case modelName model of
@@ -229,11 +228,10 @@ serveDictionaries = do
   writeJSON $ Aeson.Object dictMap
 
 
-initSiteConfig :: HasPostgresAuth b (SiteConfig b)
-                  => FilePath
-                  -> Lens' b (Snaplet (AuthManager b))
-                  -> Lens' b (Snaplet Postgres)
-                  -> SnapletInit b (SiteConfig b)
+initSiteConfig :: FilePath
+               -> Lens' b (Snaplet (AuthManager b))
+               -> Lens' b (Snaplet Postgres)
+               -> SnapletInit b (SiteConfig b)
 initSiteConfig cfgDir a p = makeSnaplet
   "site-config" "Site configuration storage"
   Nothing $ do

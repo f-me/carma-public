@@ -12,7 +12,6 @@ import           Test.Hspec
 
 import           Data.Either
 import           Data.Char (toLower)
-import           Data.Function ((&))
 import           Data.Time.Calendar
 import           Data.Time.Clock hiding (getCurrentTime)
 import           Data.Attoparsec.ByteString.Char8 (parseOnly)

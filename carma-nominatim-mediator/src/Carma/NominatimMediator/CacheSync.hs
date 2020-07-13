@@ -17,7 +17,6 @@ import           Prelude hiding (readFile, writeFile)
 
 import qualified Data.Map as M
 import           Data.Text (Text, toLower)
-import           Data.Monoid ((<>))
 import           Text.InterpolatedString.QM
 
 import           Control.Monad
@@ -28,7 +27,7 @@ import           Control.Monad.Trans.Control (MonadBaseControl)
 
 import           Carma.NominatimMediator.Types
 import           Carma.NominatimMediator.Utils
-import           Carma.NominatimMediator.Logger ()
+import           Carma.NominatimMediator.Logger
 import           Carma.Monad
 import           Carma.Utils.Operators
 

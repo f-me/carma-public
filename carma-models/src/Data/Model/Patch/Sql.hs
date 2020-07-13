@@ -12,7 +12,6 @@ import Prelude hiding (read)
 
 import Control.Exception (try, SomeException)
 import Data.Int (Int64)
-import Data.Monoid ((<>))
 import Data.String
 import Text.Printf
 

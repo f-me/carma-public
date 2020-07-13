@@ -10,7 +10,6 @@ module Carma.EraGlonass.VinSynchronizer.SynchronizeContracts
 
 import           Prelude hiding (id)
 
-import           Data.Semigroup (Semigroup ((<>)))
 import           Text.InterpolatedString.QM
 import           Data.List.NonEmpty (NonEmpty)
 
@@ -19,15 +18,17 @@ import           Control.Monad.Trans.Class (lift)
 import           Control.Monad.Reader (MonadReader, ReaderT, asks)
 import           Control.Monad.Catch (MonadThrow (throwM))
 
-import           Database.Persist.Sql (SqlBackend)
+import           Database.Persist.Sql (SqlBackend, selectFirst, insert_, update)
 import           Database.Persist.Types (Entity (..))
 import           Database.Persist ((=.), (==.))
-import           Database.Esqueleto (Single (..))
+import           Database.Esqueleto (Single(..), unSingle)
 
 import           Carma.Monad
+import           Carma.Monad.LoggerBus.Class
 import           Carma.Model.Contract.Persistent
 import           Carma.Utils.Operators
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Instance.Persistent (MonadPersistentSql)
 import           Carma.EraGlonass.Model.EraGlonassSynchronizedContract.Persistent
 import           Carma.EraGlonass.Types.AppContext (AppContext (..))
 import           Carma.EraGlonass.Types.EGBindVehiclesRequest

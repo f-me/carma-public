@@ -2,16 +2,15 @@
 
 module Snaplet.SiteConfig.Config (SiteConfig(..)) where
 
-import           Control.Lens
+import           Control.Lens (Lens')
 
 import qualified Data.Aeson as Aeson
 
 import           Snap
 import           Snap.Snaplet.Auth
 import           Snap.Snaplet.PostgresqlSimple
-
 import           Snaplet.Auth.Class
-import           AppHandlers.Util
+import           Carma.Utils.Snap (withLens)
 
 
 data SiteConfig b = SiteConfig

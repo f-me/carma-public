@@ -17,9 +17,10 @@ import           Text.InterpolatedString.QM
 
 import           Control.Monad
 import           Control.Monad.Reader.Class (MonadReader, asks)
+import           Control.Concurrent.Lifted (takeMVar)
 
 import           Carma.NominatimMediator.Types
-import           Carma.NominatimMediator.Logger ()
+import           Carma.NominatimMediator.Logger
 import           Carma.Monad
 
 

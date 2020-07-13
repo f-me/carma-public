@@ -15,39 +15,38 @@ module Carma.EraGlonass.Helpers
 
 
 import           Data.Proxy
-import           Data.Monoid ((<>))
 import           Data.Aeson
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 
 import           Control.Monad (void)
-import           Control.Monad.Reader (MonadReader, ReaderT, asks)
+import           Control.Monad.Reader (MonadReader, asks)
 import           Control.Monad.Catch (MonadCatch (catch))
 import           Control.Monad.Trans.Class (lift)
 import           Control.Applicative ((<|>))
 import           Control.Concurrent.STM.TVar
+import           Control.Concurrent.Lifted (fork)
 
 import           Control.Exception
                    ( SomeException (SomeException)
                    , displayException
                    )
 
-import           Database.Persist ((==.), (=.))
+import           Database.Persist ((==.), (=.), selectFirst, insert, update)
 import           Database.Persist.Types (Entity (..))
-import           Database.Persist.Sql (SqlBackend, fromSqlKey)
+import           Database.Persist.Sql (fromSqlKey)
 import           Database.Persist.Types (SelectOpt (Desc))
 
 import           Servant ((:<|>) ((:<|>)))
 
-import           Carma.Monad.STM
 import           Carma.Monad.Thread
-import           Carma.Monad.LoggerBus
-import           Carma.Monad.PersistentSql
+import           Carma.Monad.LoggerBus.Class
 import           Carma.Monad.Clock
 import           Carma.Utils.Operators
 import           Carma.Utils.TypeSafe.TypeFamilies (OneOf)
 import           Carma.Utils.TypeSafe.Generic.DataType
 import           Carma.EraGlonass.Instances ()
+import           Carma.EraGlonass.Instance.Persistent
 import           Carma.EraGlonass.Model.CaseEraGlonassFailure.Persistent
 import           Carma.EraGlonass.Types.AppContext (AppContext (..))
 import           Carma.EraGlonass.Types.EGIntegrationPoint (EGIntegrationPoint)
@@ -86,7 +85,7 @@ inBackground m = do
 
 runSqlInTime
   :: (MonadReader AppContext m, MonadPersistentSql m)
-  => ReaderT SqlBackend m a
+  => DBAction a
   -> m (Either SomeException a)
 
 runSqlInTime m = asks dbRequestTimeout >>= flip runSqlTimeout m
@@ -143,7 +142,7 @@ reportToHouston body integrationPoint comment = go where
   go :: m ()
   go = void $ inBackground $ runSqlInTime transaction >>= resolve
 
-  transaction :: ReaderT SqlBackend m (Bool, CaseEraGlonassFailureId)
+  transaction :: DBAction (Bool, CaseEraGlonassFailureId)
   transaction = do
     ctime <- lift getCurrentTime
     let CaseEraGlonassFailure {..} = record ctime

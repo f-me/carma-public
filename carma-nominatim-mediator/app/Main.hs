@@ -14,7 +14,6 @@
 
 module Main (main) where
 
-import           Data.Monoid ((<>))
 import qualified Data.Configurator as Conf
 import           Data.String (fromString)
 import qualified Data.Map as M
@@ -22,12 +21,13 @@ import qualified Data.HashMap.Strict as HM
 import           Data.Aeson (toJSON)
 import           Data.Proxy
 import           Data.List (sortBy)
-import           Data.Function ((&), on)
+import           Data.Function (on)
 import           Data.Swagger (Swagger)
 import           Data.Text (Text)
 import           Text.InterpolatedString.QM
 import qualified Data.Time.Format as Time
 
+import           Control.Concurrent.Lifted
 import           Control.Monad
 import           Control.Monad.Logger (runStdoutLoggingT)
 import           Control.Monad.Reader (MonadReader, asks, ReaderT, runReaderT)
@@ -39,14 +39,14 @@ import           Control.Monad.IO.Class (MonadIO)
 import           System.Directory (makeAbsolute)
 
 import           Servant
-import           Servant.Client
+import           Servant.Client hiding (Response)
 import           Servant.Swagger (toSwagger)
 import qualified Network.Wai.Handler.Warp as Warp
 import           Network.HTTP.Client (Manager, newManager)
 import           Network.HTTP.Client.TLS (tlsManagerSettings)
 
 import           Carma.NominatimMediator.Types
-import           Carma.NominatimMediator.Logger ()
+import           Carma.NominatimMediator.Logger
 import           Carma.NominatimMediator.CacheGC
 import           Carma.NominatimMediator.CacheSync
 import           Carma.NominatimMediator.Utils
@@ -147,7 +147,7 @@ main = do
     Conf.require cfg "nominatim.gap-between-requests"
 
   !(nominatimBaseUrl :: BaseUrl) <- parseBaseUrl nominatimUrl
-  !(manager          :: Manager) <- newManager tlsManagerSettings
+  !(mgr              :: Manager) <- newManager tlsManagerSettings
 
   resCache            <- newIORefWithCounter mempty
   loggerBus'          <- newEmptyMVar
@@ -159,7 +159,7 @@ main = do
         = AppContext
         { responsesCache              = resCache
         , clientUserAgent             = nominatimUA
-        , clientEnv                   = ClientEnv manager nominatimBaseUrl
+        , clientEnv                   = ClientEnv mgr nominatimBaseUrl Nothing
         , cacheForRevSearchIsDisabled = noCacheForRevSearch
         , loggerBus                   = loggerBus'
         , requestExecutorBus          = requestExecutorBus'
@@ -167,18 +167,12 @@ main = do
         , statisticsBus               = statisticsBus'
         }
 
-      -- WARNING! Way to transform monad here is deprecated in newer Servant
-      --          version. Read about "hoistServer" from "servant-server" when
-      --          you will be migrating from lts-9.21 to newer one.
-      app
-        = serve (Proxy :: Proxy AppRoutesWithSwagger)
-        $ enter withReader appServer
-        where
-          withReader' :: ReaderT AppContext Handler a -> Handler a
-          withReader' r = runReaderT r appCtx
+      api = Proxy :: Proxy AppRoutesWithSwagger
 
-          withReader :: ReaderT AppContext Handler :~> Handler
-          withReader = NT withReader'
+      app = serve api $ hoistServer api withReader appServer
+        where
+          withReader :: ReaderT AppContext Handler a -> Handler a
+          withReader r = runReaderT r appCtx
 
       warpSettings
         = Warp.defaultSettings
@@ -187,8 +181,8 @@ main = do
 
   flip runReaderT appCtx $ do
 
-    -- Running logger thread
-    _ <- fork $ runStdoutLoggingT $ writeLoggerBusEventsToMonadLogger
+    -- Run logger thread
+    _ <- fork $ runStdoutLoggingT $ writeLoggerBusEventsToMonadLogger readLog
 
     -- Trying to fill responses cache or/and statistics with initial snapshot
     case (cacheFile, statisticsFile) of

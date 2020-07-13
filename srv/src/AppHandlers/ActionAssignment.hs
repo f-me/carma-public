@@ -33,7 +33,6 @@ import Snaplet.Auth.PGUsers
 import Application
 import AppHandlers.Backoffice
 import AppHandlers.Users
-import AppHandlers.Util
 import Util
 
 

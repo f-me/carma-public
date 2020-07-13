@@ -25,7 +25,7 @@ import Control.Monad.Trans.Class
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
 
-import Data.Aeson as A
+import Data.Aeson as A hiding (Options)
 import Data.Int
 import Data.Text as T (Text, concat, pack)
 import Database.PostgreSQL.Simple

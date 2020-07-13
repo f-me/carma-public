@@ -13,20 +13,6 @@ module.exports = {
     searchModels: [Search]
     resultModels: [Contract]
     apiUrl: "/search/contract"
-    # If full VIN and subprogram given, also search in ARC database
-    searchHook: (q) ->
-      if q.hook
-        q.hook = false
-      else
-        vin = q.searchParams().predicates.vin
-        subprogram = q.searchParams().predicates.subprogram
-        if vin?.length == 17 && subprogram?
-          arcQuery = "/arcImport/#{vin}?subprogram=#{subprogram}"
-          $.getJSON arcQuery, (res) ->
-            if res[0] > 0
-              # Prevent infinite searchHook loop
-              q.hook = true
-              q.search()
     resultTable: [ { name: 'vin',        fixed: true }
                  , { name: 'cardNumber', fixed: true }
                  , { name: 'plateNum',   fixed: true }

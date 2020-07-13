@@ -112,9 +112,8 @@ import qualified Triggers.Action.MailToDealer as BOAction (sendMailToDealer)
 import qualified Triggers.EraGlonass as EraGlonass
 import           Triggers.DSL as Dsl
 
-import           Util (Priority(..), syslogJSON, (.=))
+import           Util (Priority(..), syslogJSON, (.=), writeJSON)
 import           Data.Model.Utils.PostgreSQL.MSqlQQ hiding (parseQuery)
-import           AppHandlers.Util (writeJSON)
 
 
 vinLength :: Int
@@ -764,7 +763,7 @@ runCreateTriggers patch =
       ("" -- pass dummy field name
       : HM.keys (untypedPatch patch) -- just to run PartnerDelay tirggers
       )
-      (emptyDslState undefined patch)
+      (DslState undefined patch)
 
 
 runUpdateTriggers
@@ -776,7 +775,7 @@ runUpdateTriggers ident patch =
     <$> runTriggers beforeUpdate afterUpdate
       (getPatch >>= dbUpdate ident >> return ())
       (HM.keys $ untypedPatch patch)
-      (emptyDslState ident patch)
+      (DslState ident patch)
 
 
 runTriggers

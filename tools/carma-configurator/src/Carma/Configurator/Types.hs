@@ -9,7 +9,6 @@ module Carma.Configurator.Types
 
 import           GHC.Generics (Generic)
 
-import           Data.Monoid ((<>))
 import           Data.Text (Text)
 import           Data.Aeson
 import           Data.Aeson.Types (typeMismatch)

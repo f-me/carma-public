@@ -8,8 +8,7 @@ import qualified Data.Text as T
 
 import Data.Aeson as Aeson
 import System.EasyFile
-----------------------------------------------------------------------
-import Util (readJSON)
+import Carma.Utils.Snap (readJSON)
 
 
 loadDictionaries :: FilePath -> IO Aeson.Value
